@@ -169,6 +169,9 @@ check('sqrt $ x+y');
 
 check("(x+y)");
 
+check("a(i)");
+check("a_(i)");
+
 check("(@)");
 check("f @ x");
 check("f @ x @ y");
