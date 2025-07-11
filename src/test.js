@@ -100,7 +100,6 @@ check("{u:v, w:x}");
 check("{x:y, z:[1, 2, 3]}");
 check("{X:y Y:[1, 2, 3]}");
 check("{a: 4, b: [4, 5, 6], c: {d: 7, e: 8}}");
-check(`Entry(ID("627c9c"), Formula(Equal(Sqrt(z), Exp(Div(1,2)*Log(z)))), Variables(z), Assumptions(Element(z, SetMinus(CC, Set(0)))))`);
 
 // this math stuff is a mess because of code in AST which should be smarter
 
@@ -117,17 +116,20 @@ check("a + b");
 check("a - b");
 check("a - b + c");
 check("(a - b) + c");
+check("a - (b + c)");
 
 check("3 * 4 + 6 / 2");
 
+check('1 * 2 * 3');
+
+check('a && b && c');
+check('a || b || c');
+
+check('a && b || c && d');
+
+check(`Entry(ID("627c9c"), Formula(Equal(Sqrt(z), Exp(Div(1,2)*Log(z)))), Variables(z), Assumptions(Element(z, SetMinus(CC, Set(0)))))`);
+
 process.exit(1);
-
-
-// checkFile("input-test.svg");
-// checkFile("input-test.xhtml");
-// //TODO test full JSON file(s)
-// checkFile("input-test.json");
-
 
 check("a .b .c");
 

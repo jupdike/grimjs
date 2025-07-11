@@ -82,17 +82,36 @@
   //   }
   //   return Ast(location, "Bin", [Ast(location, "Op", [tail[1]]), head, tail[3]]);
   // }
-  let opMap = {"@": "___","*": "Mul", "/": "Div", "%": "Mod", "+": "Add", "-": "Sub", "**": "Pow", "^": "Pow", "==": "Eq", "!=": "Neq", "<": "Lt", "<=": "Lte", ">": "Gt", ">=": "Gte", "&&": "And", "||": "Or", "$": "Apply"};
+  let opMap = {
+      "@": "LApply",
+      "+": "Add",
+      "-": "Sub",
+      "*": "Mul",
+      "/": "Div",
+      "%": "Mod",
+      "**": "Pow",
+      "^": "Pow",
+      "=": "Equals",
+      "==": "Eq",
+      "!=": "Neq",
+      "<": "Lt",
+      "<=": "Lte",
+      ">": "Gt",
+      ">=": "Gte",
+      "&&": "And",
+      "||": "Or",
+      "$": "RApply"
+    };
   function leftBinaryAst(location, head, tail) {
-    //console.log('leftBinaryAst: l, h, t:', location, head, tail);
     return tail.reduce(function(result, element) {
-      return Ast(location, opMap[element[1]], [head, element[3]]);
+      return Ast(location, opMap[element[1]], [result, element[3]]);
     }, head);
   }
   function optionalPairAst(location, head, tail) {
     if(!tail) {
       return head;
     }
+    //console.log('********\nHEAD:', head, "TAIL:\n", tail);
     return Ast(location, opMap[tail[1]], [head, tail[3]]);
   }
-  module.exports = { Ast: Ast, leftBinaryAst: leftBinaryAst, optionalPairAst: optionalPairAst, cons: cons };
+  module.exports = { Ast: Ast, leftBinaryAst: leftBinaryAst, optionalPairAst: optionalPairAst, cons: cons, opMap: opMap };
