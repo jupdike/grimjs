@@ -20,8 +20,7 @@ Start = Def
 IdList
   = head:Id tail:(_ "," _ Id)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
-AssignOp = (":=")
-//  / ":=")
+AssignOp = (":=" / ":=>")
 
 Def "a let definition or a macro definition"
   = id:Id _ op:AssignOp _ body:Expression {
@@ -60,13 +59,13 @@ Def "a let definition or a macro definition"
     );
   }
 
-Expr = uno:ExprL0 _ { return uno; }
+Expr = uno:ExprLowest _ { return uno; }
 
 
 ////////////////////////////////////////
 // The small pieces
 
-Expression = uno:ExprL0 _ { return uno; }
+Expression = uno:ExprLowest _ { return uno; }
 
 DefOrId "an identifier or a definition"
   = Def
@@ -95,8 +94,11 @@ OpN4 "an infix operator" = ("==" / "=" / "!=" / "<" / "<=" / ">=" / ">")
 OpR5 "an infix operator" = ("++")
 OpL6 "an infix operator" = ("+" / "-")
 OpL7 "an infix operator" = ("*" / "/" / ".")
-OpR8 "an infix operator" = ("^" / "**")
+OpU8 "a unary - or + operator" = ("-" / "+") // unary operators
+OpR9 "an infix operator" = ("^" / "**")
 
+ExprLowest = ExprL0
+// NOPE ExprUn = _ head:OpU _ tail:ExprL0 { return Ast(location(), head === "-" ? "Neg" : "Pos", [tail]); } // unary operators: +x -x
 ExprL0 = head:ExprR0 tail:(_ OpL0 _ ExprR0)* { return leftBinaryAst(location(), head, tail); }
 ExprR0 = head:ExprL1 tail:(_ OpR0 _ ExprR0)? { return optionalPairAst(location(), head, tail); } // right-associative
 ExprL1 = head:ExprR2 tail:(_ OpL1 _ ExprR2)* { return leftBinaryAst(location(), head, tail); }
@@ -105,8 +107,10 @@ ExprR3 = head:ExprN4 tail:(_ OpR3 _ ExprR3)? { return optionalPairAst(location()
 ExprN4 = head:ExprR5 tail:(_ OpN4 _ ExprR5)? { return optionalPairAst(location(), head, tail); } // non-associative (cannot chain)
 ExprR5 = head:ExprL6 tail:(_ OpR5 _ ExprR5)? { return optionalPairAst(location(), head, tail); } // right-associative
 ExprL6 = head:ExprL7 tail:(_ OpL6 _ ExprL7)* { return leftBinaryAst(location(), head, tail); }
-ExprL7 = head:ExprR8 tail:(_ OpL7 _ ExprR8)* { return leftBinaryAst(location(), head, tail); }
-ExprR8 = head:Factor tail:(_ OpR8 _ ExprR8)? { return optionalPairAst(location(), head, tail); } // right-associative
+ExprL7 = head:ExprU8 tail:(_ OpL7 _ ExprU8)* { return leftBinaryAst(location(), head, tail); }
+ExprU8 = _ head:OpU8 tail:ExprR9 { return Ast(location(), head === "-" ? "Neg" : "Pos", [tail]); } // unary operators: +x -x
+  / ExprR9
+ExprR9 = head:Factor tail:(_ OpR9 _ ExprU8)? { return optionalPairAst(location(), head, tail); } // right-associative
 
 // is this the right precedence for method application v. whitespace?
 //ExprL9 = head:Factor tail:(_ "." _ Factor)* { return leftBinaryAst(head, tail); }
@@ -141,8 +145,9 @@ Molecule "a list, map, atom"
 ObjPair "a colon-separated key-value pair"
   = atom:Atom _ ":" _ mol:Molecule { return Ast(location(), "Pair", [atom, mol]); }
 
+// here just so we can do check() on this in test.js
 Ex "an expression"
-  = Atom
+ = Atom
 
 Atom "atom"
   = Num // TODO change this to Double

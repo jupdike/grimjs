@@ -83,6 +83,9 @@ function checkFile(file) {
 check('a');
 check('(b)');
 check('2');
+check('2+3');
+check('-2');
+check('-2-2');
 check('True');
 check("False");
 check('Undefined');
@@ -142,6 +145,9 @@ check("a ** b ** c");
 check("a ++ b ++ c");
 
 check("X ^ (0-b) + 2*X + 1");
+check("X ^ (-b) + 2*X + 1");
+check("X ^ -b + 2*X + 1");
+check("X ^-b + 2*X + 1");
 
 check("a + 5 > b - 6");
 check("a == b");
@@ -184,17 +190,28 @@ check("a = b");
 check("f");
 check("f()");
 
-// TODO positive and negative unary operators
-//check("-a");
-//check("+a");
-
 // check("a != b == c"); // TODO shouldFail
 
+check("f @ 2 + 3");
+check("f @ g @ h");
 
 // TODO decide on swizzle operator
 // check("a.b().c()");  //   --> c(b(a)) ... ?
 // check("a b . c d");
 // check("a(b).c(d)");
+
+// positive and negative unary operators
+check("-a");
+check("+a");
+
+check("-x + 2");
+check("f(-x + 2)");
+check("f(+x + 2)");
+check("-x^2 * 4");
+
+check("-x^2 + 4");
+
+check("-2**3");  // should be -8
 
 process.exit(1);
 
