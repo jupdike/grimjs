@@ -171,7 +171,6 @@ check("(+)");
 
 check("2 * x^2 + f(x, y)");
 
-
 check("f(g)");
 check("f(g,h)");
 
@@ -182,11 +181,14 @@ check("f(add, 0, x)");
 
 check("a = b");
 
-process.exit(1);
+check("f");
+check("f()");
 
 // TODO positive and negative unary operators
-check("f"); // TODO fails weirdly
-check("f()"); // TODO fails weirdly
+//check("-a");
+//check("+a");
+
+// check("a != b == c"); // TODO shouldFail
 
 
 // TODO decide on swizzle operator
@@ -194,7 +196,7 @@ check("f()"); // TODO fails weirdly
 // check("a b . c d");
 // check("a(b).c(d)");
 
-// should fail --> check("a != b == c");
+process.exit(1);
 
 
 // these are const/let statements

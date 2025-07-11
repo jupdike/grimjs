@@ -3,7 +3,7 @@
       throw "expected location to be non-null, non-undefined";
     }
     if(typeof(tag) !== typeof("")) {
-      console.error(':-( tag:', tag);
+      console.error('========\n:-( \ntag:', tag);
       throw "expected tag to be a string, but found: " + tag;
     }
     this.location = location;

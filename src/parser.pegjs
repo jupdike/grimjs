@@ -115,7 +115,7 @@ ArgList
   = head:Expression tail:(_ "," _ Expression)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
 FuncApply
-  = head:Molecule _ "(" _ ")" { return Ast(location(), head, []); }
+  = head:Molecule _ "(" _ ")" { return Ast(location(), "@", [head]); }
   // / head:Molecule _ "(" _ arg:Expression _ ")" { return Ast(location(), "Bin", [Ast(location(), "Op", ["@"]), head, arg]); }
   // to prevent a scenario like    print f(g)    <-- is this print(f(g)) or (print(f)) (g) ?
   / head:Molecule _ "(" _ items:ArgList _ ")" {
