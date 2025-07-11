@@ -71,17 +71,6 @@
   function cons(x,xs) {
     return [x].concat(xs);
   }
-  // function leftBinaryAst(location, head, tail) {
-  //   return tail.reduce(function(result, element) {
-  //     return Ast(location, "Bin", [Ast(location, "Op", [element[1]]), result, element[3]]);
-  //   }, head);
-  // }
-  // function optionalPairAst(location, head, tail) {
-  //   if(!tail) {
-  //     return head;
-  //   }
-  //   return Ast(location, "Bin", [Ast(location, "Op", [tail[1]]), head, tail[3]]);
-  // }
   let opMap = {
       "+": "Add",
       "-": "Sub",

@@ -116,14 +116,9 @@ ArgList
 
 FuncApply
   = head:Molecule _ "(" _ ")" { return Ast(location(), "@", [head]); }
-  // / head:Molecule _ "(" _ arg:Expression _ ")" { return Ast(location(), "Bin", [Ast(location(), "Op", ["@"]), head, arg]); }
   // to prevent a scenario like    print f(g)    <-- is this print(f(g)) or (print(f)) (g) ?
   / head:Molecule _ "(" _ items:ArgList _ ")" {
-    //console.log('FuncApply:', head, items);
-    //var lst = [Ast(location(), "@", []), cons(head, items);
-    //console.log('lst:', lst);
     return Ast(location(), "@", cons(head, items));
-    //return Ast(location(), head, []);
   }
   // / head:Molecule _ items:(ExprR8 _)+
   //    { return Ast(location(), "Bin", [head].concat([Ast(location(), "Op", ["_"])]).concat(items.map(function(x) { return x[0]; }))); }
