@@ -93,7 +93,7 @@ check('[a,b]');
 check("True");
 check('"str"');
 check("'str'");
-check("a:b"); // TODO shouldFail
+//check("a:b"); // TODO shouldFail   -- could use a :: b as in Lean, for cons. Or a:b as in Haskell, for cons
 check("{}");
 check("{a:b}");
 check("{u:v, w:x}");
@@ -129,36 +129,30 @@ check('a && b || c && d');
 
 check(`Entry(ID("627c9c"), Formula(Equal(Sqrt(z), Exp(Div(1,2)*Log(z)))), Variables(z), Assumptions(Element(z, SetMinus(CC, Set(0)))))`);
 
-process.exit(1);
-
-check("a .b .c");
-
 check("X^2 + 2*X + 1");
 check("a * X ^ 2 + b*X + 1");
 
 check("a^b^c");
 
-// ? check("X ^ (0-b) + 2*X + 1");
+check("a ** b");
+check("a ** b ** c");
+
+//check("a < b < c");  // fails, but could be parsed as (a < b) < c ==> Less(a, b, c)
 
 check("a ++ b ++ c");
 
+check("X ^ (0-b) + 2*X + 1");
+
 check("a + 5 > b - 6");
 check("a == b");
-
-// should fail --> check("a != b == c");
 
 check("a + b < 4 && c > d && e == f");
 
 check("a && b || c && d || e && f");
 
-check("a ? b ? c");
+check("a ? b ? c");  // ? should fail ?
 check("a ? b $ c");
 check("a $ b $ c");
-
-//check("print f(g)"); // should fail
-
-check("print 'happy!'");
-check("print 'happy!' 'birthday!'");
 
 check('sin(x) != cos(x)');
 
@@ -167,29 +161,50 @@ check('sqrt(x+y)');
 
 check('sqrt $ x+y');
 
-check("(+)");
 check("(x+y)");
 
 check("(@)");
-check("(_)");
 check("f @ x");
 check("f @ x @ y");
 
-check("2 x^2 + f(x, y)");
+check("(+)");
 
-check("a b . c d");
-check("a(b).c(d)");
+check("2 * x^2 + f(x, y)");
+
+
+check("f(g)");
+check("f(g,h)");
+
+check("f(x, y, z)");
+check("f(0, 1, 2)");
+
+check("f(add, 0, x)");
+
+check("a = b");
+
+process.exit(1);
+
+// TODO positive and negative unary operators
+check("f"); // TODO fails weirdly
+check("f()"); // TODO fails weirdly
+
+
+// TODO decide on swizzle operator
+// check("a.b().c()");  //   --> c(b(a)) ... ?
+// check("a b . c d");
+// check("a(b).c(d)");
+
+// should fail --> check("a != b == c");
+
 
 // these are const/let statements
-checkDef("x = y");
-checkDef("x = y + z");
-checkDef("add = (+)");
-
-checkDef("f() = g"); // how to define a function with no arguments
-checkDef("f(x) = x + 1");
-checkDef("f(x,y) = x + y");
-
-checkDef("f x y = x + y");
+checkDef("x := y");
+checkDef("x := y + z");
+checkDef("add := (+)");
+checkDef("f() := g"); // how to define a function with no arguments
+checkDef("f(x) := x + 1");
+checkDef("f(x,y) := x + y");
+checkDef("f x y := x + y");
 
 check("x => x");
 check("(x) => x");
@@ -197,33 +212,30 @@ check("(x,y) => x + y");
 
 check("(x = 4, z = 5, y) => x + y + z");
 
-checkDef("f = (x,y) => x + y");
+checkDef("f := (x,y) => x + y");
 
-checkDef("f = (x, y, z) => g * x + f(y)");
-checkDef("f = (x, y, f(g) = g^x + y) => f(4 * x)");
+checkDef("f := (x, y, z) => g * x + f(y)");
+checkDef("f := (x, y, f(g) = g^x + y) => f(4 * x)");
 
-check("f");
-check("f()");
-check("f(g)");
-check("f(g,h)");
-check("f g");
-check("f (g h)");
+checkDef("sum := f(x, y, z)");
+checkDef("sum x := f(x, y, z)");
 
-check("f(x, y, z)");
-check("f(0, 1, 2)");
+checkDef("sum x := f((+), zero, x)");
+checkDef("sum x := f((+), 0, x)");
 
-check("f(add, 0, x)");
-
-checkDef("sum = f(x, y, z)");
-checkDef("sum x = f(x, y, z)");
-
-checkDef("sum x = f((+), zero, x)");
-checkDef("sum x = f((+), 0, x)");
-
-//checkDef("sum x = foldr (+) 0 x"); // should fail, but should also have better error message ...
+//checkDef("sum x := foldr (+) 0 x"); // should fail, but should also have better error message ...
 // :-(
 
 checkDef("f(g) = g^x + y");
+
+check("a -> expr");
+check("[a] -> expr");
+check("[Tag a] -> expr");
+
+checkMatch("a");
+checkMatch("[a b]");
+checkMatch("[Tag a b]");
+checkMatch("{k1: v1, k2: v2}");
 
 //--------------------------------
 checkDef("sum := f(x, y, z)");
@@ -234,15 +246,6 @@ checkDef("sum x := f((+), 0, x)");
 
 checkDef("f(g) := g^x + y");
 
-checkDef("a + b = prim_add a b");
+checkDef("a + b := prim_add a b");
 
 checkDef("a || b := prim_or a b");
-
-check("a -> expr");
-check("[a] -> expr");
-check("[Tag a] -> expr");
-
-checkMatch("a");
-checkMatch("[a b]");
-checkMatch("[Tag a b]");
-checkMatch("{k1: v1, k2: v2}");

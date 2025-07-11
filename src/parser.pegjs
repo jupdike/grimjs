@@ -20,7 +20,8 @@ Start = Def
 IdList
   = head:Id tail:(_ "," _ Id)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
-AssignOp = ("=" / ":=")
+AssignOp = (":=")
+//  / ":=")
 
 Def "a let definition or a macro definition"
   = id:Id _ op:AssignOp _ body:Expression {
@@ -82,7 +83,7 @@ Lambda "a lambda expression (anonymous function)"
 // TODO keep this up to date when new operators are added below (plus keep _ and @)
 Op "an infix operator"
   = o:("_" / "@" /
-       "$" / "?" / "||" / "&&" / "==" / "!=" / "<" / "<=" / ">=" / ">" / "++" / "+" / "-" / "*" / "/" / "^" / ".")
+       "$" / "?" / "||" / "&&" / "==" / "=" / "!=" / "<" / "<=" / ">=" / ">" / "++" / "+" / "-" / "*" / "/" / "^" / ".")
   { return Ast(location(), "Tag", [opMap[o]]); }
 
 OpL0 "an infix operator" = ("@")
@@ -90,11 +91,11 @@ OpR0 "an infix operator" = ("$")
 OpL1 "an infix operator" = ("?")
 OpR2 "an infix operator" = ("||")
 OpR3 "an infix operator" = ("&&")
-OpN4 "an infix operator" = ("==" / "!=" / "<" / "<=" / ">=" / ">")
+OpN4 "an infix operator" = ("=" / "==" / "!=" / "<" / "<=" / ">=" / ">")
 OpR5 "an infix operator" = ("++")
 OpL6 "an infix operator" = ("+" / "-")
 OpL7 "an infix operator" = ("*" / "/" / ".")
-OpR8 "an infix operator" = ("^")
+OpR8 "an infix operator" = ("^" / "**")
 
 ExprL0 = head:ExprR0 tail:(_ OpL0 _ ExprR0)* { return leftBinaryAst(location(), head, tail); }
 ExprR0 = head:ExprL1 tail:(_ OpR0 _ ExprR0)? { return optionalPairAst(location(), head, tail); } // right-associative

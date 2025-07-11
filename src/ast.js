@@ -83,7 +83,6 @@
   //   return Ast(location, "Bin", [Ast(location, "Op", [tail[1]]), head, tail[3]]);
   // }
   let opMap = {
-      "@": "LApply",
       "+": "Add",
       "-": "Sub",
       "*": "Mul",
@@ -93,13 +92,16 @@
       "^": "Pow",
       "=": "Equals",
       "==": "Eq",
-      "!=": "Neq",
+      "!=": "NotEq",
       "<": "Lt",
       "<=": "Lte",
       ">": "Gt",
       ">=": "Gte",
       "&&": "And",
       "||": "Or",
+      "++": "Concat",
+      "?": "If2",
+      "@": "LApply",
       "$": "RApply"
     };
   function leftBinaryAst(location, head, tail) {
