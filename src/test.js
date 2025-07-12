@@ -9,16 +9,18 @@ function locToStr(loc) {
   return `line ${loc.start.line} col ${loc.start.column} to line ${loc.end.line} col ${loc.end.column}`;
 }
 
-function check(str, start) {
+function check(str, start, onlyErrors) {
   start = start || "Expr";
   try {
     var ret = parser.parse(str, {startRule: start});
-    console.log('---');
-    console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
+    if (!onlyErrors) {
+      console.log('---');
+      console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
+    }
   } catch (e) {
     console.log('---');
     //console.log("Error", [e.message]);
-    console.log(str, '  ~~ parses as ~~>\n  ', `Error('${e.message}', '${locToStr(e.location)}')` );
+    console.log(str, '  ~~ EXCEPTION THROWN as ~~>\n  ', `Error('${e.message}', '${locToStr(e.location)}')` );
   }
 }
 function checkDef(str) {
@@ -32,6 +34,16 @@ function checkFile(file) {
   str = str + '';
   //console.log(str);
   check(str);  
+}
+
+function checkFileExprs(file) {
+  var str = fs.readFileSync(file);
+  str = str + '';
+  let all = str.split('\n\n');
+  //console.log(str);
+  all.forEach(function(s) {
+    check(s, "Expr", true); // onlyErrors: true
+  });
 }
 
 /*
@@ -79,6 +91,11 @@ function checkFile(file) {
 // check('<?xml version="1.0" encoding="UTF-8" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><tag/>');
 
 //Entry(ID("627c9c"), Formula(Equal(Sqrt(z), Exp(Div(1,2)*Log(z)))), Variables(z), Assumptions(Element(z, SetMinus(CC, Set(0)))))
+
+checkFileExprs('test-formulas.grim');
+
+process.exit(1);
+
 
 check('a');
 check('(b)');

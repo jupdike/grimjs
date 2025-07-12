@@ -121,9 +121,9 @@ ArgList
 FuncApply
   = head:Molecule _ "(" _ ")" { return Ast(location(), "@", [head]); }
   // to prevent a scenario like    print f(g)    <-- is this print(f(g)) or (print(f)) (g) ?
-  / head:Molecule _ "(" _ items:ArgList _ ")" {
-    return Ast(location(), "@", cons(head, items));
-  }
+  / head:Molecule _ "(" _ items:ArgList _ ")" { return Ast(location(), "@", cons(head, items));}
+  // allow trailing comma
+  / head:Molecule _ "(" _ items:ArgList _ "," _ ")" { return Ast(location(), "@", cons(head, items));}
   // / head:Molecule _ items:(ExprR8 _)+
   //    { return Ast(location(), "Bin", [head].concat([Ast(location(), "Op", ["_"])]).concat(items.map(function(x) { return x[0]; }))); }
   // also, make whitespace function app or multiply have lower precedence than exponentiation
