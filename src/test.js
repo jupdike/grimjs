@@ -41,9 +41,13 @@ function checkFileExprs(file) {
   str = str + '';
   let all = str.split('\n\n');
   //console.log(str);
-  all.forEach(function(s) {
+  for (let s of all) {
+    s = s.trim();
+    if (s === '---') {
+      break;
+    }
     check(s, "Expr", true); // onlyErrors: true
-  });
+  }
 }
 
 /*

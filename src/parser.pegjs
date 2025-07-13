@@ -137,7 +137,7 @@ Factor "a function application, a parenthesized expression, a lambda, or a list,
 
 Molecule "a list, map, atom"
   = //"[" items:(_ Molecule _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) }
-    "[" items:(_ Molecule _ ","? _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) }
+    "[" items:(_ ExprLowest _ ","? _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) }
     /// "{" pairs:(_ ObjPair _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) }
   / "{" pairs:(_ ObjPair _ ","? _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) } // this will be different once Colloids exist
   / Atom
@@ -159,8 +159,9 @@ String "a string"
   = '"' chars:[^\"]* '"' { return Ast(location(), 'Str', [chars.join('')]); } // TODO allow escaping with backslashes
   / "'" chars:[^\']* "'" { return Ast(location(), 'Str', [chars.join('')]); } // TODO allow escaping with backslashes
 
+// TODO remove leading underscore from Ids
 Id "an identifier"
-  = [a-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
+  = [_]?[a-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
 
 Tag "a tag"
   = [A-Z][a-zA-Z0-9_]* { return Ast(location(), 'Tag', [text()]); }
