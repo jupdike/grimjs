@@ -156,11 +156,17 @@ Atom "atom"
   / Id
   / Tag
 
-String "a string"
-  = '"' chars:[^\"]* '"' { return Ast(location(), 'Str', [chars.join('')]); } // TODO allow escaping with backslashes
-  / "'" chars:[^\']* "'" { return Ast(location(), 'Str', [chars.join('')]); } // TODO allow escaping with backslashes
+EscapeChar "an escaped character"
+  = "\\" ([nrt\\"'] / [0-7]{1,3} / [xX][0-9a-fA-F]+)
 
-// TODO remove leading underscore from Ids
+String "a string"
+  = '"' chars:([^\\"\n\r] / EscapeChar)* '"' {
+    return Ast(location(), 'Str', [chars.join('')]);
+  }
+  / "'" chars:([^\\'\n\r] / EscapeChar)* "'" {
+    return Ast(location(), 'Str', [chars.join('')]);
+  }
+
 Id "an identifier"
   = [_]?[a-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
 
