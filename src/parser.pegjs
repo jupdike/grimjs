@@ -168,7 +168,9 @@ String "a string"
   }
 
 Id "an identifier"
-  = [_]?[a-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
+  = [a-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
+  // TODO remove leading underscore from Ids
+  / [_][A-Za-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
 
 Tag "a tag"
   = [A-Z][a-zA-Z0-9_]* { return Ast(location(), 'Tag', [text()]); }
