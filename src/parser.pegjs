@@ -61,6 +61,9 @@ Def "a let definition or a macro definition"
 
 Expr = uno:ExprLowest _ { return uno; }
 
+Expressions = head:Expression tail:(_ Expression)* {
+  return [head].concat(tail.map(function(x) { return x[1]; }));
+}
 
 ////////////////////////////////////////
 // The small pieces
