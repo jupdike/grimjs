@@ -99,7 +99,7 @@ function checkFileExprs(file) {
 
 //Entry(ID("627c9c"), Formula(Equal(Sqrt(z), Exp(Div(1,2)*Log(z)))), Variables(z), Assumptions(Element(z, SetMinus(CC, Set(0)))))
 
-checkFileExprs('test-formulas.grim');
+checkFileExprs('test-parse-formulas.grim');
 
 process.exit(1);
 
