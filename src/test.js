@@ -43,6 +43,9 @@ function checkFileExprs(file) {
   //console.log(str);
   for (let s of all) {
     s = s.trim();
+    if (s === '') {
+      continue;
+    }
     if (s === '---') {
       break;
     }
