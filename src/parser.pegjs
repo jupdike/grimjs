@@ -138,8 +138,9 @@ Factor "a function application, a parenthesized expression, a lambda, or a list,
 Molecule "a list, map, atom"
   = //"[" items:(_ Molecule _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) }
     "[" items:(_ ExprLowest _ ","? _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) }
+  / "(" items:(_ ExprLowest _ ","? _)* ")" { return Ast(location(), 'Tuple', items.map(function(x) { return x[1]; })) }
     /// "{" pairs:(_ ObjPair _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) }
-  / "{" pairs:(_ ObjPair _ ","? _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) } // this will be different once Colloids exist
+  / "{" pairs:(_ ObjPair _ ","? _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) }
   / Atom
 
 ObjPair "a colon-separated key-value pair"
