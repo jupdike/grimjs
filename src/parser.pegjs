@@ -160,7 +160,17 @@ Atom "atom"
   / Tag
 
 EscapeChar "an escaped character"
-  = "\\" ([nrt\\"'] / [0-7]{1,3} / [xX][0-9a-fA-F]+)
+  = "\\" ([nrt\\"'] / [0-7]{1,3} / [xX][0-9a-fA-F]+) {
+    if (text() === '\\n') return '\n';
+    if (text() === '\\r') return '\r';
+    if (text() === '\\t') return '\t';
+    // TODO handle unicode escapes
+    // TODO handle octal escapes
+    // TODO handle hex escapes
+    // TODO handle unicode escapes
+    // TODO handle other escape sequences
+    return text().substring(1); // remove the leading backslash
+  }
 
 String "a string"
   = '"' chars:([^\\"\n\r] / EscapeChar)* '"' {

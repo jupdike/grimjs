@@ -18,6 +18,14 @@
   function strEscape(x) {
     return x.replace(/\\/g, '\\\\').replace(/"/g, '\\\"').replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r');
   }
+  function strOf(x) {
+    // use single quotes sometimes and don't escape double quotes in that case
+    if(x.indexOf('"') >= 0) {
+      return "'" + strEscape(x).replace(/[\\]"/g, '"') + "'";
+    }
+    // just use double quotes by default normally
+    return '"' + strEscape(x) + '"'; // use double quotes
+  }
   function arrayToString(arr) {
     var that = this;
     return arr.map(function(x) {
@@ -26,7 +34,7 @@
         }
         // strings should be quoted!
         if (typeof(x) === typeof("")) {
-          return '"' + strEscape(x) + '"';
+          return strOf(x);
         } else if (typeof(x) === typeof(1.0)) { // numbers
           return '' + x;
         } else if (typeof(x) === typeof(1)) { // numbers again ...
@@ -52,7 +60,7 @@
       return this.children[0].toString() + '(' + kidStr + ')';
     }
     if (this.tag === "Str" && this.children.length >= 1) {
-      return '"' + strEscape(this.children[0]) + '"'; // just return the string printed as a string literal
+      return strOf(this.children[0]); // return the string value, quoted and escaped
     }
     if ((this.tag === "Id" || this.tag === "Tag" || this.tag === "Num")
       && this.children.length >= 1) {

@@ -36,7 +36,7 @@ function checkFile(file) {
   check(str);  
 }
 
-function checkFileExprs(file) {
+function checkFileExprs(file, showAll) {
   var str = fs.readFileSync(file);
   str = str + '';
   let all = str.split('\n\n');
@@ -49,7 +49,7 @@ function checkFileExprs(file) {
     if (s === '---') {
       break;
     }
-    check(s, "Expr", true); // onlyErrors: true
+    check(s, "Expr", !showAll); // onlyErrors: true when !showAll
   }
 }
 
@@ -99,18 +99,19 @@ function checkFileExprs(file) {
 
 //Entry(ID("627c9c"), Formula(Equal(Sqrt(z), Exp(Div(1,2)*Log(z)))), Variables(z), Assumptions(Element(z, SetMinus(CC, Set(0)))))
 
-checkFileExprs('test-parse-formulas.grim');
+// WORKS!
+//checkFileExprs('test-parse-formulas.grim');
 
-process.exit(1);
-
-check('"my string \'yo\' again"')
-check("'my string \"yo\" again'")
-// this is a headache
-check('"my string \\\'yo\\\' again"')
-check("'my string \\\"yo\\\" again'")
+checkFileExprs('test-parse-escstr.grim', true);
+// check('"my string \'yo\' again"')
+// check("'my string \"yo\" again'")
+// // this is a headache
+// check('"my string \\\'yo\\\' again"')
+// check("'my string \\\"yo\\\" again'")
 
 //check('["The identifier", X, "can be specified as an integer (e.g. 55) or a text (e.g. \"A000055\")"]')
 
+process.exit(1);
 
 check('a');
 check('(b)');

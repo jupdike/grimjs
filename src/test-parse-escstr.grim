@@ -1,0 +1,17 @@
+"my string 'yo' again"
+
+'my string "yo" again'
+
+"my string \'yo\' again"
+
+"my string \"yo\" again"
+
+'my string \'yo\' again'
+
+'my string \"yo\" again'
+
+'one \n'
+
+'two \\'
+
+'three \\n\\n'
