@@ -98,6 +98,7 @@
       "||": "Or",
       "++": "Concat",
       "?": "If2",
+      "!!": "Index", // ? and TODO add this to the parser
       "@": "LApply",
       "$": "RApply"
     };

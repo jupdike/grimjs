@@ -154,7 +154,7 @@ Ex "an expression"
  = Atom
 
 Atom "atom"
-  = Num // TODO change this to Double
+  = Natural
   / String
   / Id
   / Tag
@@ -188,9 +188,9 @@ Id "an identifier"
 Tag "a tag"
   = [A-Z][a-zA-Z0-9_]* { return Ast(location(), 'Tag', [text()]); }
 
-Num "a number"
-  //= [0-9]+ { return Ast(location(), 'Num', [text()]); } // parseInt(text(), 10)
-  = [0-9]+ { return Ast(location(), 'Num', [parseInt(text(), 10)]); }
+Natural "a natural number"
+  //= [0-9]+ { return Ast(location(), 'Num', [parseInt(text(), 10)]); }
+  = [0-9]+ { return Ast(location(), 'Natural', [text()]); }
   // TODO support floats in various formats
   // TODO support scientific notation
   // TODO support different bases
