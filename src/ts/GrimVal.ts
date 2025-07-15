@@ -18,6 +18,12 @@ interface AstJson {
     children: Array<AstJson | string>;
 }
 
+function locToStr(loc) {
+  if(!loc) {
+    return "unknown location";
+  }
+  return `line ${loc.start.line} col ${loc.start.column} to line ${loc.end.line} col ${loc.end.column}`;
+}
 function strEscape(str: string): string {
     // Escapes backslashes and double quotes
     return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -102,73 +108,6 @@ class GrimVal {
     }
 }
 
-// TODO
-class GrimAst extends GrimVal {
-    constructor(private ast: AstJson | string) {
-        super();
-        if (typeof ast === "string") {
-            this.tag = "Str";
-            this.location = { start: { line: 0, column: 0 }, end: { line: 0, column: 0 } };
-            this.children = [ast]; // assuming ast is a string
-            return;
-        }
-        this.tag = ast.tag;
-        this.location = ast.location;
-        // console.log("GrimAst constructor called with ast:", JSON.stringify(ast, null, 2));
-        // console.log("GrimAst constructor called with ast.children:", ast.children);
-        this.children = ast.children.map((child) => {
-            if (typeof(child) === typeof("")) {
-                //@ts-ignore
-                return ""+child; // checked that a child is a string
-            }
-            return new GrimAst(child);
-        });
-    }
-    tag: string;
-    location: Location;
-    children: Array<GrimVal | string>;
-
-    // TODO think about this
-    isAtom(): boolean {
-        throw new Error("isAtom() not implemented for GrimAst");
-    }
-    // TODO test this
-    toString(): string {
-        return `GrimAst(${this.tag}, ${locToStr(this.location)}, [${this.children.map(arg => arg.toString()).join(', ')}])`;
-    }
-
-    head(): string { return this.tag; }
-}
-
-class GrimInt extends GrimVal {
-    constructor(private value: number) {
-        super();
-    }
-
-    toString(): string {
-        return this.value.toString();
-    }
-
-    isAtom(): boolean {
-        return true;
-    }
-
-    head(): string {
-        return "Integer";
-    }
-}
-
-class GrimStr extends GrimVal {
-    // TODO use strOf from ast.js
-    constructor(private value: string) {
-        super();
-    }
-
-    toString(): string {
-        return strOf(this.value);
-    }
-}
-
 // class GrimTag extends GrimVal {
 //     constructor(private value: string) {
 //         super();
@@ -187,105 +126,4 @@ class GrimStr extends GrimVal {
 //     }
 // }
 
-class GrimBool extends GrimVal {
-    static True = new GrimBool();
-    static False = new GrimBool(false);
-
-    private value: boolean;
-
-    public constructor(value: boolean = true) {
-        super();
-        this.value = value;
-    }
-
-    toString(): string {
-        return this.value ? 'True' : 'False';
-    }
-
-    isTrue() : boolean { return this.value;  }
-    isFalse(): boolean { return !this.value; }
-
-    static Eq(a: GrimBool, b: GrimBool): GrimBool {
-        return new GrimBool(a.isTrue() === b.isTrue());
-    }
-}
-
-console.log('GrimVal module loaded');
-
-function locToStr(loc) {
-  if(!loc) {
-    return "unknown location";
-  }
-  return `line ${loc.start.line} col ${loc.start.column} to line ${loc.end.line} col ${loc.end.column}`;
-}
-function check(str: string, start: string | null = null, onlyErrors = false): AstJson {
-    start = start || "Expr";
-    try {
-        var ret = parser.parse(str, {startRule: start});
-        if (!onlyErrors) {
-        console.log('---');
-        console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
-        }
-        return ret;
-    } catch (e) {
-        console.log('---');
-        //console.log("Error", [e.message]);
-        console.log(str, '  ~~ EXCEPTION THROWN as ~~>\n  ', `Error('${e.message}', '${locToStr(e.location)}')` );
-        return Ast( e.location || 'unknown', "Error", [e.message] );
-    }
-}
-
-function addMakers() {
-    GrimVal.makerMap.set("Tag", (children: Array<AstJson | string>) => {
-        //console.log('Parsed AST JSON ***:', JSON.stringify(ast, null, 2));
-        if(children && children.length == 1 && children[0] === "True") {
-            return GrimBool.True;
-        }
-        if(children && children.length == 1 && children[0] === "False") {
-            return GrimBool.False;
-        }
-        // if(ast.args && ast.args.length == 1) {
-        //     return new GrimTag(ast.args[0]); // assuming args[0] is a string
-        // }
-        return new GrimAst("NADA");
-    });
-    GrimVal.makerMap.set("Bool", (children: Array<AstJson | string>) => {
-        // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
-        if (children[0] === "True") {
-            return GrimBool.True;
-        }
-        if (children[0] === "False") {
-            return GrimBool.False;
-        }
-        if (children.length === 1 && typeof children[0] === "string") {
-            // console.log('Parsed AST JSON <> <> *** <> <>:', JSON.stringify(children, null, 2));
-            // If it's a string, we can assume it's a boolean value
-            return new GrimBool(children[0] === "True");
-        }
-        if (children.length === 1 && typeof children[0] === "object"
-            && children[0].tag === "Str" && children[0].children
-            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
-            // console.log('Parsed AST JSON <> <> *** <> <>:', JSON.stringify(children, null, 2));
-            // If it's a string, we can assume it's a boolean value
-            return new GrimBool(children[0].children[0] === "True");
-        }
-        return new GrimAst("NOPE");
-    });
-}
-addMakers();
-
-function analyzeOne(str: string) {
-    let ast = check(str);
-    //console.log('Parsed AST JSON    :', JSON.stringify(ast, null, 2));
-    console.log('Parsed AST toString:', ast.toString());
-    // TODO work on this
-    let val = GrimVal.fromAst(ast);
-    console.log('GrimVal from AST   :', val.toString());
-}
-
-analyzeOne("True");
-analyzeOne("False");
-analyzeOne('Bool("True")');
-analyzeOne('Bool("False")');
-
-export { GrimVal, GrimAst, GrimInt, GrimStr, GrimBool };
+export { Location, AstJson, GrimVal, locToStr, strOf };
