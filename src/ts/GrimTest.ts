@@ -28,89 +28,9 @@ function addMakers() {
     GrimVal.makerMap.set("Error", GrimError.maker);
 
     // Collection types, from Immutable.js
-    GrimVal.makerMap.set("List", (children: Array<AstJson | string>) => {
-        //console.log('LIST: Parsed AST JSON >>>***:', JSON.stringify(children, null, 2));
-        return new GrimList(children.map(child => {
-            if (typeof child === "string") {
-                return new GrimStr(child);
-            }
-            // is this even necessary?
-            if (typeof child === "object" && child.tag === "Str" && child.children &&
-                child.children.length === 1 && typeof child.children[0] === "string") {
-                return new GrimStr(child.children[0]);
-            }
-            // handle other types
-            return GrimVal.fromAst(child);
-        }));
-    });
-    GrimVal.makerMap.set("Tuple", (children: Array<AstJson | string>) => {
-        //console.log('TUPLE: Parsed AST JSON >>>***:', JSON.stringify(children, null, 2));
-        if (children.length === 0) {
-            throw new Error("Empty tuples are not allowed in Grim");
-        }
-        return new GrimTuple(children.map(child => {
-            if (typeof child === "string") {
-                return new GrimStr(child);
-            }
-            // is this even necessary?
-            if (typeof child === "object" && child.tag === "Str" && child.children &&
-                child.children.length === 1 && typeof child.children[0] === "string") {
-                return new GrimStr(child.children[0]);
-            }
-            // handle other types
-            return GrimVal.fromAst(child);
-        }));
-    });
-    GrimVal.makerMap.set("Map", (children: Array<AstJson | string>) => {
-        // console.log('MAP: Parsed AST JSON >>>***:', JSON.stringify(children, null, 2));
-        function keyToString(key: AstJson | string): GrimVal {
-            if (typeof key === "string") {
-                return new GrimStr(key);
-            }
-            let keyVal = GrimVal.fromAst(key);
-            if (keyVal instanceof GrimVar) {
-                return new GrimStr(keyVal.toString()); // Convert to string representation
-            }
-            if (keyVal instanceof GrimStr || keyVal instanceof GrimNat || keyVal instanceof GrimDec ||
-                keyVal instanceof GrimBool || keyVal instanceof GrimTag) {
-                return keyVal;
-            }
-            if (keyVal instanceof GrimTuple) {
-                return keyVal;
-            }
-            return new GrimStr("[Invalid Key: " + keyVal.toString() + "]");
-        }
-        let entries: [GrimVal, GrimVal][] = [];
-        for (let child of children) {
-            if (typeof child === "object" &&
-                (child.tag === "Pair" || child.tag === "List" || child.tag === "Tuple")
-                && child.children
-                && child.children.length === 2
-            ) {
-                let key = keyToString(child.children[0]);
-                let value =
-                    typeof child.children[1] == "string"
-                    ? new GrimStr(child.children[1])
-                    : GrimVal.fromAst(child.children[1]);
-                entries.push([key, value]);
-            }
-        }
-        if (entries.length !== children.length) {
-            return new GrimError(["Invalid Map, expected pairs of key-value, but got: ", JSON.stringify(children)]);
-        }
-        return new GrimMap(entries);
-    });
-    // TODO Set
-
-    // TODO Fun
-    // TODO Apply or @ or whatever
-    // Def
-    // Quote(x) or ~x
-    //   can't use backtick, since text editors really want
-    //   backticks to be paired together `xyz`, so use that for something else?
-    // Macro
-
-    // Match .. ?
+    GrimVal.makerMap.set("List", GrimList.maker);
+    GrimVal.makerMap.set("Tuple", GrimTuple.maker);
+    GrimVal.makerMap.set("Map", GrimMap.maker);
 }
 addMakers();
 
