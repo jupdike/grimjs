@@ -5,6 +5,7 @@ import { GrimBool } from "./GrimBool.js";
 import { GrimAst, GrimTag } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
+import { GrimList } from "./GrimList.js";
 
 function addMakers() {
     GrimVal.makerMap.set("Tag", (children: Array<AstJson | string>) => {
@@ -16,6 +17,7 @@ function addMakers() {
         if(children && children.length == 1 && children[0] === "False") {
             return GrimBool.False;
         }
+        // TODO None
         if(children && children.length == 1 && typeof children[0] === "string") {
             return new GrimTag(children[0]);
         }
@@ -27,6 +29,8 @@ function addMakers() {
         console.warn(`No maker found for Tag with children: ${JSON.stringify(children, null, 2)}`);
         return new GrimTag("[TODO Tag maker broken somehow]");
     });
+    // TODO None above ^^^
+    // TODO Some(x)
     GrimVal.makerMap.set("Bool", (children: Array<AstJson | string>) => {
         // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
         if (children[0] === "True") {
@@ -91,6 +95,21 @@ function addMakers() {
         }
         return new GrimAst("NOPE");
     });
+    GrimVal.makerMap.set("List", (children: Array<AstJson | string>) => {
+        //console.log('LIST: Parsed AST JSON >>>***:', JSON.stringify(children, null, 2));
+        return new GrimList(children.map(child => {
+            if (typeof child === "string") {
+                return new GrimStr(child);
+            }
+            // is this even necessary?
+            if (typeof child === "object" && child.tag === "Str" && child.children &&
+                child.children.length === 1 && typeof child.children[0] === "string") {
+                return new GrimStr(child.children[0]);
+            }
+            // handle other types
+            return GrimVal.fromAst(child);
+        }));
+    });
 }
 addMakers();
 
@@ -134,19 +153,27 @@ function analyzeOne(str: string) {
 // analyzeOne('Str("Hello, world!")');
 // analyzeOne('Str("Hello, \\"world\\"!")');
 
-analyzeOne('0.1234');
-analyzeOne('Dec("0.1234")');
+// analyzeOne('0.1234');
+// analyzeOne('Dec("0.1234")');
 
-analyzeOne('123.456');
-analyzeOne('123.');
-analyzeOne('.456');
-analyzeOne('123.456e+2');
-analyzeOne('123.e-1');
-analyzeOne('.456e2');
+// analyzeOne('123.456');
+// analyzeOne('123.');
+// analyzeOne('.456');
+// analyzeOne('123.456e+2');
+// analyzeOne('123.e-1');
+// analyzeOne('.456e2');
 
-analyzeOne('Dec("123.456")');
-analyzeOne('Dec("123.")');
-analyzeOne('Dec(".456")');
-analyzeOne('Dec("123.456e+2")');
-analyzeOne('Dec("123.e-1")');
-analyzeOne('Dec(".456e2")');
+// analyzeOne('Dec("123.456")');
+// analyzeOne('Dec("123.")');
+// analyzeOne('Dec(".456")');
+// analyzeOne('Dec("123.456e+2")');
+// analyzeOne('Dec("123.e-1")');
+// analyzeOne('Dec(".456e2")');
+
+analyzeOne('List()');
+analyzeOne('List("a")');
+analyzeOne('List("a", "b", "c")');
+
+analyzeOne('[]');
+analyzeOne('["a"]');
+analyzeOne('["a", "b", "c"]');

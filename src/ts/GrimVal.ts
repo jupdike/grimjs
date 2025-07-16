@@ -1,6 +1,3 @@
-import parser from  "../parser.js"
-import { Ast } from "../ast.js"
-
 interface Location {
     start: {
         line: number;
