@@ -114,6 +114,9 @@ function addMakers() {
     });
     GrimVal.makerMap.set("Tuple", (children: Array<AstJson | string>) => {
         //console.log('TUPLE: Parsed AST JSON >>>***:', JSON.stringify(children, null, 2));
+        if (children.length === 0) {
+            throw new Error("Empty tuples are not allowed in Grim");
+        }
         return new GrimTuple(children.map(child => {
             if (typeof child === "string") {
                 return new GrimStr(child);

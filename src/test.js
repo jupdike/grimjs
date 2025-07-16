@@ -105,13 +105,10 @@ function checkFileExprs(file, showAll) {
 // WORKS!
 //checkFileExprs('test-parse-escstr.grim', true);
 
-// check('"my string \'yo\' again"')
-// check("'my string \"yo\" again'")
-// // this is a headache
-// check('"my string \\\'yo\\\' again"')
-// check("'my string \\\"yo\\\" again'")
+check('"my string \'yo\' again"')
+check("'my string \"yo\" again'")
 
-//check('["The identifier", X, "can be specified as an integer (e.g. 55) or a text (e.g. \"A000055\")"]')
+check('["The identifier", X, "can be specified as an integer (e.g. 55) or a text (e.g. \"A000055\")"]')
 
 check('123.456');
 check('123.');
@@ -126,8 +123,6 @@ check('Dec(".456")');
 check('Dec("123.456e+2")');
 check('Dec("123.e-1")');
 check('Dec(".456e2")');
-
-process.exit(1);
 
 check('a');
 check('(b)');
@@ -152,8 +147,6 @@ check("{u:v, w:x}");
 check("{x:y, z:[1, 2, 3]}");
 check("{X:y Y:[1, 2, 3]}");
 check("{a: 4, b: [4, 5, 6], c: {d: 7, e: 8}}");
-
-// this math stuff is a mess because of code in AST which should be smarter
 
 check('2 * 3');
 check('2 * 3 / 6');
