@@ -62,7 +62,7 @@
     if (this.tag === "Str" && this.children.length >= 1) {
       return strOf(this.children[0]); // return the string value, quoted and escaped
     }
-    if ((this.tag === "Id" || this.tag === "Tag" || this.tag === "Nat" || this.tag === "Dec")
+    if ((this.tag === "Sym" || this.tag === "Tag" || this.tag === "Nat" || this.tag === "Dec")
       && this.children.length >= 1) {
       return this.children[0]; // just return the identifier string or number string as is
     }
