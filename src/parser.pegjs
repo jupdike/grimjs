@@ -154,7 +154,8 @@ Ex "an expression"
  = Atom
 
 Atom "atom"
-  = Nat
+  = Dec
+  / Nat
   / Str
   / Id
   / Tag
@@ -189,10 +190,10 @@ Tag "a tag"
   = [A-Z][a-zA-Z0-9_]* { return Ast(location(), 'Tag', [text()]); }
 
 Dec "a decimal number"
-  = [0-9]+ "." [0-9]* { return Ast(location(), 'Dec', [text()]); }
-  / [0-9]* "." [0-9]+ { return Ast(location(), 'Dec', [text()]); }
-  / [0-9]+ "." [0-9]* [eE] [+-]? [0-9]+ { return Ast(location(), 'Dec', [text()]); }
+  = [0-9]+ "." [0-9]* [eE] [+-]? [0-9]+ { return Ast(location(), 'Dec', [text()]); }
   / [0-9]* "." [0-9]+ [eE] [+-]? [0-9]+ { return Ast(location(), 'Dec', [text()]); }
+  / [0-9]+ "." [0-9]* { return Ast(location(), 'Dec', [text()]); }
+  / [0-9]* "." [0-9]+ { return Ast(location(), 'Dec', [text()]); }
   // TODO support different bases
 
 Nat "a natural number"

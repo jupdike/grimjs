@@ -113,6 +113,13 @@ function checkFileExprs(file, showAll) {
 
 //check('["The identifier", X, "can be specified as an integer (e.g. 55) or a text (e.g. \"A000055\")"]')
 
+check('123.456');
+check('123.');
+check('.456');
+check('123.456e+2');
+check('123.e-1');
+check('.456e2');
+
 check('Dec("123.456")');
 check('Dec("123.")');
 check('Dec(".456")');

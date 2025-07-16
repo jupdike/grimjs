@@ -3,7 +3,7 @@ import { Ast } from "../ast.js"
 import { GrimVal, Location, AstJson, locToStr } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimAst, GrimTag } from "./GrimAst.js";
-import { GrimNat } from "./GrimNat.js";
+import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
 
 function addMakers() {
@@ -64,6 +64,21 @@ function addMakers() {
         }
         return new GrimAst("NOPE");
     });
+    GrimVal.makerMap.set("Dec", (children: Array<AstJson | string>) => {
+        // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
+        if (children.length === 1 &&
+            (typeof children[0] === "number" || typeof children[0] === "string")) {
+            return new GrimDec(children[0]);
+        }
+        if (children.length === 1 && typeof children[0] === "object"
+            && children[0].tag === "Str" && children[0].children
+            && children[0].children.length === 1 &&
+            (typeof children[0].children[0] === "string" ||
+             typeof children[0].children[0] === "number")) {
+            return new GrimNat(children[0].children[0]);
+        }
+        return new GrimAst("NOPE");
+    });
     GrimVal.makerMap.set("Str", (children: Array<AstJson | string>) => {
         // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
         if (children.length === 1 && typeof children[0] === "string") {
@@ -76,7 +91,6 @@ function addMakers() {
         }
         return new GrimAst("NOPE");
     });
-    // Decimal numbers
 }
 addMakers();
 
@@ -119,3 +133,20 @@ function analyzeOne(str: string) {
 // analyzeOne('"Hello, world!"');
 // analyzeOne('Str("Hello, world!")');
 // analyzeOne('Str("Hello, \\"world\\"!")');
+
+analyzeOne('0.1234');
+analyzeOne('Dec("0.1234")');
+
+analyzeOne('123.456');
+analyzeOne('123.');
+analyzeOne('.456');
+analyzeOne('123.456e+2');
+analyzeOne('123.e-1');
+analyzeOne('.456e2');
+
+analyzeOne('Dec("123.456")');
+analyzeOne('Dec("123.")');
+analyzeOne('Dec(".456")');
+analyzeOne('Dec("123.456e+2")');
+analyzeOne('Dec("123.e-1")');
+analyzeOne('Dec(".456e2")');
