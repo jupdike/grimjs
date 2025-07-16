@@ -188,11 +188,16 @@ Id "an identifier"
 Tag "a tag"
   = [A-Z][a-zA-Z0-9_]* { return Ast(location(), 'Tag', [text()]); }
 
+Dec "a decimal number"
+  = [0-9]+ "." [0-9]* { return Ast(location(), 'Dec', [text()]); }
+  / [0-9]* "." [0-9]+ { return Ast(location(), 'Dec', [text()]); }
+  / [0-9]+ "." [0-9]* [eE] [+-]? [0-9]+ { return Ast(location(), 'Dec', [text()]); }
+  / [0-9]* "." [0-9]+ [eE] [+-]? [0-9]+ { return Ast(location(), 'Dec', [text()]); }
+  // TODO support different bases
+
 Nat "a natural number"
   //= [0-9]+ { return Ast(location(), 'Num', [parseInt(text(), 10)]); }
   = [0-9]+ { return Ast(location(), 'Nat', [text()]); }
-  // TODO support floats in various formats
-  // TODO support scientific notation
   // TODO support different bases
 
 _ "optional whitespace"

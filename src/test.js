@@ -102,7 +102,9 @@ function checkFileExprs(file, showAll) {
 // WORKS!
 //checkFileExprs('test-parse-formulas.grim');
 
-checkFileExprs('test-parse-escstr.grim', true);
+// WORKS!
+//checkFileExprs('test-parse-escstr.grim', true);
+
 // check('"my string \'yo\' again"')
 // check("'my string \"yo\" again'")
 // // this is a headache
@@ -110,6 +112,13 @@ checkFileExprs('test-parse-escstr.grim', true);
 // check("'my string \\\"yo\\\" again'")
 
 //check('["The identifier", X, "can be specified as an integer (e.g. 55) or a text (e.g. \"A000055\")"]')
+
+check('Dec("123.456")');
+check('Dec("123.")');
+check('Dec(".456")');
+check('Dec("123.456e+2")');
+check('Dec("123.e-1")');
+check('Dec(".456e2")');
 
 process.exit(1);
 
