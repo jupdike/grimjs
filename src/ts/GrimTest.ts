@@ -1,3 +1,5 @@
+import gmp from 'gmp-wasm';
+
 import parser from  "../parser.js"
 import { Ast } from "../ast.js"
 import { GrimVal, Location, AstJson, locToStr } from "./GrimVal.js";
@@ -5,7 +7,7 @@ import { GrimBool } from "./GrimBool.js";
 import { GrimAst, GrimTag } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
-import { GrimList } from "./GrimList.js";
+import { GrimList, GrimTuple } from "./GrimList.js";
 
 function addMakers() {
     GrimVal.makerMap.set("Tag", (children: Array<AstJson | string>) => {
@@ -110,6 +112,28 @@ function addMakers() {
             return GrimVal.fromAst(child);
         }));
     });
+    GrimVal.makerMap.set("Tuple", (children: Array<AstJson | string>) => {
+        //console.log('TUPLE: Parsed AST JSON >>>***:', JSON.stringify(children, null, 2));
+        return new GrimTuple(children.map(child => {
+            if (typeof child === "string") {
+                return new GrimStr(child);
+            }
+            // is this even necessary?
+            if (typeof child === "object" && child.tag === "Str" && child.children &&
+                child.children.length === 1 && typeof child.children[0] === "string") {
+                return new GrimStr(child.children[0]);
+            }
+            // handle other types
+            return GrimVal.fromAst(child);
+        }));
+    });
+    // TODO Map
+
+    // TODO Id
+    // TODO Fun
+    // TODO Apply or @ or whatever
+    // TODO Error
+    // TODO None
 }
 addMakers();
 
@@ -129,6 +153,10 @@ function check(str: string, start: string | null = null, onlyErrors = false): As
         return Ast( e.location || 'unknown', "Error", [e.message] );
     }
 }
+//gmp.init().then(({ getContext }) => {
+//   const ctx = getContext();
+//});
+
 function analyzeOne(str: string) {
     let ast = check(str);
     //console.log('Parsed AST JSON    :', JSON.stringify(ast, null, 2));
@@ -170,10 +198,21 @@ function analyzeOne(str: string) {
 // analyzeOne('Dec("123.e-1")');
 // analyzeOne('Dec(".456e2")');
 
-analyzeOne('List()');
-analyzeOne('List("a")');
-analyzeOne('List("a", "b", "c")');
+// analyzeOne('List()');
+// analyzeOne('List("a")');
+// analyzeOne('List("a", "b", "c")');
 
-analyzeOne('[]');
-analyzeOne('["a"]');
-analyzeOne('["a", "b", "c"]');
+// analyzeOne('[]');
+// analyzeOne('["a"]');
+// analyzeOne('["a", "b", "c"]');
+
+// Empty Tuples are not allowed
+// analyzeOne('Tuple()');
+// analyzeOne('()');
+// analyzeOne('(,)');
+
+// Tuples of one or more elements
+// analyzeOne('Tuple("a")');
+// analyzeOne('("a",)');
+// analyzeOne('("a", "b", "c")');
+// analyzeOne('Tuple("a", "b", "c")');
