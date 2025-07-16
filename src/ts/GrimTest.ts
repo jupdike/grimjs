@@ -4,11 +4,11 @@ import parser from  "../parser.js"
 import { Ast } from "../ast.js"
 import { GrimVal, Location, AstJson, locToStr } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
-import { GrimAst, GrimTag } from "./GrimAst.js";
+import { GrimAst, GrimTag, GrimVar } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimError, GrimOpt } from "./GrimOpt.js";
-import { GrimList, GrimTuple } from "./GrimList.js";
+import { GrimList, GrimTuple, GrimMap } from "./GrimCollect.js";
 
 function addMakers() {
     GrimVal.makerMap.set("Tag", (children: Array<AstJson | string>) => {
@@ -36,8 +36,33 @@ function addMakers() {
     });
     // TODO Var(x) --> prints as itself, so x := Var("x") would print as 'Var(x)' or 'x' without the quotes
     //   so for use in a CAS, a := Var("a") and b:= Var("b") ... z := Var("z")
+    //   and alpha := Var("alpha") and beta := Var("beta") ... omega := Var("omega")
+    //   and ⍺ := Var("⍺") and β := Var("β") ... ⍵ := Var("⍵")
+    //   ? even cooler(?) is that you could do z := CC("z") which is a complex number variable
+    GrimVal.makerMap.set("Var", (children: Array<AstJson | string>) => {
+        if (children.length === 1 && typeof children[0] === "string") {
+            return new GrimVar(children[0]);
+        }
+        if (children.length === 1 && typeof children[0] === "object"
+            && children[0].tag === "Str" && children[0].children
+            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
+            return new GrimVar(children[0].children[0]);
+        }
+        return new GrimAst("NOPE");
+    });
+    // TODO Sym(x) --> can only evaluate if bound lexically in code, otherwise it is an error
+    GrimVal.makerMap.set("Sym", (children: Array<AstJson | string>) => {
+        if (children.length === 1 && typeof children[0] === "string") {
+            return new GrimVar(children[0]);
+        }
+        if (children.length === 1 && typeof children[0] === "object"
+            && children[0].tag === "Str" && children[0].children
+            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
+            return new GrimVar(children[0].children[0]);
+        }
+        return new GrimAst("NOPE");
+    });
     GrimVal.makerMap.set("Bool", (children: Array<AstJson | string>) => {
-        // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
         if (children[0] === "True") {
             return GrimBool.True;
         }
@@ -157,12 +182,56 @@ function addMakers() {
             return GrimVal.fromAst(child);
         }));
     });
-    // TODO Map
+    GrimVal.makerMap.set("Map", (children: Array<AstJson | string>) => {
+        // console.log('MAP: Parsed AST JSON >>>***:', JSON.stringify(children, null, 2));
+        function keyToString(key: AstJson | string): GrimVal {
+            if (typeof key === "string") {
+                return new GrimStr(key);
+            }
+            let keyVal = GrimVal.fromAst(key);
+            if (keyVal instanceof GrimVar) {
+                return new GrimStr(keyVal.toString()); // Convert to string representation
+            }
+            if (keyVal instanceof GrimStr || keyVal instanceof GrimNat || keyVal instanceof GrimDec ||
+                keyVal instanceof GrimBool || keyVal instanceof GrimTag) {
+                return keyVal;
+            }
+            if (keyVal instanceof GrimTuple) {
+                return keyVal;
+            }
+            return new GrimStr("[Invalid Key: " + keyVal.toString() + "]");
+        }
+        let entries: [GrimVal, GrimVal][] = [];
+        for (let child of children) {
+            if (typeof child === "object" &&
+                (child.tag === "Pair" || child.tag === "List" || child.tag === "Tuple")
+                && child.children
+                && child.children.length === 2
+            ) {
+                let key = keyToString(child.children[0]);
+                let value =
+                    typeof child.children[1] == "string"
+                    ? new GrimStr(child.children[1])
+                    : GrimVal.fromAst(child.children[1]);
+                entries.push([key, value]);
+            }
+        }
+        if (entries.length !== children.length) {
+            return new GrimError(["Invalid Map, expected pairs of key-value, but got: ", JSON.stringify(children)]);
+        }
+        return new GrimMap(entries);
+    });
+    // TODO Set
 
     // TODO Fun
     // TODO Apply or @ or whatever
     // Def
     // Quote(x) or ~x
+    //   can't use backtick, since text editors really want
+    //   backticks to be paired together `xyz`, so use that for something else?
+    // Macro
+
+    // Match .. ?
 }
 addMakers();
 
@@ -255,6 +324,13 @@ function analyzeOne(str: string) {
 // analyzeOne('Some("value")');
 // analyzeOne('Some([])'); // ==> nested empty list inside of Some
 
-analyzeOne('Error("Description of problem goes here")');
-analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
+// analyzeOne('Error("Description of problem goes here")');
+// analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
 // TODO fix Var and Map first //analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
+
+// analyzeOne('{"key": "value", "another": "thing"}');
+// analyzeOne("{'key': 'value', 'another': 'thing'}");
+// analyzeOne('{key: "value", another: "thing"}');
+// analyzeOne('{Key: "value", Another: "thing"}');
+// analyzeOne('{1: "value", 2: "thing"}');
+analyzeOne('{(1, 2): "value", (3, 4): "thing"}');

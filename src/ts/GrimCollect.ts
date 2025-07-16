@@ -54,4 +54,27 @@ class GrimTuple extends GrimVal {
     // Additional methods can be added as needed
 }
 
-export { GrimList, GrimTuple };
+class GrimMap extends GrimVal {
+    private map: Map<GrimVal, GrimVal>;
+
+    constructor(entries?: [GrimVal, GrimVal][]) {
+        super();
+        this.map = new Map(entries);
+    }
+
+    toString(): string {
+        return `{${Array.from(this.map.entries()).map(([key, value]) => `${key.toString()}: ${value.toString()}`).join(", ")}}`;
+    }
+
+    isAtom(): boolean {
+        return false; // Maps are not considered atoms
+    }
+
+    head(): string {
+        return "Map";
+    }
+
+    // Additional methods can be added as needed
+}
+
+export { GrimList, GrimTuple, GrimMap };

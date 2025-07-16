@@ -56,4 +56,45 @@ class GrimTag extends GrimVal {
     }
 }
 
-export { GrimAst, GrimTag };
+class GrimVar extends GrimVal {
+    constructor(private name: string) {
+        super();
+    }
+
+    // canonical
+    // toString(): string {
+    //     return `Var(${strOf(this.name)})`;
+    // }
+
+    toString(): string {
+        return this.name;
+    }
+
+    isAtom(): boolean {
+        return true;
+    }
+
+    head(): string {
+        return "Var";
+    }
+}
+
+class GrimSym extends GrimVal {
+    constructor(private name: string) {
+        super();
+    }
+
+    toString(): string {
+        return `Sym(${strOf(this.name)})`;
+    }
+
+    isAtom(): boolean {
+        return true;
+    }
+
+    head(): string {
+        return "Sym";
+    }
+}
+
+export { GrimAst, GrimTag, GrimVar, GrimSym };

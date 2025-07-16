@@ -88,6 +88,9 @@ Op "an infix operator"
        "$" / "?" / "||" / "&&" / "==" / "=" / "!=" / "<" / "<=" / ">=" / ">" / "++" / "+" / "-" / "*" / "/" / "^" / ".")
   { return Ast(location(), "Tag", [opMap[o]]); }
 
+// hmmm
+// TODO x ?         means   None ?? f(x)  ==> None     and Error(e) ?? f(x)  ==> Error(e)   else   f(x)
+// TODO x ?? y      means   None ?? y     ==> y        and Error(e) ?? y     ==> Error(e)   else   x
 OpL0 "an infix operator" = ("@")
 OpR0 "an infix operator" = ("$")
 OpL1 "an infix operator" = ("?")
@@ -138,16 +141,27 @@ Factor "a function application, a parenthesized expression, a lambda, or a list,
   / "(" _ e:Expression _ ")" { return e; }
   / Molecule
 
+Tuple "a tuple"
+  = "(" items:(_ ExprLowest _ ","? _)* ")" { return Ast(location(), 'Tuple', items.map(function(x) { return x[1]; })) }
+
+Map "a map"
+  = "{" pairs:(_ ObjPair _ ","? _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) }
+
+List "a list"
+  = "[" items:(_ ExprLowest _ ","? _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) };
+
 Molecule "a list, map, atom"
-  = //"[" items:(_ Molecule _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) }
-    "[" items:(_ ExprLowest _ ","? _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) }
-  / "(" items:(_ ExprLowest _ ","? _)* ")" { return Ast(location(), 'Tuple', items.map(function(x) { return x[1]; })) }
-    /// "{" pairs:(_ ObjPair _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) }
-  / "{" pairs:(_ ObjPair _ ","? _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) }
+  = List
+  / Tuple
+  / Map
+  / Atom
+
+ObjKey "an object key"
+  = Tuple
   / Atom
 
 ObjPair "a colon-separated key-value pair"
-  = atom:Atom _ ":" _ mol:Molecule { return Ast(location(), "Pair", [atom, mol]); }
+  = key:ObjKey _ ":" _ mol:Molecule { return Ast(location(), "Pair", [key, mol]); }
 
 // here just so we can do check() on this in test.js
 Ex "an expression"
@@ -185,11 +199,6 @@ Sym "a symbol"
   = [a-z][a-zA-Z0-9_]* { return Ast(location(), 'Sym', [text()]); }
   // TODO remove leading underscore from Syms
   / [_][A-Za-z][a-zA-Z0-9_]* { return Ast(location(), 'Sym', [text()]); }
-
-// Id "an identifier"
-//   = [a-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
-//   // TODO remove leading underscore from Ids -- this is a hack to parse FJ's pyGrim Formulas code
-//   / [_][A-Za-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
 
 Tag "a tag"
   = [A-Z][a-zA-Z0-9_]* { return Ast(location(), 'Tag', [text()]); }
