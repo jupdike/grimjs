@@ -64,6 +64,18 @@ function addMakers() {
         }
         return new GrimAst("NOPE");
     });
+    GrimVal.makerMap.set("Str", (children: Array<AstJson | string>) => {
+        // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
+        if (children.length === 1 && typeof children[0] === "string") {
+            return new GrimStr(children[0]);
+        }
+        if (children.length === 1 && typeof children[0] === "object"
+            && children[0].tag === "Str" && children[0].children
+            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
+            return new GrimStr(children[0].children[0]);
+        }
+        return new GrimAst("NOPE");
+    });
     // Decimal numbers
 }
 addMakers();
@@ -101,5 +113,9 @@ function analyzeOne(str: string) {
 // analyzeOne("Anything");
 // analyzeOne('Tag("Anything")');
 
-analyzeOne("12345");
-analyzeOne('Nat("12345")');
+// analyzeOne("12345");
+// analyzeOne('Nat("12345")');
+
+// analyzeOne('"Hello, world!"');
+// analyzeOne('Str("Hello, world!")');
+// analyzeOne('Str("Hello, \\"world\\"!")');
