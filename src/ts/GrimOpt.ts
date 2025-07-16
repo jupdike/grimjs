@@ -1,4 +1,6 @@
 import { GrimVal, AstJson } from "./GrimVal.js";
+import { GrimAst } from "./GrimAst.js";
+import { GrimStr } from "./GrimStr.js";
 
 class GrimOpt extends GrimVal {
     private value: GrimVal | null;
@@ -24,6 +26,19 @@ class GrimOpt extends GrimVal {
 
     head(): string {
         return "Option";
+    }
+
+    static maker(children: Array<AstJson | string>): GrimVal {
+        if (children.length === 0) {
+            return GrimOpt.None;
+        }
+        if (children.length === 1 && typeof children[0] === "string") {
+            return GrimOpt.Some(new GrimStr(children[0]));
+        }
+        if (children.length === 1 && typeof children[0] === "object") {
+            return GrimOpt.Some(GrimVal.fromAst(children[0]));
+        }
+        return new GrimAst("NOPE");
     }
 }
 
@@ -56,6 +71,17 @@ class GrimError extends GrimVal {
     head(): string {
         return "Error";
     }
+
+    static maker(children: Array<AstJson | string>): GrimVal {
+        return new GrimError(children.map(child => {
+            if (typeof child === "string") {
+                return child;
+            }
+            let val = GrimVal.fromAst(child);
+            return val;
+        }));
+    }
+
 }
 
 export { GrimOpt, GrimError };

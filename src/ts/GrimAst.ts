@@ -1,4 +1,6 @@
 import { GrimVal, AstJson, Location, locToStr, strOf } from "./GrimVal.js";
+import { GrimBool } from "./GrimBool.js";
+import { GrimOpt } from "./GrimOpt.js";
 
 class GrimAst extends GrimVal {
     constructor(private ast: AstJson | string) {
@@ -53,6 +55,30 @@ class GrimTag extends GrimVal {
 
     head(): string {
         return "Tag";
+    }
+
+    static maker(children: Array<AstJson | string>): GrimVal {
+        //console.log('Parsed AST JSON ***:', JSON.stringify(ast, null, 2));
+        // a few special built-in tags that are self-evaluating
+        if(children && children.length == 1 && children[0] === "True") {
+            return GrimBool.True;
+        }
+        if(children && children.length == 1 && children[0] === "False") {
+            return GrimBool.False;
+        }
+        if(children && children.length == 1 && children[0] === "None") {
+            return GrimOpt.None;
+        }
+        if(children && children.length == 1 && typeof children[0] === "string") {
+            return new GrimTag(children[0]);
+        }
+        if(children && children.length == 1 && typeof children[0] === "object" &&
+            children[0].tag === "Str" && children[0].children && children[0].children.length === 1 &&
+            typeof children[0].children[0] === "string") {
+            return new GrimTag(children[0].children[0]);
+        }
+        console.warn(`No maker found for Tag with children: ${JSON.stringify(children, null, 2)}`);
+        return new GrimTag("[TODO Tag maker broken somehow]");
     }
 }
 

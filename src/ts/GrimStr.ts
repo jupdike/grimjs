@@ -1,4 +1,6 @@
+import { GrimAst } from "./GrimAst.js";
 import { GrimVal, strOf } from "./GrimVal.js";
+import { AstJson } from "./GrimVal.js";
 
 class GrimStr extends GrimVal {
     constructor(private value: string) {
@@ -13,6 +15,19 @@ class GrimStr extends GrimVal {
     }
     head(): string {
         return "Str";
+    }
+
+    static maker(children: Array<string | AstJson>): GrimVal {
+        // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
+        if (children.length === 1 && typeof children[0] === "string") {
+            return new GrimStr(children[0]);
+        }
+        if (children.length === 1 && typeof children[0] === "object"
+            && children[0].tag === "Str" && children[0].children
+            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
+            return new GrimStr(children[0].children[0]);
+        }
+        return new GrimAst("NOPE");
     }
 }
 
