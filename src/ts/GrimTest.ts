@@ -7,7 +7,7 @@ import { GrimBool } from "./GrimBool.js";
 import { GrimAst, GrimTag } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
-import { GrimOpt } from "./GrimOpt.js";
+import { GrimError, GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple } from "./GrimList.js";
 
 function addMakers() {
@@ -113,6 +113,15 @@ function addMakers() {
         }
         return new GrimAst("NOPE");
     });
+    GrimVal.makerMap.set("Error", (children: Array<AstJson | string>) => {
+        return new GrimError(children.map(child => {
+            if (typeof child === "string") {
+                return child;
+            }
+            let val = GrimVal.fromAst(child);
+            return val;
+        }));
+    });
 
     // Collection types, from Immutable.js
     GrimVal.makerMap.set("List", (children: Array<AstJson | string>) => {
@@ -150,11 +159,10 @@ function addMakers() {
     });
     // TODO Map
 
-    // TODO Id
     // TODO Fun
     // TODO Apply or @ or whatever
-    // TODO Error
-    // TODO None
+    // Def
+    // Quote(x) or ~x
 }
 addMakers();
 
@@ -238,13 +246,15 @@ function analyzeOne(str: string) {
 // analyzeOne('("a", "b", "c")');
 // analyzeOne('Tuple("a", "b", "c")');
 
-analyzeOne('None');
-// // ? analyzeOne('Option()');  // probably a bad idea
-// // ? analyzeOne('Option("None")');
-analyzeOne('Some()'); // ==> None
+// analyzeOne('None');
+// // // ? analyzeOne('Option()');  // probably a bad idea
+// // // ? analyzeOne('Option("None")');
+// analyzeOne('Some()'); // ==> None
 
-analyzeOne('Some(None)'); // not None
-analyzeOne('Some("value")');
-analyzeOne('Some([])'); // ==> nested empty list inside of Some
+// analyzeOne('Some(None)'); // not None
+// analyzeOne('Some("value")');
+// analyzeOne('Some([])'); // ==> nested empty list inside of Some
 
-//analyzeOne('Error("Something went wrong")');
+analyzeOne('Error("Description of problem goes here")');
+analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
+// TODO fix Var and Map first //analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
