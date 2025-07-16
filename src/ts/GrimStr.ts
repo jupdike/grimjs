@@ -1,7 +1,6 @@
 import { GrimVal, strOf } from "./GrimVal.js";
 
 class GrimStr extends GrimVal {
-    // TODO use strOf from ast.js
     constructor(private value: string) {
         super();
     }

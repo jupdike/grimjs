@@ -108,22 +108,4 @@ class GrimVal {
     }
 }
 
-// class GrimTag extends GrimVal {
-//     constructor(private value: string) {
-//         super();
-//     }
-
-//     toString(): string {
-//         return `Tag(${strOf(this.value)})`;
-//     }
-
-//     isAtom(): boolean {
-//         return true;
-//     }
-
-//     head(): string {
-//         return "Tag";
-//     }
-// }
-
 export { Location, AstJson, GrimVal, locToStr, strOf };

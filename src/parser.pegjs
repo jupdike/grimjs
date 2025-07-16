@@ -154,8 +154,8 @@ Ex "an expression"
  = Atom
 
 Atom "atom"
-  = Natural
-  / String
+  = Nat
+  / Str
   / Id
   / Tag
 
@@ -172,7 +172,7 @@ EscapeChar "an escaped character"
     return text().substring(1); // remove the leading backslash
   }
 
-String "a string"
+Str "a string"
   = '"' chars:([^\\"\n\r] / EscapeChar)* '"' {
     return Ast(location(), 'Str', [chars.join('')]);
   }
@@ -188,9 +188,9 @@ Id "an identifier"
 Tag "a tag"
   = [A-Z][a-zA-Z0-9_]* { return Ast(location(), 'Tag', [text()]); }
 
-Natural "a natural number"
+Nat "a natural number"
   //= [0-9]+ { return Ast(location(), 'Num', [parseInt(text(), 10)]); }
-  = [0-9]+ { return Ast(location(), 'Natural', [text()]); }
+  = [0-9]+ { return Ast(location(), 'Nat', [text()]); }
   // TODO support floats in various formats
   // TODO support scientific notation
   // TODO support different bases

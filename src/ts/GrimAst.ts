@@ -1,4 +1,4 @@
-import { GrimVal, AstJson, Location, locToStr } from "./GrimVal.js";
+import { GrimVal, AstJson, Location, locToStr, strOf } from "./GrimVal.js";
 
 class GrimAst extends GrimVal {
     constructor(private ast: AstJson | string) {
@@ -37,4 +37,23 @@ class GrimAst extends GrimVal {
     head(): string { return this.tag; }
 }
 
-export { GrimAst };
+class GrimTag extends GrimVal {
+    constructor(private value: string) {
+        super();
+    }
+
+    toString(): string {
+        //return `Tag(${strOf(this.value)})`;
+        return `${this.value}`;
+    }
+
+    isAtom(): boolean {
+        return true;
+    }
+
+    head(): string {
+        return "Tag";
+    }
+}
+
+export { GrimAst, GrimTag };
