@@ -106,10 +106,10 @@ function addMakers() {
             return GrimOpt.None;
         }
         if (children.length === 1 && typeof children[0] === "string") {
-            return new GrimOpt(new GrimStr(children[0]));
+            return GrimOpt.Some(new GrimStr(children[0]));
         }
         if (children.length === 1 && typeof children[0] === "object") {
-            return new GrimOpt(GrimVal.fromAst(children[0]));
+            return GrimOpt.Some(GrimVal.fromAst(children[0]));
         }
         return new GrimAst("NOPE");
     });

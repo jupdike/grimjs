@@ -5,7 +5,11 @@ class GrimOpt extends GrimVal {
 
     static None: GrimOpt = new GrimOpt(null);
 
-    constructor(value: GrimVal | null) {
+    static Some(value: GrimVal): GrimOpt {
+        return new GrimOpt(value);
+    }
+
+    private constructor(value: GrimVal | null) {
         super();
         this.value = value;
     }
