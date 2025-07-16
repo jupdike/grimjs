@@ -7,6 +7,7 @@ import { GrimBool } from "./GrimBool.js";
 import { GrimAst, GrimTag } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
+import { GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple } from "./GrimList.js";
 
 function addMakers() {
@@ -19,7 +20,9 @@ function addMakers() {
         if(children && children.length == 1 && children[0] === "False") {
             return GrimBool.False;
         }
-        // TODO None
+        if(children && children.length == 1 && children[0] === "None") {
+            return GrimOpt.None;
+        }
         if(children && children.length == 1 && typeof children[0] === "string") {
             return new GrimTag(children[0]);
         }
@@ -31,8 +34,8 @@ function addMakers() {
         console.warn(`No maker found for Tag with children: ${JSON.stringify(children, null, 2)}`);
         return new GrimTag("[TODO Tag maker broken somehow]");
     });
-    // TODO None above ^^^
-    // TODO Some(x)
+    // TODO Var(x) --> prints as itself, so x := Var("x") would print as 'Var(x)' or 'x' without the quotes
+    //   so for use in a CAS, a := Var("a") and b:= Var("b") ... z := Var("z")
     GrimVal.makerMap.set("Bool", (children: Array<AstJson | string>) => {
         // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
         if (children[0] === "True") {
@@ -97,6 +100,21 @@ function addMakers() {
         }
         return new GrimAst("NOPE");
     });
+    GrimVal.makerMap.set("Some", (children: Array<AstJson | string>) => {
+        // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
+        if (children.length === 0) {
+            return GrimOpt.None;
+        }
+        if (children.length === 1 && typeof children[0] === "string") {
+            return new GrimOpt(new GrimStr(children[0]));
+        }
+        if (children.length === 1 && typeof children[0] === "object") {
+            return new GrimOpt(GrimVal.fromAst(children[0]));
+        }
+        return new GrimAst("NOPE");
+    });
+
+    // Collection types, from Immutable.js
     GrimVal.makerMap.set("List", (children: Array<AstJson | string>) => {
         //console.log('LIST: Parsed AST JSON >>>***:', JSON.stringify(children, null, 2));
         return new GrimList(children.map(child => {
@@ -219,3 +237,14 @@ function analyzeOne(str: string) {
 // analyzeOne('("a",)');
 // analyzeOne('("a", "b", "c")');
 // analyzeOne('Tuple("a", "b", "c")');
+
+analyzeOne('None');
+// // ? analyzeOne('Option()');  // probably a bad idea
+// // ? analyzeOne('Option("None")');
+analyzeOne('Some()'); // ==> None
+
+analyzeOne('Some(None)'); // not None
+analyzeOne('Some("value")');
+analyzeOne('Some([])'); // ==> nested empty list inside of Some
+
+//analyzeOne('Error("Something went wrong")');
