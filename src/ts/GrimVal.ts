@@ -40,6 +40,11 @@ type AstToVal = (ast: Array<AstJson | string>) => GrimVal;
 class GrimVal {
     static makerMap: Map<string, AstToVal> = new Map();
 
+    static maker(children: Array<AstJson | string>): GrimVal {
+        // Default maker, can be overridden by specific GrimVal subclasses
+        return new GrimVal();
+    }
+
     static fromAst(ast: AstJson): GrimVal {
         if (!ast || !ast.tag) {
             console.log("=== AST:");

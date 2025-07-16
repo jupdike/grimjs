@@ -77,6 +77,18 @@ class GrimVar extends GrimVal {
     head(): string {
         return "Var";
     }
+
+    static maker(children: Array<AstJson | string>): GrimVal {
+        if (children.length === 1 && typeof children[0] === "string") {
+            return new GrimVar(children[0]);
+        }
+        if (children.length === 1 && typeof children[0] === "object"
+            && children[0].tag === "Str" && children[0].children
+            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
+            return new GrimVar(children[0].children[0]);
+        }
+        return new GrimAst("NOPE");
+    }
 }
 
 class GrimSym extends GrimVal {
@@ -94,6 +106,18 @@ class GrimSym extends GrimVal {
 
     head(): string {
         return "Sym";
+    }
+
+    static maker(children: Array<AstJson | string>): GrimVal {
+        if (children.length === 1 && typeof children[0] === "string") {
+            return new GrimVar(children[0]);
+        }
+        if (children.length === 1 && typeof children[0] === "object"
+            && children[0].tag === "Str" && children[0].children
+            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
+            return new GrimVar(children[0].children[0]);
+        }
+        return new GrimAst("NOPE");
     }
 }
 

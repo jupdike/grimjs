@@ -4,7 +4,7 @@ import parser from  "../parser.js"
 import { Ast } from "../ast.js"
 import { GrimVal, Location, AstJson, locToStr } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
-import { GrimAst, GrimTag, GrimVar } from "./GrimAst.js";
+import { GrimAst, GrimTag, GrimVar, GrimSym } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimError, GrimOpt } from "./GrimOpt.js";
@@ -39,50 +39,10 @@ function addMakers() {
     //   and alpha := Var("alpha") and beta := Var("beta") ... omega := Var("omega")
     //   and ⍺ := Var("⍺") and β := Var("β") ... ⍵ := Var("⍵")
     //   ? even cooler(?) is that you could do z := CC("z") which is a complex number variable
-    GrimVal.makerMap.set("Var", (children: Array<AstJson | string>) => {
-        if (children.length === 1 && typeof children[0] === "string") {
-            return new GrimVar(children[0]);
-        }
-        if (children.length === 1 && typeof children[0] === "object"
-            && children[0].tag === "Str" && children[0].children
-            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
-            return new GrimVar(children[0].children[0]);
-        }
-        return new GrimAst("NOPE");
-    });
-    // TODO Sym(x) --> can only evaluate if bound lexically in code, otherwise it is an error
-    GrimVal.makerMap.set("Sym", (children: Array<AstJson | string>) => {
-        if (children.length === 1 && typeof children[0] === "string") {
-            return new GrimVar(children[0]);
-        }
-        if (children.length === 1 && typeof children[0] === "object"
-            && children[0].tag === "Str" && children[0].children
-            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
-            return new GrimVar(children[0].children[0]);
-        }
-        return new GrimAst("NOPE");
-    });
-    GrimVal.makerMap.set("Bool", (children: Array<AstJson | string>) => {
-        if (children[0] === "True") {
-            return GrimBool.True;
-        }
-        if (children[0] === "False") {
-            return GrimBool.False;
-        }
-        if (children.length === 1 && typeof children[0] === "string") {
-            // console.log('Parsed AST JSON <> <> *** <> <>:', JSON.stringify(children, null, 2));
-            // If it's a string, we can assume it's a boolean value
-            return new GrimBool(children[0] === "True");
-        }
-        if (children.length === 1 && typeof children[0] === "object"
-            && children[0].tag === "Str" && children[0].children
-            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
-            // console.log('Parsed AST JSON <> <> *** <> <>:', JSON.stringify(children, null, 2));
-            // If it's a string, we can assume it's a boolean value
-            return new GrimBool(children[0].children[0] === "True");
-        }
-        return new GrimAst("NOPE");
-    });
+    GrimVal.makerMap.set("Var", GrimVar.maker);
+    // Sym(x) --> can only evaluate if bound lexically in code, otherwise it is an error
+    GrimVal.makerMap.set("Sym", GrimSym.maker);
+    GrimVal.makerMap.set("Bool", GrimBool.maker);
     GrimVal.makerMap.set("Nat", (children: Array<AstJson | string>) => {
         // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
         if (children.length === 1 &&
@@ -264,73 +224,73 @@ function analyzeOne(str: string) {
     console.log('GrimVal from AST   :', val.toString());
 }
 
-// analyzeOne("True");
-// analyzeOne("False");
-// analyzeOne('Bool("True")');
-// analyzeOne('Bool("False")');
+analyzeOne("True");
+analyzeOne("False");
+analyzeOne('Bool("True")');
+analyzeOne('Bool("False")');
 
-// analyzeOne("Anything");
-// analyzeOne('Tag("Anything")');
+analyzeOne("Anything");
+analyzeOne('Tag("Anything")');
 
-// analyzeOne("12345");
-// analyzeOne('Nat("12345")');
+analyzeOne("12345");
+analyzeOne('Nat("12345")');
 
-// analyzeOne('"Hello, world!"');
-// analyzeOne('Str("Hello, world!")');
-// analyzeOne('Str("Hello, \\"world\\"!")');
+analyzeOne('"Hello, world!"');
+analyzeOne('Str("Hello, world!")');
+analyzeOne('Str("Hello, \\"world\\"!")');
 
-// analyzeOne('0.1234');
-// analyzeOne('Dec("0.1234")');
+analyzeOne('0.1234');
+analyzeOne('Dec("0.1234")');
 
-// analyzeOne('123.456');
-// analyzeOne('123.');
-// analyzeOne('.456');
-// analyzeOne('123.456e+2');
-// analyzeOne('123.e-1');
-// analyzeOne('.456e2');
+analyzeOne('123.456');
+analyzeOne('123.');
+analyzeOne('.456');
+analyzeOne('123.456e+2');
+analyzeOne('123.e-1');
+analyzeOne('.456e2');
 
-// analyzeOne('Dec("123.456")');
-// analyzeOne('Dec("123.")');
-// analyzeOne('Dec(".456")');
-// analyzeOne('Dec("123.456e+2")');
-// analyzeOne('Dec("123.e-1")');
-// analyzeOne('Dec(".456e2")');
+analyzeOne('Dec("123.456")');
+analyzeOne('Dec("123.")');
+analyzeOne('Dec(".456")');
+analyzeOne('Dec("123.456e+2")');
+analyzeOne('Dec("123.e-1")');
+analyzeOne('Dec(".456e2")');
 
-// analyzeOne('List()');
-// analyzeOne('List("a")');
-// analyzeOne('List("a", "b", "c")');
+analyzeOne('List()');
+analyzeOne('List("a")');
+analyzeOne('List("a", "b", "c")');
 
-// analyzeOne('[]');
-// analyzeOne('["a"]');
-// analyzeOne('["a", "b", "c"]');
+analyzeOne('[]');
+analyzeOne('["a"]');
+analyzeOne('["a", "b", "c"]');
 
-// Empty Tuples are not allowed
-// analyzeOne('Tuple()');
-// analyzeOne('()');
-// analyzeOne('(,)');
+// // Empty Tuples are not allowed
+// // analyzeOne('Tuple()');
+// // analyzeOne('()');
+// // analyzeOne('(,)');
 
-// Tuples of one or more elements
-// analyzeOne('Tuple("a")');
-// analyzeOne('("a",)');
-// analyzeOne('("a", "b", "c")');
-// analyzeOne('Tuple("a", "b", "c")');
+// // Tuples of one or more elements
+analyzeOne('Tuple("a")');
+analyzeOne('("a",)');
+analyzeOne('("a", "b", "c")');
+analyzeOne('Tuple("a", "b", "c")');
 
-// analyzeOne('None');
-// // // ? analyzeOne('Option()');  // probably a bad idea
-// // // ? analyzeOne('Option("None")');
-// analyzeOne('Some()'); // ==> None
+analyzeOne('None');
+// // ? analyzeOne('Option()');  // probably a bad idea
+// // ? analyzeOne('Option("None")');
+analyzeOne('Some()'); // ==> None
 
-// analyzeOne('Some(None)'); // not None
-// analyzeOne('Some("value")');
-// analyzeOne('Some([])'); // ==> nested empty list inside of Some
+analyzeOne('Some(None)'); // not None
+analyzeOne('Some("value")');
+analyzeOne('Some([])'); // ==> nested empty list inside of Some
 
-// analyzeOne('Error("Description of problem goes here")');
-// analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
-// TODO fix Var and Map first //analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
+analyzeOne('Error("Description of problem goes here")');
+analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
+analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
 
-// analyzeOne('{"key": "value", "another": "thing"}');
-// analyzeOne("{'key': 'value', 'another': 'thing'}");
-// analyzeOne('{key: "value", another: "thing"}');
-// analyzeOne('{Key: "value", Another: "thing"}');
-// analyzeOne('{1: "value", 2: "thing"}');
+analyzeOne('{"key": "value", "another": "thing"}');
+analyzeOne("{'key': 'value', 'another': 'thing'}");
+analyzeOne('{key: "value", another: "thing"}');
+analyzeOne('{Key: "value", Another: "thing"}');
+analyzeOne('{1: "value", 2: "thing"}');
 analyzeOne('{(1, 2): "value", (3, 4): "thing"}');
