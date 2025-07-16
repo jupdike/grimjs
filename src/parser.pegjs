@@ -1,5 +1,5 @@
 //
-// Tessera Grammar
+// Grim Grammar
 //
 // command-line args to peggy adds ast.js as dependency
 {{
@@ -17,43 +17,43 @@
 Start = Def
 // Defs = def:Def+ { return Ast(location(), "Defs", def); } // will use whitespace / newlines to separate defs
 
-IdList
-  = head:Id tail:(_ "," _ Id)* { return cons(head, tail.map(function(x) { return x[3]; })); }
+SymList
+  = head:Sym tail:(_ "," _ Sym)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
 AssignOp = (":=" / ":=>")
 
 Def "a let definition or a macro definition"
-  = id:Id _ op:AssignOp _ body:Expression {
+  = sym:Sym _ op:AssignOp _ body:Expression {
     return Ast(location(), op === "=" ? "Let" : "Macro",
-      [id]
+      [sym]
       .concat([body])
       );
     }
-  / id1:Id _ op:Op _ id2:Id _ assignOp:AssignOp _ body:Expression {
+  / sym1:Sym _ op:Op _ sym2:Sym _ assignOp:AssignOp _ body:Expression {
     // assign code to an infix operator
     return Ast(location(), assignOp === "=" ? "Let" : "Macro",
       [op]
-      .concat([ Ast(location(), "List", [id1, id2]) ])
+      .concat([ Ast(location(), "List", [sym1, sym2]) ])
       .concat([body])
       );
     }
-  / id:Id _ ids:(Id _)+ _ op:AssignOp _ body:Expression {
+  / sym:Sym _ syms:(Sym _)+ _ op:AssignOp _ body:Expression {
     return Ast(location(), op === "=" ? "Let" : "Macro",
-      [id]
-      .concat([Ast(location(), "List", ids.map(function(x) { return x[0]; }))])
+      [sym]
+      .concat([Ast(location(), "List", syms.map(function(x) { return x[0]; }))])
       .concat([body])
       );
     }
-  / id:Id _ "(" _ ")" _ op:AssignOp _ body:Expression {
+  / sym:Sym _ "(" _ ")" _ op:AssignOp _ body:Expression {
     return Ast(location(), op === "=" ? "Let" : "Macro",
-      [id]
+      [sym]
       .concat([Ast(location(), "List", [])])
       .concat([body])
     );
   }
-  / id:Id _ "(" _ args:IdList _ ")" _ op:AssignOp _ body:Expression {
+  / sym:Sym _ "(" _ args:SymList _ ")" _ op:AssignOp _ body:Expression {
     return Ast(location(), op === "=" ? "Let" : "Macro",
-      [id]
+      [sym]
       .concat([Ast(location(), "List", args)])
       .concat([body])
     );
@@ -70,17 +70,17 @@ Expressions = head:Expression tail:(_ Expression)* {
 
 Expression = uno:ExprLowest _ { return uno; }
 
-DefOrId "an identifier or a definition"
+DefOrSym "a symbol or a definition"
   = Def
-  / Id
+  / Sym
 
-DefOrIdList
-  = head:DefOrId tail:(_ "," _ DefOrId)* { return cons(head, tail.map(function(x) { return x[3]; })); }
+DefOrSymList
+  = head:DefOrSym tail:(_ "," _ DefOrSym)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
 Lambda "a lambda expression (anonymous function)"
   = "(" _ ")" _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", []), body]); }
-  / id:Id _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", [id]), body]); }
-  / "(" _ args:DefOrIdList _ ")" _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", args), body]); }
+  / sym:Sym _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", [sym]), body]); }
+  / "(" _ args:DefOrSymList _ ")" _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", args), body]); }
 
 // TODO keep this up to date when new operators are added below (plus keep _ and @)
 Op "an infix operator"
@@ -157,8 +157,8 @@ Atom "atom"
   = Dec
   / Nat
   / Str
-  / Id
   / Tag
+  / Sym
 
 EscapeChar "an escaped character"
   = "\\" ([nrt\\"'] / [0-7]{1,3} / [xX][0-9a-fA-F]+) {
@@ -181,10 +181,15 @@ Str "a string"
     return Ast(location(), 'Str', [chars.join('')]);
   }
 
-Id "an identifier"
-  = [a-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
-  // TODO remove leading underscore from Ids
-  / [_][A-Za-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
+Sym "a symbol"
+  = [a-z][a-zA-Z0-9_]* { return Ast(location(), 'Sym', [text()]); }
+  // TODO remove leading underscore from Syms
+  / [_][A-Za-z][a-zA-Z0-9_]* { return Ast(location(), 'Sym', [text()]); }
+
+// Id "an identifier"
+//   = [a-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
+//   // TODO remove leading underscore from Ids -- this is a hack to parse FJ's pyGrim Formulas code
+//   / [_][A-Za-z][a-zA-Z0-9_]* { return Ast(location(), 'Id', [text()]); }
 
 Tag "a tag"
   = [A-Z][a-zA-Z0-9_]* { return Ast(location(), 'Tag', [text()]); }
