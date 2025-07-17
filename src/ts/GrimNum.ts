@@ -40,7 +40,8 @@ class GrimNat extends GrimVal {
              typeof children[0].children[0] === "number")) {
             return new GrimNat(children[0].children[0]);
         }
-        return new GrimAst("NOPE");
+        // TODO new code to create @(number, ...children)
+        return new GrimAst("NOPE_Nat");
     }
 }
 
@@ -83,7 +84,8 @@ class GrimDec extends GrimVal {
              typeof children[0].children[0] === "number")) {
             return new GrimNat(children[0].children[0]);
         }
-        return new GrimAst("NOPE");
+        // TODO new code to create @(number, ...children)
+        return new GrimAst("NOPE_Dec");
     }
 }
 

@@ -43,7 +43,7 @@ class GrimBool extends GrimVal {
             // If it's a string, we can assume it's a boolean value
             return new GrimBool(children[0].children[0] === "True");
         }
-        return new GrimAst("NOPE");
+        return new GrimAst("NOPE_Bool");
     }
 }
 

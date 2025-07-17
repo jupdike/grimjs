@@ -15,7 +15,7 @@ interface AstJson {
     children: Array<AstJson | string>;
 }
 
-function locToStr(loc) {
+function locToStr(loc: Location | undefined): string {
   if(!loc) {
     return "unknown location";
   }

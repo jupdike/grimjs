@@ -40,7 +40,7 @@ class GrimStr extends GrimVal {
             && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
             return new GrimStr(children[0].children[0]);
         }
-        return new GrimAst("NOPE");
+        return new GrimAst("NOPE_Str");
     }
 }
 

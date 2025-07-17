@@ -38,7 +38,7 @@ class GrimOpt extends GrimVal {
         if (children.length === 1 && typeof children[0] === "object") {
             return GrimOpt.Some(GrimVal.fromAst(children[0]));
         }
-        return new GrimAst("NOPE");
+        return new GrimAst("NOPE_Opt");
     }
 }
 

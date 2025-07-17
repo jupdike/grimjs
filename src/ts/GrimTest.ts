@@ -140,4 +140,8 @@ analyzeOne('Set("a", "b", "c")');
 analyzeOne('Set()');
 analyzeOne('Set("a", "b", "c", "a")'); // duplicates removed
 analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
+
+analyzeOne('(Map)("a", "b", "c")'); // <-- nice, this works
+
+analyzeOne('0(list)'); // <-- this parse, but doesn't build yet
 */

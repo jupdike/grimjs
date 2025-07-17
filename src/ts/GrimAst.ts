@@ -146,7 +146,7 @@ class GrimVar extends GrimVal {
             && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
             return new GrimVar(children[0].children[0]);
         }
-        return new GrimAst("NOPE");
+        return new GrimAst("NOPE_GrimVar");
     }
 }
 
@@ -189,7 +189,7 @@ class GrimSym extends GrimVal {
             && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
             return new GrimVar(children[0].children[0]);
         }
-        return new GrimAst("NOPE");
+        return new GrimAst("NOPE_GrimSym");
     }
 }
 
