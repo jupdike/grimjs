@@ -125,8 +125,9 @@ ArgList
   = head:Expression tail:(_ "," _ Expression)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
 FuncApply
-  = head:Molecule _ "(" _ ")" { return Ast(location(), "@", [head]); }
-  // to prevent a scenario like    print f(g)    <-- is this print(f(g)) or (print(f)) (g) ?
+  = "(" head:Factor ")" _ "(" _ ")" { return Ast(location(), "@", [head]); }
+  / head:Molecule _ "(" _ ")" { return Ast(location(), "@", [head]); }
+  / "(" head:Factor ")" _ "(" _ items:ArgList _ ")" { return Ast(location(), "@", cons(head, items));}
   / head:Molecule _ "(" _ items:ArgList _ ")" { return Ast(location(), "@", cons(head, items));}
   // allow trailing comma
   / head:Molecule _ "(" _ items:ArgList _ "," _ ")" { return Ast(location(), "@", cons(head, items));}
@@ -141,12 +142,16 @@ Factor "a function application, a parenthesized expression, a lambda, or a list,
   / "(" _ e:Expression _ ")" { return e; }
   / Molecule
 
+Items "a comma-separated list of two or more items"
+  = head:ExprLowest tail:(_ "," _ ExprLowest)+ { return cons(head, tail.map(function(x) { return x[3]; })); }
+
 Tuple "a tuple"
-  = "(" items:(_ ExprLowest _ ","? _)* ")" { return Ast(location(), 'Tuple', items.map(function(x) { return x[1]; })) }
+  = "(" items:Items ")" { return Ast(location(), 'Tuple', items); }
 
 Map "a map"
   = "{" pairs:(_ ObjPair _ ","? _)* "}" { return Ast(location(), 'Map', pairs.map(function(x) { return x[1]; })) }
 
+// list items can be empty or include trailing comma
 List "a list"
   = "[" items:(_ ExprLowest _ ","? _)* "]" { return Ast(location(), 'List', items.map(function(x) { return x[1]; })) };
 

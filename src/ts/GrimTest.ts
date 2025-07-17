@@ -62,7 +62,6 @@ function analyzeOne(str: string) {
     console.log('GrimVal from AST   :', val.toString());
 }
 
-/*
 analyzeOne("True");
 analyzeOne("False");
 analyzeOne('Bool("True")');
@@ -112,8 +111,8 @@ analyzeOne('["a", "b", "c"]');
 
 // // Tuples of one or more elements
 analyzeOne('Tuple("a")');
-analyzeOne('("a",)');
-analyzeOne('("a", "b", "c")');
+//analyzeOne('("a",)'); // not parsing any more
+//analyzeOne('("a", "b", "c")');
 analyzeOne('Tuple("a", "b", "c")');
 
 analyzeOne('None');
@@ -144,4 +143,7 @@ analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 analyzeOne('(Map)("a", "b", "c")'); // <-- nice, this works
 
 analyzeOne('0(list)'); // <-- this parse, but doesn't build yet
-*/
+
+analyzeOne('f("x")');
+
+analyzeOne('(f)("x")');

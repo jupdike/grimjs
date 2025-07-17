@@ -105,6 +105,10 @@ function checkFileExprs(file, showAll) {
 // WORKS!
 //checkFileExprs('test-parse-escstr.grim', true);
 
+check("(f)");
+check("(f)()");
+check("(f)(x)");
+
 check('"my string \'yo\' again"')
 check("'my string \"yo\" again'")
 
@@ -258,8 +262,11 @@ check("-x^2 + 4");
 
 check("-2**3");  // should be -8
 
-process.exit(1);
+check("(f)");
+check("(f)()");
+check("(f)(x)");
 
+process.exit(1);
 
 // these are const/let statements
 checkDef("x := y");
