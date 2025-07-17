@@ -128,7 +128,6 @@ analyzeOne('Some([])'); // ==> nested empty list inside of Some
 analyzeOne('Error("Description of problem goes here")');
 analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
 analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
-*/
 
 analyzeOne('{"key": "value", "another": "thing"}');
 analyzeOne("{'key': 'value', 'another': 'thing'}");
@@ -139,6 +138,6 @@ analyzeOne('{(1, 2): "value", (3, 4): "thing"}');
 
 analyzeOne('Set("a", "b", "c")');
 analyzeOne('Set()');
-analyzeOne('Set("a", "b", "c", "a")'); //
+analyzeOne('Set("a", "b", "c", "a")'); // duplicates removed
 analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
-
+*/
