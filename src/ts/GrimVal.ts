@@ -1,3 +1,5 @@
+import { GrimApp } from "./GrimFun";
+
 interface Location {
     start: {
         line: number;
@@ -80,7 +82,7 @@ class GrimVal {
         let children: Array<AstJson | string> = ast.children || [];
         // Check if there's a specific maker for this type
         let maker = GrimVal.makerMap.get(ast.tag);
-        if (!maker) {
+        if (!maker || ast.tag === "@") {
             //console.warn(`No maker found for AST tag: ${ast.tag}`);
             if (ast.tag === "@" && ast.children && ast.children.length > 0) {
                 let head = ast.children[0];
@@ -91,15 +93,19 @@ class GrimVal {
                     children = ast.children.slice(1); // Use the rest of the children
                 }
                 else if (head && typeof head === "object" && head.tag && head.tag !== "Tag") {
-                    // If the first child is an object, use the tag itself
+                    //@ts-ignore <-- constructor to GrimApp expects a string or AstJson, will handle this for us
+                    //children = [head].concat(ast.children.slice(1)); // Use the rest of the children
+                    //console.log("33:", head.tag, "children:", children);
+                    // If the first child is an object, this is a true apply, not Tag(x,y,z), probably
                     //console.log('2 Using first child object tag for maker lookup:', head.tag);
-                    maker = GrimVal.makerMap.get(head.tag);
-                    children = ast.children.slice(1); // Use the rest of the children
+                    maker = GrimVal.makerMap.get("@");
+                    if (maker) {
+                        return maker(ast.children);
+                    }
                 }
                 else if (head && typeof head === "object" && head.tag && head.tag === "Tag" && head.children && head.children.length > 0) {
                     let h2 = head.children[0];
                     if (h2 && typeof h2 === "string") {
-                        //console.log('3 Using second child string for maker lookup:', h2);
                         maker = GrimVal.makerMap.get(h2);
                         children = ast.children.slice(1); // Use the rest of the children
                     }

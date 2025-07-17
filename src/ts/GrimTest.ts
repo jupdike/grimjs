@@ -4,6 +4,7 @@ import parser from  "../parser.js"
 import { Ast } from "../ast.js"
 import { GrimVal, Location, AstJson, locToStr } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
+import { GrimApp } from "./GrimFun.js";
 import { GrimAst, GrimTag, GrimVar, GrimSym } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
@@ -30,6 +31,10 @@ function addMakers() {
     GrimVal.makerMap.set("Tuple", GrimTuple.maker); // just another wrapper for list
     GrimVal.makerMap.set("Map", GrimMap.maker);
     GrimVal.makerMap.set("Set", GrimSet.maker);
+
+    // Function application
+    GrimVal.makerMap.set("App", GrimApp.maker);
+    GrimVal.makerMap.set("@", GrimApp.maker);
 }
 addMakers();
 
@@ -110,7 +115,7 @@ analyzeOne('["a", "b", "c"]');
 // -------------------------------
 
 // // Tuples of one or more elements
-analyzeOne('Tuple("a")');
+//analyzeOne('Tuple("a")'); // we don't want to allow this either
 //analyzeOne('("a",)'); // not parsing any more
 //analyzeOne('("a", "b", "c")');
 analyzeOne('Tuple("a", "b", "c")');
@@ -142,8 +147,9 @@ analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 
 analyzeOne('(Map)("a", "b", "c")'); // <-- nice, this works
 
-analyzeOne('0(list)'); // <-- this parse, but doesn't build yet
+// analyzeOne('0(list)'); // <-- this parses, but doesn't build yet
 
 analyzeOne('f("x")');
-
 analyzeOne('(f)("x")');
+analyzeOne('App(f,"x")');
+analyzeOne('(f)("x", "y")');
