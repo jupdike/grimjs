@@ -17,6 +17,19 @@ class GrimStr extends GrimVal {
         return "Str";
     }
 
+    equals(other: GrimVal): boolean {
+        if (other instanceof GrimStr) {
+            if (this.value.length !== other.value.length) {
+                return false;
+            }
+            return this.value === other.value;
+        }
+        if (other instanceof GrimVal) {
+            return this.equals(other);
+        }
+        return false;
+    }
+
     static maker(children: Array<string | AstJson>): GrimVal {
         // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
         if (children.length === 1 && typeof children[0] === "string") {

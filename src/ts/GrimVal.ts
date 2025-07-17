@@ -45,6 +45,29 @@ class GrimVal {
         return new GrimVal();
     }
 
+    hashCode(): number {
+        // useful to see if equals() testing can help us avoid calls to hashCode() when possible
+        //console.log(`CALLED Hash code for ${this.toString()}: ${hash}`);
+        //
+        // Default hash code, can be overridden by specific GrimVal subclasses
+        let str = this.toString();
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0; // Convert to 32-bit integer
+        }
+        return hash;
+    }
+
+    equals(other: GrimVal): boolean {
+        if (this === other) {
+            return true; // Same reference
+        }
+        // Default equality check, can be overridden by specific GrimVal subclasses
+        //console.log(`CALLED equals for ${this.toString()} and ${other.toString()}`);
+        return this.hashCode() === other.hashCode();
+    }
+
     static fromAst(ast: AstJson): GrimVal {
         if (!ast || !ast.tag) {
             console.log("=== AST:");

@@ -1,4 +1,4 @@
-import { List } from "immutable";
+import { List, Set, Map } from "immutable";
 import { GrimVal, AstJson } from "./GrimVal.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimBool } from "./GrimBool.js";
@@ -151,4 +151,37 @@ class GrimMap extends GrimVal {
     }
 }
 
-export { GrimList, GrimTuple, GrimMap };
+class GrimSet extends GrimVal {
+    private set: Set<GrimVal>;
+
+    constructor(collection?: Iterable<GrimVal> | ArrayLike<GrimVal>) {
+        super();
+        this.set = Set(collection);
+    }
+
+    toString(): string {
+        return `Set(${Array.from(this.set).map(item => item.toString()).join(", ")})`;
+    }
+
+    isAtom(): boolean {
+        return false; // Sets are not considered atoms
+    }
+
+    head(): string {
+        return "Set";
+    }
+
+    static maker(children: Array<AstJson | string>): GrimVal {
+        let elements: GrimVal[] = [];
+        for (let child of children) {
+            if (typeof child === "string") {
+                elements.push(new GrimStr(child));
+            } else {
+                elements.push(GrimVal.fromAst(child));
+            }
+        }
+        return new GrimSet(List(elements));
+    }
+}
+
+export { GrimList, GrimTuple, GrimMap, GrimSet };

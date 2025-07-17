@@ -8,15 +8,12 @@ import { GrimAst, GrimTag, GrimVar, GrimSym } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimError, GrimOpt } from "./GrimOpt.js";
-import { GrimList, GrimTuple, GrimMap } from "./GrimCollect.js";
+import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
 
 function addMakers() {
+    // includes a few builtin atoms like True, False, None
     GrimVal.makerMap.set("Tag",  GrimTag.maker);
-    // TODO Var(x) --> prints as itself, so x := Var("x") would print as 'Var(x)' or 'x' without the quotes
-    //   so for use in a CAS, a := Var("a") and b:= Var("b") ... z := Var("z")
-    //   and alpha := Var("alpha") and beta := Var("beta") ... omega := Var("omega")
-    //   and ⍺ := Var("⍺") and β := Var("β") ... ⍵ := Var("⍵")
-    //   ? even cooler(?) is that you could do z := CC("z") which is a complex number variable
+
     GrimVal.makerMap.set("Var", GrimVar.maker);
     // Sym(x) --> can only evaluate if bound lexically in code, otherwise it is an error
     GrimVal.makerMap.set("Sym", GrimSym.maker);
@@ -29,8 +26,9 @@ function addMakers() {
 
     // Collection types, from Immutable.js
     GrimVal.makerMap.set("List", GrimList.maker);
-    GrimVal.makerMap.set("Tuple", GrimTuple.maker);
+    GrimVal.makerMap.set("Tuple", GrimTuple.maker); // just another wrapper for list
     GrimVal.makerMap.set("Map", GrimMap.maker);
+    GrimVal.makerMap.set("Set", GrimSet.maker);
 }
 addMakers();
 
@@ -63,6 +61,7 @@ function analyzeOne(str: string) {
     console.log('GrimVal from AST   :', val.toString());
 }
 
+/*
 analyzeOne("True");
 analyzeOne("False");
 analyzeOne('Bool("True")');
@@ -103,10 +102,12 @@ analyzeOne('[]');
 analyzeOne('["a"]');
 analyzeOne('["a", "b", "c"]');
 
+// -------------------------------
 // // Empty Tuples are not allowed
 // // analyzeOne('Tuple()');
 // // analyzeOne('()');
 // // analyzeOne('(,)');
+// -------------------------------
 
 // // Tuples of one or more elements
 analyzeOne('Tuple("a")');
@@ -133,3 +134,10 @@ analyzeOne('{key: "value", another: "thing"}');
 analyzeOne('{Key: "value", Another: "thing"}');
 analyzeOne('{1: "value", 2: "thing"}');
 analyzeOne('{(1, 2): "value", (3, 4): "thing"}');
+*/
+
+analyzeOne('Set("a", "b", "c")');
+analyzeOne('Set()');
+analyzeOne('Set("a", "b", "c", "a")'); //
+analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
+

@@ -45,7 +45,8 @@ class GrimTag extends GrimVal {
     }
 
     toString(): string {
-        //return `Tag(${strOf(this.value)})`;
+        //return `Tag(${strOf(this.value)})`; // infinite regression
+        // so just return the value itself
         return `${this.value}`;
     }
 
@@ -55,6 +56,19 @@ class GrimTag extends GrimVal {
 
     head(): string {
         return "Tag";
+    }
+
+    equals(other: GrimVal): boolean {
+        if (other instanceof GrimTag) {
+            if (this.value.length !== other.value.length) {
+                return false;
+            }
+            return this.value === other.value;
+        }
+        if (other instanceof GrimVal) {
+            return this.equals(other);
+        }
+        return false;
     }
 
     static maker(children: Array<AstJson | string>): GrimVal {
@@ -82,8 +96,14 @@ class GrimTag extends GrimVal {
     }
 }
 
+// Var(x) --> prints as itself, so x := Var("x") would print as 'Var(x)' or 'x' without the quotes
+//   so for use in a CAS, define all single-letter variables:
+//      a := Var("a") and b:= Var("b") ... z := Var("z")
+//      and alpha := Var("alpha") and beta := Var("beta") ... omega := Var("omega")
+//      and Unicode: ⍺ := Var("⍺") and β := Var("β") ... ⍵ := Var("⍵")
+//      ? even cooler(?) is that you could do z := CC("z") which is an unbound complex number variable
 class GrimVar extends GrimVal {
-    constructor(private name: string) {
+    constructor(private value: string) {
         super();
     }
 
@@ -93,7 +113,20 @@ class GrimVar extends GrimVal {
     // }
 
     toString(): string {
-        return this.name;
+        return this.value;
+    }
+
+    equals(other: GrimVal): boolean {
+        if (other instanceof GrimVar) {
+            if (this.value.length !== other.value.length) {
+                return false;
+            }
+            return this.value === other.value;
+        }
+        if (other instanceof GrimVal) {
+            return this.equals(other);
+        }
+        return false;
     }
 
     isAtom(): boolean {
@@ -118,12 +151,25 @@ class GrimVar extends GrimVal {
 }
 
 class GrimSym extends GrimVal {
-    constructor(private name: string) {
+    constructor(private value: string) {
         super();
     }
 
     toString(): string {
-        return `Sym(${strOf(this.name)})`;
+        return `Sym(${strOf(this.value)})`;
+    }
+
+    equals(other: GrimVal): boolean {
+        if (other instanceof GrimSym) {
+            if (this.value.length !== other.value.length) {
+                return false;
+            }
+            return this.value === other.value;
+        }
+        if (other instanceof GrimVal) {
+            return this.equals(other);
+        }
+        return false;
     }
 
     isAtom(): boolean {
