@@ -14,8 +14,9 @@ function addMakers() {
     // includes a few builtin atoms like True, False, None
     GrimVal.makerMap.set("Tag",  GrimTag.maker);
 
+    // Var("x") always evaluates to itself, but could be used to bind a variable with some extra operator or function
     GrimVal.makerMap.set("Var", GrimVar.maker);
-    // Sym(x) --> can only evaluate if bound lexically in code, otherwise it is an error
+    // Sym("x") --> can only evaluate if bound lexically in code, otherwise it is an error / Build error (not just an Eval error)
     GrimVal.makerMap.set("Sym", GrimSym.maker);
     GrimVal.makerMap.set("Bool", GrimBool.maker);
     GrimVal.makerMap.set("Nat", GrimNat.maker);
@@ -127,6 +128,7 @@ analyzeOne('Some([])'); // ==> nested empty list inside of Some
 analyzeOne('Error("Description of problem goes here")');
 analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
 analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
+*/
 
 analyzeOne('{"key": "value", "another": "thing"}');
 analyzeOne("{'key': 'value', 'another': 'thing'}");
@@ -134,7 +136,6 @@ analyzeOne('{key: "value", another: "thing"}');
 analyzeOne('{Key: "value", Another: "thing"}');
 analyzeOne('{1: "value", 2: "thing"}');
 analyzeOne('{(1, 2): "value", (3, 4): "thing"}');
-*/
 
 analyzeOne('Set("a", "b", "c")');
 analyzeOne('Set()');

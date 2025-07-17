@@ -95,7 +95,7 @@ class GrimMap extends GrimVal {
 
     constructor(entries?: [GrimVal, GrimVal][]) {
         super();
-        this.map = new Map(entries);
+        this.map = Map(entries);
     }
 
     toString(): string {
