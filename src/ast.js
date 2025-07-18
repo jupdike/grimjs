@@ -97,6 +97,7 @@
       "&&": "And",
       "||": "Or",
       "++": "Concat",
+      "::": "Cons",
       "?": "If2",
       "!!": "Index", // ? and TODO add this to the parser
       "@": "LApply",

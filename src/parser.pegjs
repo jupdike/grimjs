@@ -97,7 +97,7 @@ OpL1 "an infix operator" = ("?")
 OpR2 "an infix operator" = ("||")
 OpR3 "an infix operator" = ("&&")
 OpN4 "an infix operator" = ("==" / "=" / "!=" / "<" / "<=" / ">=" / ">")
-OpR5 "an infix operator" = ("++")
+OpR5 "an infix operator" = ("++" / "::")  // concat and cons, following Haskell for concat, and Lean for cons
 OpL6 "an infix operator" = ("+" / "-")
 OpL7 "an infix operator" = ("*" / "/" / ".")
 OpU8 "a unary - or + operator" = ("-" / "+") // unary operators
