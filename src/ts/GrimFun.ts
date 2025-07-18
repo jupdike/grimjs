@@ -83,18 +83,18 @@ class GrimFun extends GrimVal {
 }
 
 class GrimLet extends GrimVal {
-    private args: Array<GrimVal>;
+    private bindings: Array<GrimVal>; // TODO make this a GrimMap or Immutable.Map
     private body: GrimVal;
     static isAtom(): boolean {
         return false; // GrimLet is not an atom
     }
     constructor(args: Array<GrimVal>, body: GrimVal) {
         super();
-        this.args = args;
+        this.bindings = args;
         this.body = body;
     }
     toString(): string {
-        let argsStr = this.args.map(arg => arg.toString()).join(", ");
+        let argsStr = this.bindings.map(arg => arg.toString()).join(", ");
         return `Let(List(${argsStr}), ${this.body.toString()})`;
     }
 
@@ -112,10 +112,11 @@ class GrimLet extends GrimVal {
             console.warn("GrimLet.maker called with first child not a GrimList, returning empty GrimVal");
             return new GrimVal();
         }
-        let args = argBody[0] as GrimList;
-        // TODO check that args are all Def(Var(name), value) pairs and pull those apart
+        let bindings = argBody[0] as GrimList;
+        // TODO check that bindings are all Def(Var(name), value) pairs and pull those apart
+
         let body = argBody[1];
-        return new GrimLet(args.asArray(), body);
+        return new GrimLet(bindings.asArray(), body);
     }
 }
 
