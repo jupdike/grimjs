@@ -105,6 +105,20 @@ function checkFileExprs(file, showAll) {
 // WORKS!
 //checkFileExprs('test-parse-escstr.grim', true);
 
+check("() => 1");
+check("a => a + 1");
+check("(a) => a + 1");
+check("(a, b) => a + b");
+check("(a, b, c) => a + b + c");
+
+check("(a := 1, b := 2, c := 3) => a + b + c");
+// same as
+check("((a, b, c) => a + b + c)(1, 2, 3)");
+// unless we make Let recursive by default
+// or LetRec could be used for that
+
+check("(x, y) => x(y)");
+
 check("(f)");
 check("(f)()");
 check("(f)(x)");
@@ -244,11 +258,6 @@ check("f()");
 check("f @ 2 + 3");
 check("f @ g @ h");
 
-// TODO decide on swizzle operator
-// check("a.b().c()");  //   --> c(b(a)) ... ?
-// check("a b . c d");
-// check("a(b).c(d)");
-
 // positive and negative unary operators
 check("-a");
 check("+a");
@@ -266,8 +275,6 @@ check("(f)");
 check("(f)()");
 check("(f)(x)");
 
-process.exit(1);
-
 // these are const/let statements
 checkDef("x := y");
 checkDef("x := y + z");
@@ -281,12 +288,9 @@ check("x => x");
 check("(x) => x");
 check("(x,y) => x + y");
 
-check("(x = 4, z = 5, y) => x + y + z");
-
 checkDef("f := (x,y) => x + y");
 
 checkDef("f := (x, y, z) => g * x + f(y)");
-checkDef("f := (x, y, f(g) = g^x + y) => f(4 * x)");
 
 checkDef("sum := f(x, y, z)");
 checkDef("sum x := f(x, y, z)");
@@ -297,16 +301,16 @@ checkDef("sum x := f((+), 0, x)");
 //checkDef("sum x := foldr (+) 0 x"); // should fail, but should also have better error message ...
 // :-(
 
-checkDef("f(g) = g^x + y");
+checkDef("f(g) := g^x + y");
 
-check("a -> expr");
-check("[a] -> expr");
-check("[Tag a] -> expr");
-
-checkMatch("a");
-checkMatch("[a b]");
-checkMatch("[Tag a b]");
-checkMatch("{k1: v1, k2: v2}");
+// OLD
+// check("a -> expr");
+// check("[a] -> expr");
+// check("[Tag a] -> expr");
+// checkMatch("a");
+// checkMatch("[a b]");
+// checkMatch("[Tag a b]");
+// checkMatch("{k1: v1, k2: v2}");
 
 //--------------------------------
 checkDef("sum := f(x, y, z)");
@@ -316,7 +320,9 @@ checkDef("sum x := f((+), zero, x)");
 checkDef("sum x := f((+), 0, x)");
 
 checkDef("f(g) := g^x + y");
+checkDef("f(x) := x + 1");
 
-checkDef("a + b := prim_add a b");
-
-checkDef("a || b := prim_or a b");
+// TODO decide on swizzle operator
+// check("a.b().c()");  //   --> c(b(a)) ... ?
+// check("a b . c d");
+// check("a(b).c(d)");

@@ -141,15 +141,19 @@ analyzeOne('{1: "value", 2: "thing"}');
 analyzeOne('{(1, 2): "value", (3, 4): "thing"}');
 
 analyzeOne('Set("a", "b", "c")');
+analyzeOne('(Set)("a", "b", "c")');
 analyzeOne('Set()');
 analyzeOne('Set("a", "b", "c", "a")'); // duplicates removed
 analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 
-analyzeOne('(Map)("a", "b", "c")'); // <-- nice, this works
-
-// analyzeOne('0(list)'); // <-- this parses, but doesn't build yet
+// analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
 
 analyzeOne('f("x")');
 analyzeOne('(f)("x")');
 analyzeOne('App(f,"x")');
 analyzeOne('(f)("x", "y")');
+
+// TODO why is this broken?
+//analyzeOne('Map(Pair("a", 1), Pair("b", 1), Pair("c", 1))');
+// TODO once that works, this should work too
+//analyzeOne('(Map)(Pair("a", 1), Pair("b", 1), Pair("c", 1))');

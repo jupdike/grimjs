@@ -17,42 +17,39 @@
 Start = Def
 // Defs = def:Def+ { return Ast(location(), "Defs", def); } // will use whitespace / newlines to separate defs
 
-SymList
-  = head:Sym tail:(_ "," _ Sym)* { return cons(head, tail.map(function(x) { return x[3]; })); }
-
 AssignOp = (":=" / ":=>")
 
 Def "a let definition or a macro definition"
   = sym:Sym _ op:AssignOp _ body:Expression {
-    return Ast(location(), op === "=" ? "Let" : "Macro",
+    return Ast(location(), op === ":=" ? "Def" : "Macro",
       [sym]
       .concat([body])
       );
     }
   / sym1:Sym _ op:Op _ sym2:Sym _ assignOp:AssignOp _ body:Expression {
     // assign code to an infix operator
-    return Ast(location(), assignOp === "=" ? "Let" : "Macro",
+    return Ast(location(), assignOp === ":=" ? "Def" : "Macro",
       [op]
       .concat([ Ast(location(), "List", [sym1, sym2]) ])
       .concat([body])
       );
     }
   / sym:Sym _ syms:(Sym _)+ _ op:AssignOp _ body:Expression {
-    return Ast(location(), op === "=" ? "Let" : "Macro",
+    return Ast(location(), op === ":=" ? "Def" : "Macro",
       [sym]
       .concat([Ast(location(), "List", syms.map(function(x) { return x[0]; }))])
       .concat([body])
       );
     }
   / sym:Sym _ "(" _ ")" _ op:AssignOp _ body:Expression {
-    return Ast(location(), op === "=" ? "Let" : "Macro",
+    return Ast(location(), op === ":=" ? "Def" : "Macro",
       [sym]
       .concat([Ast(location(), "List", [])])
       .concat([body])
     );
   }
   / sym:Sym _ "(" _ args:SymList _ ")" _ op:AssignOp _ body:Expression {
-    return Ast(location(), op === "=" ? "Let" : "Macro",
+    return Ast(location(), op === ":=" ? "Def" : "Macro",
       [sym]
       .concat([Ast(location(), "List", args)])
       .concat([body])
@@ -70,17 +67,17 @@ Expressions = head:Expression tail:(_ Expression)* {
 
 Expression = uno:ExprLowest _ { return uno; }
 
-DefOrSym "a symbol or a definition"
-  = Def
-  / Sym
+SymList
+  = head:Sym tail:(_ "," _ Sym)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
-DefOrSymList
-  = head:DefOrSym tail:(_ "," _ DefOrSym)* { return cons(head, tail.map(function(x) { return x[3]; })); }
+DefList
+  = head:Def tail:(_ "," _ Def)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
-Lambda "a lambda expression (anonymous function)"
+Bind "a Fun expression (anonymous function) or Let expression"
   = "(" _ ")" _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", []), body]); }
   / sym:Sym _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", [sym]), body]); }
-  / "(" _ args:DefOrSymList _ ")" _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", args), body]); }
+  / "(" _ args:DefList _ ")" _ "=>" _ body:Expression { return Ast(location(), "Let", [Ast(location(), "List", args), body]); }
+  / "(" _ args:SymList _ ")" _ "=>" _ body:Expression { return Ast(location(), "Fun", [Ast(location(), "List", args), body]); }
 
 // TODO keep this up to date when new operators are added below (plus keep _ and @)
 Op "an infix operator"
@@ -135,10 +132,10 @@ FuncApply
   //    { return Ast(location(), "Bin", [head].concat([Ast(location(), "Op", ["_"])]).concat(items.map(function(x) { return x[0]; }))); }
   // also, make whitespace function app or multiply have lower precedence than exponentiation
 
-Factor "a function application, a parenthesized expression, a lambda, or a list, map or atom"
+Factor "a function application, a parenthesized expression, a function, or a list, tuple, map or atom"
   = FuncApply
   / "(" _ o:Op _ ")" { return o; }
-  // / Lambda
+  / Bind
   / "(" _ e:Expression _ ")" { return e; }
   / Molecule
 
