@@ -1,4 +1,4 @@
 #!/bin/sh
 # see https://bun.com/guides/runtime/web-debugger
-#bun --inspect run src/ts/GrimVal.ts
-bun run src/ts/GrimTest.ts
+#bun --inspect run src/core/GrimVal.ts
+bun run src/core/GrimTest.ts
