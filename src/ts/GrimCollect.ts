@@ -16,6 +16,10 @@ class GrimList extends GrimVal {
         this.list = List(collection);
     }
 
+    asArray(): GrimVal[] {
+        return this.list.toArray();
+    }
+
     toString(): string {
         return `[${this.list.map(item => item.toString()).join(", ")}]`;
     }

@@ -1,5 +1,3 @@
-import { GrimApp } from "./GrimFun";
-
 interface Location {
     start: {
         line: number;
@@ -118,6 +116,27 @@ class GrimVal {
                 }
             }
         }
+        // code to try to handle the case where the first child is a tag but it's not built-in
+        function myStr(s: string): AstJson {
+            return { tag: "Str", location: ast.location, children: [s] };
+        }
+        if (!maker) {
+            if (ast.children.length > 0) {
+                let head = { children: [ast.tag], location: ast.location, tag: "Tag" } as AstJson;
+                // cannot call GrimApp from here, because it is cannot be imported without circular dependency issues
+                let makeApp = GrimVal.makerMap.get("App");
+                //let makeTag = GrimVal.makerMap.get("Tag");
+                if (makeApp) {
+                    return makeApp([head].concat(
+                        ast.children.map(child => typeof child === 'string' ? myStr(child) : child
+                    )));
+                } else {
+                    console.warn(`No maker found for App, this should never happen, returning default GrimVal`);
+                    return new GrimVal();
+                }
+            }
+        }
+        // we found a built-in maker, so use it
         if (maker) {
             return maker(children);
         } else {

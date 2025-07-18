@@ -4,7 +4,7 @@ import parser from  "../parser.js"
 import { Ast } from "../ast.js"
 import { GrimVal, Location, AstJson, locToStr } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
-import { GrimApp } from "./GrimFun.js";
+import { GrimApp, GrimFun, GrimLet } from "./GrimFun.js";
 import { GrimAst, GrimTag, GrimVar, GrimSym } from "./GrimAst.js";
 import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
@@ -35,6 +35,8 @@ function addMakers() {
     // Function application
     GrimVal.makerMap.set("App", GrimApp.maker);
     GrimVal.makerMap.set("@", GrimApp.maker);
+    GrimVal.makerMap.set("Fun", GrimFun.maker);
+    GrimVal.makerMap.set("Let", GrimLet.maker);
 }
 addMakers();
 
@@ -157,3 +159,7 @@ analyzeOne('(f)("x", "y")');
 //analyzeOne('Map(Pair("a", 1), Pair("b", 1), Pair("c", 1))');
 // TODO once that works, this should work too
 //analyzeOne('(Map)(Pair("a", 1), Pair("b", 1), Pair("c", 1))');
+
+analyzeOne('x => x + 4');
+analyzeOne('(x => x + 4)(4)');
+analyzeOne('(x := 5) => x + 4');
