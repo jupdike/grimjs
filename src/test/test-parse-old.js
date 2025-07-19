@@ -1,4 +1,4 @@
-var parser = require('../parser/parser.js');
+var parser = require('../parser/_parser-old.js');
 var fs = require('fs');
 //var Ast = require('./ast.js');
 
