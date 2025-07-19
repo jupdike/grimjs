@@ -1,4 +1,4 @@
-import { GrimAst } from "./GrimAst.js";
+import { GrimError } from "./GrimOpt.js";
 import { GrimVal, strOf } from "./GrimVal.js";
 import { AstJson } from "./GrimVal.js";
 import { CanAst, CanStr } from "../parser/CanAst.js";
@@ -41,7 +41,7 @@ class GrimStr extends GrimVal {
             && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
             return new GrimStr(children[0].children[0]);
         }
-        return new GrimAst("NOPE_Str");
+        return new GrimError(["NOPE_Str"]);
     }
 
     static canAstMaker(ast: CanAst): GrimVal {
@@ -49,7 +49,7 @@ class GrimStr extends GrimVal {
             return new GrimStr(ast.str);
         }
         console.warn(`GrimStr.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
-        return new GrimAst("NOPE_CanStr");
+        return new GrimError(["NOPE_CanStr"]);
     }
 }
 

@@ -1,7 +1,7 @@
 import { GrimVal } from "./GrimVal.js";
 import { AstJson } from "./GrimVal.js";
 import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
-import { GrimAst } from "./GrimAst.js";
+import { GrimError } from "./GrimOpt.js";
 
 class GrimBool extends GrimVal {
     static True = new GrimBool();
@@ -44,7 +44,7 @@ class GrimBool extends GrimVal {
             // If it's a string, we can assume it's a boolean value
             return new GrimBool(children[0].children[0] === "True");
         }
-        return new GrimAst("NOPE_Bool");
+        return new GrimError(["NOPE_Bool"]);
     }
 
     static canAstMaker(ast: CanAst): GrimVal {
@@ -55,7 +55,7 @@ class GrimBool extends GrimVal {
             }
         }
         console.warn(`GrimBool.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
-        return new GrimAst("NOPE_CanBool");
+        return new GrimError(["NOPE_CanBool"]);
     }
 }
 

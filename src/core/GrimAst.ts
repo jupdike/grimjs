@@ -2,8 +2,10 @@ import { GrimVal, AstJson, locToStr, strOf } from "./GrimVal.js";
 import { CanAst, CanTag, CanTaggedApp, CanStr } from "../parser/CanAst.js";
 import type { Location } from "../parser/CanAst.js";
 import { GrimBool } from "./GrimBool.js";
-import { GrimOpt } from "./GrimOpt.js";
+import { GrimOpt, GrimError } from "./GrimOpt.js";
 
+// hopefully this is not needed
+/*
 class GrimAst extends GrimVal {
     constructor(private ast: AstJson | string) {
         super();
@@ -40,6 +42,7 @@ class GrimAst extends GrimVal {
 
     head(): string { return this.tag; }
 }
+*/
 
 class GrimTag extends GrimVal {
     constructor(private value: string) {
@@ -170,7 +173,7 @@ class GrimVar extends GrimVal {
             && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
             return new GrimVar(children[0].children[0]);
         }
-        return new GrimAst("NOPE_GrimVar");
+        return new GrimError(["NOPE_GrimVar"]);
     }
 
     static canAstMaker(ast: CanAst): GrimVal {
@@ -181,7 +184,7 @@ class GrimVar extends GrimVal {
             }
         }
         console.warn(`GrimVar.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
-        return new GrimAst("NOPE_CanVar");
+        return new GrimError(["NOPE_CanVar"]);
     }
 }
 
@@ -224,7 +227,7 @@ class GrimSym extends GrimVal {
             && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
             return new GrimVar(children[0].children[0]);
         }
-        return new GrimAst("NOPE_GrimSym");
+        return new GrimError(["NOPE_GrimSym"]);
     }
 
     static canAstMaker(ast: CanAst): GrimVal {
@@ -235,8 +238,8 @@ class GrimSym extends GrimVal {
             }
         }
         console.warn(`GrimSym.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
-        return new GrimAst("NOPE_CanSym");
+        return new GrimError(["NOPE_CanSym"]);
     }
 }
 
-export { GrimAst, GrimTag, GrimVar, GrimSym };
+export { GrimTag, GrimVar, GrimSym };
