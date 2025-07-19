@@ -1,5 +1,5 @@
 import { GrimVal } from "../core/GrimVal.js";
-import "../core/GrimTest.js"; // This loads all the makers
+import "../core/GrimBuild.js"; // This loads all the makers
 
 // Import both parsers for comparison
 import canParser from "../parser/_parser-canon.js";
@@ -99,6 +99,7 @@ function compareWithLegacy() {
 }
 
 // Run all tests
+console.log("\n============================")
 console.log("Starting Robust Parser Tests\n");
 
 testCanAst();
