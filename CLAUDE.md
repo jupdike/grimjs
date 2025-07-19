@@ -17,7 +17,7 @@ The codebase follows a modular architecture with clear separation between parsin
 - All values implement `hashCode()`, `equals()`, and `toString()` methods
 
 ### Parser System (`src/parser/`)
-- **Two parser implementations**: "Sugared" parser (`ParserRobust.pegjs`) and simple canonical ("desugared") parser (`CanParser.pegjs`)
+- **Two parser implementations**: "Syntax-sugared" parser (`ParserSugar.pegjs`) and simple canonical ("desugared") parser (`CanParser.pegjs`)
 - **CanAst.ts**: Canonical AST classes (`CanStr`, `CanTag`, `CanApp`, `CanTaggedApp`) for both parsers
 - **canast-config.json**: PegJS configuration for canonical parser generation, options for `peggy` command-line tool
 
@@ -26,7 +26,7 @@ The codebase follows a modular architecture with clear separation between parsin
 
 ## Key Development Notes
 
-- The project uses **two different parser systems** - canonical and advanced (robust).
+- The project uses **two different parser systems** - canonical (desugared) and advanced (syntax-sugared).
 - **TypeScript compilation is required** before running PegJS generation for both parsers
 - **Bun runtime** is used for running parser tests, not Node.js
 - When working with CanAst.ts, remember to compile to JavaScript before generating parsers, so parsers can import that code as JS and export it as `parser/_parser-whatever.js`

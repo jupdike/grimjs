@@ -2,7 +2,7 @@
 //import gmp from 'gmp-wasm';
 
 // TODO put in new robust parser instead
-import parser from  "../parser/_parser-robust.js"
+import parser from  "../parser/_parser-sugar.js"
 import { CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js"
 import "./GrimBuild.js"; // This loads all the makers
 import { GrimVal, locToStr } from "./GrimVal.js";

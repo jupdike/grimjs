@@ -1,4 +1,4 @@
-var parser = require('../parser/_parser-robust.js');
+var parser = require('../parser/_parser-sugar.js');
 var fs = require('fs');
 //var Ast = require('./ast.js');
 

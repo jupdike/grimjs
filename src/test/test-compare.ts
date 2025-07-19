@@ -3,7 +3,7 @@ import "../core/GrimBuild.js"; // This loads all the makers
 
 // Import both parsers for comparison
 import canParser from "../parser/_parser-canon.js";
-import robustParser from "../parser/_parser-robust.js";
+import robustParser from "../parser/_parser-sugar.js";
 
 function testCanAst() {
     console.log("=== Testing CanAst to GrimVal conversion ===");
