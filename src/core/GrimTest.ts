@@ -1,7 +1,7 @@
 import gmp from 'gmp-wasm';
 
-import parser from  "../parser.js"
-import { Ast } from "../ast.js"
+import parser from  "../parser/parser.js"
+import { Ast } from "../parser/ast.js"
 import { GrimVal, Location, AstJson, locToStr } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimApp, GrimFun, GrimLet } from "./GrimFun.js";
