@@ -1,4 +1,4 @@
-var parser = require('../parser/_parser-old.js');
+var parser = require('../parser/_parser-robust.js');
 var fs = require('fs');
 //var Ast = require('./ast.js');
 
@@ -10,7 +10,7 @@ function locToStr(loc) {
 }
 
 function check(str, start, onlyErrors) {
-  start = start || "Expr";
+  start = start || "Start";
   try {
     var ret = parser.parse(str, {startRule: start});
     if (!onlyErrors) {
@@ -275,6 +275,12 @@ check("(f)");
 check("(f)()");
 check("(f)(x)");
 
+check("x => x");
+check("(x) => x");
+check("(x,y) => x + y");
+
+process.exit(1); // TODO continue with this
+
 // these are const/let statements
 checkDef("x := y");
 checkDef("x := y + z");
@@ -283,10 +289,6 @@ checkDef("f() := g"); // how to define a function with no arguments
 checkDef("f(x) := x + 1");
 checkDef("f(x,y) := x + y");
 checkDef("f x y := x + y");
-
-check("x => x");
-check("(x) => x");
-check("(x,y) => x + y");
 
 checkDef("f := (x,y) => x + y");
 
