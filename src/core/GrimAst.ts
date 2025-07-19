@@ -1,4 +1,6 @@
-import { GrimVal, AstJson, Location, locToStr, strOf } from "./GrimVal.js";
+import { GrimVal, AstJson, locToStr, strOf } from "./GrimVal.js";
+import { CanAst, CanTag, CanTaggedApp, CanStr } from "../parser/CanAst.js";
+import type { Location } from "../parser/CanAst.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimOpt } from "./GrimOpt.js";
 
@@ -94,6 +96,28 @@ class GrimTag extends GrimVal {
         console.warn(`No maker found for Tag with children: ${JSON.stringify(children, null, 2)}`);
         return new GrimTag("[TODO Tag maker broken somehow]");
     }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTag) {
+            // Special built-in tags
+            if (ast.tag === "True") return GrimBool.True;
+            if (ast.tag === "False") return GrimBool.False;
+            if (ast.tag === "None") return GrimOpt.None;
+            return new GrimTag(ast.tag);
+        }
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Tag" && ast.args.length === 1) {
+            const arg = ast.args[0];
+            if (arg instanceof CanStr) {
+                // Special built-in tags
+                if (arg.str === "True") return GrimBool.True;
+                if (arg.str === "False") return GrimBool.False;
+                if (arg.str === "None") return GrimOpt.None;
+                return new GrimTag(arg.str);
+            }
+        }
+        console.warn(`GrimTag.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimTag("[TODO CanTag maker broken somehow]");
+    }
 }
 
 // Var(x) --> prints as itself, so x := Var("x") would print as 'Var(x)' or 'x' without the quotes
@@ -148,6 +172,17 @@ class GrimVar extends GrimVal {
         }
         return new GrimAst("NOPE_GrimVar");
     }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Var" && ast.args.length === 1) {
+            const arg = ast.args[0];
+            if (arg instanceof CanStr) {
+                return new GrimVar(arg.str);
+            }
+        }
+        console.warn(`GrimVar.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimAst("NOPE_CanVar");
+    }
 }
 
 class GrimSym extends GrimVal {
@@ -190,6 +225,17 @@ class GrimSym extends GrimVal {
             return new GrimVar(children[0].children[0]);
         }
         return new GrimAst("NOPE_GrimSym");
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Sym" && ast.args.length === 1) {
+            const arg = ast.args[0];
+            if (arg instanceof CanStr) {
+                return new GrimSym(arg.str);
+            }
+        }
+        console.warn(`GrimSym.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimAst("NOPE_CanSym");
     }
 }
 

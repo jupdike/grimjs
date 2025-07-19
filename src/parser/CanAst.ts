@@ -1,5 +1,5 @@
 interface Location {
-    source: string; // file name or other source identifier
+    source: string | null; // file name or other source identifier
     start: {
         line: number;
         column: number;

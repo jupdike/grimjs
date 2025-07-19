@@ -1,5 +1,6 @@
 import { GrimStr } from "./GrimStr";
 import { GrimVal, AstJson } from "./GrimVal";
+import { CanApp, CanTaggedApp, CanAst } from "../parser/CanAst.js";
 import { GrimList } from "./GrimCollect";
 
 class GrimApp extends GrimVal {
@@ -44,6 +45,25 @@ class GrimApp extends GrimVal {
             children.slice(1).map(GrimApp.wrap)
         );
     }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanApp) {
+            const lhs = GrimVal.fromCanAst(ast.fun);
+            const rhs = ast.args.map(arg => GrimVal.fromCanAst(arg));
+            return new GrimApp(lhs, rhs);
+        }
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "App") {
+            if (ast.args.length === 0) {
+                console.warn("GrimApp.canAstMaker called with no args, returning empty GrimVal");
+                return new GrimVal();
+            }
+            const lhs = GrimVal.fromCanAst(ast.args[0]);
+            const rhs = ast.args.slice(1).map(arg => GrimVal.fromCanAst(arg));
+            return new GrimApp(lhs, rhs);
+        }
+        console.warn(`GrimApp.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimVal();
+    }
 }
 
 class GrimFun extends GrimVal {
@@ -79,6 +99,26 @@ class GrimFun extends GrimVal {
         let args = argBody[0] as GrimList;
         let body = argBody[1];
         return new GrimFun(args.asArray(), body);
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Fun") {
+            if (ast.args.length !== 2) {
+                console.warn("GrimFun.canAstMaker called with insufficient args, returning empty GrimVal");
+                return new GrimVal();
+            }
+            const argsAst = GrimVal.fromCanAst(ast.args[0]);
+            const body = GrimVal.fromCanAst(ast.args[1]);
+            
+            if (argsAst instanceof GrimList) {
+                return new GrimFun(argsAst.asArray(), body);
+            } else {
+                console.warn("GrimFun.canAstMaker called with first arg not a GrimList, returning empty GrimVal");
+                return new GrimVal();
+            }
+        }
+        console.warn(`GrimFun.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimVal();
     }
 }
 
@@ -117,6 +157,26 @@ class GrimLet extends GrimVal {
 
         let body = argBody[1];
         return new GrimLet(bindings.asArray(), body);
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Let") {
+            if (ast.args.length !== 2) {
+                console.warn("GrimLet.canAstMaker called with insufficient args, returning empty GrimVal");
+                return new GrimVal();
+            }
+            const bindingsAst = GrimVal.fromCanAst(ast.args[0]);
+            const body = GrimVal.fromCanAst(ast.args[1]);
+            
+            if (bindingsAst instanceof GrimList) {
+                return new GrimLet(bindingsAst.asArray(), body);
+            } else {
+                console.warn("GrimLet.canAstMaker called with first arg not a GrimList, returning empty GrimVal");
+                return new GrimVal();
+            }
+        }
+        console.warn(`GrimLet.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimVal();
     }
 }
 

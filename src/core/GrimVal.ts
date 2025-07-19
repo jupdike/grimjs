@@ -1,15 +1,8 @@
-interface Location {
-    source: string | null; // file name or other source identifier
-    start: {
-        line: number;
-        column: number;
-    };
-    end: {
-        line: number;
-        column: number;
-    };
-}
+// Import CanAst types from parser module
+import { CanAst, CanStr, CanTag, CanApp, CanTaggedApp } from '../parser/CanAst.js';
+import type { Location } from '../parser/CanAst.js';
 
+// Legacy interface for backward compatibility during transition
 interface AstJson {
     tag: string;
     location: Location;
@@ -37,12 +30,19 @@ function strOf(x: string): string {
 }
 
 type AstToVal = (ast: Array<AstJson | string>) => GrimVal;
+type CanAstToVal = (ast: CanAst) => GrimVal;
 
 class GrimVal {
     static makerMap: Map<string, AstToVal> = new Map();
+    static canAstMakerMap: Map<string, CanAstToVal> = new Map();
 
     static maker(children: Array<AstJson | string>): GrimVal {
         // Default maker, can be overridden by specific GrimVal subclasses
+        return new GrimVal();
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        // Default CanAst maker, can be overridden by specific GrimVal subclasses
         return new GrimVal();
     }
 
@@ -67,6 +67,37 @@ class GrimVal {
         // Default equality check, can be overridden by specific GrimVal subclasses
         //console.log(`CALLED equals for ${this.toString()} and ${other.toString()}`);
         return this.hashCode() === other.hashCode();
+    }
+
+    static fromCanAst(ast: CanAst): GrimVal {
+        // Type-safe CanAst processing
+        if (ast instanceof CanStr) {
+            // String literal
+            const maker = GrimVal.canAstMakerMap.get("Str");
+            return maker ? maker(ast) : new GrimVal();
+        }
+        
+        if (ast instanceof CanTag) {
+            // Tag literal 
+            const maker = GrimVal.canAstMakerMap.get("Tag");
+            return maker ? maker(ast) : new GrimVal();
+        }
+        
+        if (ast instanceof CanApp) {
+            // Function application
+            const maker = GrimVal.canAstMakerMap.get("@");
+            return maker ? maker(ast) : new GrimVal();
+        }
+        
+        if (ast instanceof CanTaggedApp) {
+            // Tagged application - use the tag to determine the maker
+            const tagName = ast.tag.tag;
+            const maker = GrimVal.canAstMakerMap.get(tagName);
+            return maker ? maker(ast) : new GrimVal();
+        }
+        
+        console.warn(`No CanAst maker found for AST type: ${ast.constructor.name}`);
+        return new GrimVal();
     }
 
     static fromAst(ast: AstJson): GrimVal {
@@ -159,4 +190,5 @@ class GrimVal {
     }
 }
 
-export { Location, AstJson, GrimVal, locToStr, strOf };
+export { AstJson, GrimVal, locToStr, strOf };
+export type { Location };

@@ -1,8 +1,9 @@
 import gmp from 'gmp-wasm';
 
 import parser from  "../parser/_parser-old.js"
-import { Ast } from "../parser/ast.js"
-import { GrimVal, Location, AstJson, locToStr } from "./GrimVal.js";
+import { Ast } from "../parser/OldAst.js"
+import { GrimVal, AstJson, locToStr } from "./GrimVal.js";
+import type { Location } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimApp, GrimFun, GrimLet } from "./GrimFun.js";
 import { GrimAst, GrimTag, GrimVar, GrimSym } from "./GrimAst.js";
@@ -37,6 +38,29 @@ function addMakers() {
     GrimVal.makerMap.set("@", GrimApp.maker);
     GrimVal.makerMap.set("Fun", GrimFun.maker);
     GrimVal.makerMap.set("Let", GrimLet.maker);
+
+    // CanAst makers - register the same makers for type-safe CanAst processing
+    GrimVal.canAstMakerMap.set("Str", GrimStr.canAstMaker);
+    GrimVal.canAstMakerMap.set("Nat", GrimNat.canAstMaker);
+    GrimVal.canAstMakerMap.set("Dec", GrimDec.canAstMaker);
+    GrimVal.canAstMakerMap.set("Tag", GrimTag.canAstMaker);
+    GrimVal.canAstMakerMap.set("Sym", GrimSym.canAstMaker);
+    GrimVal.canAstMakerMap.set("Var", GrimVar.canAstMaker);
+    GrimVal.canAstMakerMap.set("Bool", GrimBool.canAstMaker);
+    GrimVal.canAstMakerMap.set("Some", GrimOpt.canAstMaker);
+    GrimVal.canAstMakerMap.set("Error", GrimError.canAstMaker);
+    
+    // Collection types
+    GrimVal.canAstMakerMap.set("List", GrimList.canAstMaker);
+    GrimVal.canAstMakerMap.set("Tuple", GrimTuple.canAstMaker);
+    GrimVal.canAstMakerMap.set("Map", GrimMap.canAstMaker);
+    GrimVal.canAstMakerMap.set("Set", GrimSet.canAstMaker);
+    
+    // Function application and definitions
+    GrimVal.canAstMakerMap.set("App", GrimApp.canAstMaker);
+    GrimVal.canAstMakerMap.set("@", GrimApp.canAstMaker);
+    GrimVal.canAstMakerMap.set("Fun", GrimFun.canAstMaker);
+    GrimVal.canAstMakerMap.set("Let", GrimLet.canAstMaker);
 }
 addMakers();
 

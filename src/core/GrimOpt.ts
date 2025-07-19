@@ -1,4 +1,5 @@
 import { GrimVal, AstJson } from "./GrimVal.js";
+import { CanTaggedApp, CanAst, CanStr } from "../parser/CanAst.js";
 import { GrimAst } from "./GrimAst.js";
 import { GrimStr } from "./GrimStr.js";
 
@@ -40,6 +41,20 @@ class GrimOpt extends GrimVal {
         }
         return new GrimAst("NOPE_Opt");
     }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Some") {
+            if (ast.args.length === 0) {
+                return GrimOpt.None;
+            }
+            if (ast.args.length === 1) {
+                const arg = GrimVal.fromCanAst(ast.args[0]);
+                return GrimOpt.Some(arg);
+            }
+        }
+        console.warn(`GrimOpt.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimAst("NOPE_CanOpt");
+    }
 }
 
 class GrimError extends GrimVal {
@@ -80,6 +95,20 @@ class GrimError extends GrimVal {
             let val = GrimVal.fromAst(child);
             return val;
         }));
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Error") {
+            const errorArgs = ast.args.map(arg => {
+                if (arg instanceof CanStr) {
+                    return arg.str;
+                }
+                return GrimVal.fromCanAst(arg);
+            });
+            return new GrimError(errorArgs);
+        }
+        console.warn(`GrimError.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimAst("NOPE_CanError");
     }
 
 }

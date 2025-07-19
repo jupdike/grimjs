@@ -1,5 +1,6 @@
 import { GrimVal } from "./GrimVal.js";
 import { AstJson } from "./GrimVal.js";
+import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimAst } from "./GrimAst.js";
 
 class GrimBool extends GrimVal {
@@ -44,6 +45,17 @@ class GrimBool extends GrimVal {
             return new GrimBool(children[0].children[0] === "True");
         }
         return new GrimAst("NOPE_Bool");
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Bool" && ast.args.length === 1) {
+            const arg = ast.args[0];
+            if (arg instanceof CanStr) {
+                return new GrimBool(arg.str === "True");
+            }
+        }
+        console.warn(`GrimBool.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimAst("NOPE_CanBool");
     }
 }
 

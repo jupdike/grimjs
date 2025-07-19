@@ -1,5 +1,6 @@
 import { List, Set, Map } from "immutable";
 import { GrimVal, AstJson } from "./GrimVal.js";
+import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimTag, GrimVar } from "./GrimAst.js";
@@ -47,6 +48,15 @@ class GrimList extends GrimVal {
             return GrimVal.fromAst(child);
         }));
     }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "List") {
+            const elements = ast.args.map(arg => GrimVal.fromCanAst(arg));
+            return new GrimList(elements);
+        }
+        console.warn(`GrimList.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimList(); // Return empty list as fallback
+    }
 }
 
 class GrimTuple extends GrimVal {
@@ -91,6 +101,18 @@ class GrimTuple extends GrimVal {
             // handle other types
             return GrimVal.fromAst(child);
         }));
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Tuple") {
+            if (ast.args.length === 0) {
+                throw new Error("Empty tuples are not allowed in Grim");
+            }
+            const elements = ast.args.map(arg => GrimVal.fromCanAst(arg));
+            return new GrimTuple(elements);
+        }
+        console.warn(`GrimTuple.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        throw new Error("Invalid tuple AST");
     }
 }
 
@@ -153,6 +175,26 @@ class GrimMap extends GrimVal {
         }
         return new GrimMap(entries);
     }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Map") {
+            const entries: [GrimVal, GrimVal][] = [];
+            
+            for (const arg of ast.args) {
+                if (arg instanceof CanTaggedApp && arg.tag.tag === "Pair" && arg.args.length === 2) {
+                    const key = GrimVal.fromCanAst(arg.args[0]);
+                    const value = GrimVal.fromCanAst(arg.args[1]);
+                    entries.push([key, value]);
+                } else {
+                    return new GrimError(["Invalid Map entry, expected Pair but got: ", arg.toString()]);
+                }
+            }
+            
+            return new GrimMap(entries);
+        }
+        console.warn(`GrimMap.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimError(["Invalid Map AST"]);
+    }
 }
 
 class GrimSet extends GrimVal {
@@ -185,6 +227,15 @@ class GrimSet extends GrimVal {
             }
         }
         return new GrimSet(List(elements));
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Set") {
+            const elements = ast.args.map(arg => GrimVal.fromCanAst(arg));
+            return new GrimSet(elements);
+        }
+        console.warn(`GrimSet.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimSet(); // Return empty set as fallback
     }
 }
 

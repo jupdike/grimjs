@@ -1,4 +1,5 @@
 import { AstJson, GrimVal } from "./GrimVal.js";
+import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimAst } from "./GrimAst.js";
 
 class GrimNat extends GrimVal {
@@ -43,6 +44,17 @@ class GrimNat extends GrimVal {
         // TODO new code to create @(number, ...children)
         return new GrimAst("NOPE_Nat");
     }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Nat" && ast.args.length === 1) {
+            const arg = ast.args[0];
+            if (arg instanceof CanStr) {
+                return new GrimNat(arg.str);
+            }
+        }
+        console.warn(`GrimNat.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimAst("NOPE_CanNat");
+    }
 }
 
 class GrimDec extends GrimVal {
@@ -86,6 +98,17 @@ class GrimDec extends GrimVal {
         }
         // TODO new code to create @(number, ...children)
         return new GrimAst("NOPE_Dec");
+    }
+
+    static canAstMaker(ast: CanAst): GrimVal {
+        if (ast instanceof CanTaggedApp && ast.tag.tag === "Dec" && ast.args.length === 1) {
+            const arg = ast.args[0];
+            if (arg instanceof CanStr) {
+                return new GrimDec(arg.str);
+            }
+        }
+        console.warn(`GrimDec.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        return new GrimAst("NOPE_CanDec");
     }
 }
 
