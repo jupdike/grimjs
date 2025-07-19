@@ -31,24 +31,11 @@ class GrimStr extends GrimVal {
         return false;
     }
 
-    static maker(children: Array<string | AstJson>): GrimVal {
-        // console.log('Parsed AST JSON 765 ***:', JSON.stringify(children, null, 2));
-        if (children.length === 1 && typeof children[0] === "string") {
-            return new GrimStr(children[0]);
-        }
-        if (children.length === 1 && typeof children[0] === "object"
-            && children[0].tag === "Str" && children[0].children
-            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
-            return new GrimStr(children[0].children[0]);
-        }
-        return new GrimError(["NOPE_Str"]);
-    }
-
-    static canAstMaker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst): GrimVal {
         if (ast instanceof CanStr) {
             return new GrimStr(ast.str);
         }
-        console.warn(`GrimStr.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        console.warn(`GrimStr.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimError(["NOPE_CanStr"]);
     }
 }

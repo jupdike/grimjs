@@ -28,30 +28,17 @@ class GrimOpt extends GrimVal {
         return "Option";
     }
 
-    static maker(children: Array<AstJson | string>): GrimVal {
-        if (children.length === 0) {
-            return GrimOpt.None;
-        }
-        if (children.length === 1 && typeof children[0] === "string") {
-            return GrimOpt.Some(new GrimStr(children[0]));
-        }
-        if (children.length === 1 && typeof children[0] === "object") {
-            return GrimOpt.Some(GrimVal.fromAst(children[0]));
-        }
-        return new GrimError(["NOPE_Opt"]);
-    }
-
-    static canAstMaker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Some") {
             if (ast.args.length === 0) {
                 return GrimOpt.None;
             }
             if (ast.args.length === 1) {
-                const arg = GrimVal.fromCanAst(ast.args[0]);
+                const arg = GrimVal.fromAst(ast.args[0]);
                 return GrimOpt.Some(arg);
             }
         }
-        console.warn(`GrimOpt.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        console.warn(`GrimOpt.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimError(["NOPE_CanOpt"]);
     }
 }
@@ -86,27 +73,17 @@ class GrimError extends GrimVal {
         return "Error";
     }
 
-    static maker(children: Array<AstJson | string>): GrimVal {
-        return new GrimError(children.map(child => {
-            if (typeof child === "string") {
-                return child;
-            }
-            let val = GrimVal.fromAst(child);
-            return val;
-        }));
-    }
-
-    static canAstMaker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Error") {
             const errorArgs = ast.args.map(arg => {
                 if (arg instanceof CanStr) {
                     return arg.str;
                 }
-                return GrimVal.fromCanAst(arg);
+                return GrimVal.fromAst(arg);
             });
             return new GrimError(errorArgs);
         }
-        console.warn(`GrimError.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        console.warn(`GrimError.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimError(["NOPE_CanError"]);
     }
 

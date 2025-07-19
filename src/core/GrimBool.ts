@@ -25,36 +25,14 @@ class GrimBool extends GrimVal {
         return new GrimBool(a.isTrue() === b.isTrue());
     }
 
-    static maker(children: Array<AstJson | string>): GrimVal {
-        if (children[0] === "True") {
-            return GrimBool.True;
-        }
-        if (children[0] === "False") {
-            return GrimBool.False;
-        }
-        if (children.length === 1 && typeof children[0] === "string") {
-            // console.log('Parsed AST JSON <> <> *** <> <>:', JSON.stringify(children, null, 2));
-            // If it's a string, we can assume it's a boolean value
-            return new GrimBool(children[0] === "True");
-        }
-        if (children.length === 1 && typeof children[0] === "object"
-            && children[0].tag === "Str" && children[0].children
-            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
-            // console.log('Parsed AST JSON <> <> *** <> <>:', JSON.stringify(children, null, 2));
-            // If it's a string, we can assume it's a boolean value
-            return new GrimBool(children[0].children[0] === "True");
-        }
-        return new GrimError(["NOPE_Bool"]);
-    }
-
-    static canAstMaker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Bool" && ast.args.length === 1) {
             const arg = ast.args[0];
             if (arg instanceof CanStr) {
                 return new GrimBool(arg.str === "True");
             }
         }
-        console.warn(`GrimBool.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        console.warn(`GrimBool.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimError(["NOPE_CanBool"]);
     }
 }

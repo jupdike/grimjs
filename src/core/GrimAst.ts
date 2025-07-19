@@ -76,31 +76,7 @@ class GrimTag extends GrimVal {
         return false;
     }
 
-    static maker(children: Array<AstJson | string>): GrimVal {
-        //console.log('Parsed AST JSON ***:', JSON.stringify(ast, null, 2));
-        // a few special built-in tags that are self-evaluating
-        if(children && children.length == 1 && children[0] === "True") {
-            return GrimBool.True;
-        }
-        if(children && children.length == 1 && children[0] === "False") {
-            return GrimBool.False;
-        }
-        if(children && children.length == 1 && children[0] === "None") {
-            return GrimOpt.None;
-        }
-        if(children && children.length == 1 && typeof children[0] === "string") {
-            return new GrimTag(children[0]);
-        }
-        if(children && children.length == 1 && typeof children[0] === "object" &&
-            children[0].tag === "Str" && children[0].children && children[0].children.length === 1 &&
-            typeof children[0].children[0] === "string") {
-            return new GrimTag(children[0].children[0]);
-        }
-        console.warn(`No maker found for Tag with children: ${JSON.stringify(children, null, 2)}`);
-        return new GrimTag("[TODO Tag maker broken somehow]");
-    }
-
-    static canAstMaker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst): GrimVal {
         if (ast instanceof CanTag) {
             // Special built-in tags
             if (ast.tag === "True") return GrimBool.True;
@@ -118,7 +94,7 @@ class GrimTag extends GrimVal {
                 return new GrimTag(arg.str);
             }
         }
-        console.warn(`GrimTag.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        console.warn(`GrimTag.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimTag("[TODO CanTag maker broken somehow]");
     }
 }
@@ -164,26 +140,14 @@ class GrimVar extends GrimVal {
         return "Var";
     }
 
-    static maker(children: Array<AstJson | string>): GrimVal {
-        if (children.length === 1 && typeof children[0] === "string") {
-            return new GrimVar(children[0]);
-        }
-        if (children.length === 1 && typeof children[0] === "object"
-            && children[0].tag === "Str" && children[0].children
-            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
-            return new GrimVar(children[0].children[0]);
-        }
-        return new GrimError(["NOPE_GrimVar"]);
-    }
-
-    static canAstMaker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Var" && ast.args.length === 1) {
             const arg = ast.args[0];
             if (arg instanceof CanStr) {
                 return new GrimVar(arg.str);
             }
         }
-        console.warn(`GrimVar.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        console.warn(`GrimVar.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimError(["NOPE_CanVar"]);
     }
 }
@@ -218,26 +182,14 @@ class GrimSym extends GrimVal {
         return "Sym";
     }
 
-    static maker(children: Array<AstJson | string>): GrimVal {
-        if (children.length === 1 && typeof children[0] === "string") {
-            return new GrimVar(children[0]);
-        }
-        if (children.length === 1 && typeof children[0] === "object"
-            && children[0].tag === "Str" && children[0].children
-            && children[0].children.length === 1 && typeof children[0].children[0] === "string") {
-            return new GrimVar(children[0].children[0]);
-        }
-        return new GrimError(["NOPE_GrimSym"]);
-    }
-
-    static canAstMaker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Sym" && ast.args.length === 1) {
             const arg = ast.args[0];
             if (arg instanceof CanStr) {
                 return new GrimSym(arg.str);
             }
         }
-        console.warn(`GrimSym.canAstMaker received unexpected AST type: ${ast.constructor.name}`);
+        console.warn(`GrimSym.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimError(["NOPE_CanSym"]);
     }
 }

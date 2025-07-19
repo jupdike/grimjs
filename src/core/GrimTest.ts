@@ -36,7 +36,7 @@ function analyzeOne(str: string) {
     //console.log('Parsed AST JSON    :', JSON.stringify(ast, null, 2));
     console.log('Parsed AST toString:', ast.toString());
     // TODO work on this
-    let val = GrimVal.fromCanAst(ast);
+    let val = GrimVal.fromAst(ast);
     console.log('GrimVal from AST   :', val.toString());
 }
 

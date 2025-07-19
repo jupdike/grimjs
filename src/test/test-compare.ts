@@ -13,21 +13,21 @@ function testCanAst() {
         const strResult = canParser.parse('"hello"');
         console.log("Parsed string AST:", strResult.toString());
         
-        const grimVal = GrimVal.fromCanAst(strResult);
+        const grimVal = GrimVal.fromAst(strResult);
         console.log("Converted to GrimVal:", grimVal.toString());
         
         // Test simple tag parsing  
         const tagResult = canParser.parse('MyTag');
         console.log("Parsed tag AST:", tagResult.toString());
         
-        const tagGrimVal = GrimVal.fromCanAst(tagResult);
+        const tagGrimVal = GrimVal.fromAst(tagResult);
         console.log("Converted to GrimVal:", tagGrimVal.toString());
         
         // Test tagged application parsing
         const appResult = canParser.parse('Str("test")');
         console.log("Parsed tagged app AST:", appResult.toString());
         
-        const appGrimVal = GrimVal.fromCanAst(appResult);
+        const appGrimVal = GrimVal.fromAst(appResult);
         console.log("Converted to GrimVal:", appGrimVal.toString());
         
     } catch (error) {
@@ -53,7 +53,7 @@ function testBasicExpressions() {
             console.log(`  AST: ${ast.toString()}`);
             
             // Convert to GrimVal using CanAst
-            const grimVal = GrimVal.fromCanAst(ast);
+            const grimVal = GrimVal.fromAst(ast);
             console.log(`  GrimVal: ${grimVal.toString()}`);
             console.log(`  Type: ${grimVal.constructor.name}`);
             
@@ -78,13 +78,13 @@ function compareWithLegacy() {
             
             // Simple CanParser approach
             const canAst = canParser.parse(testCase);
-            const canGrimVal = GrimVal.fromCanAst(canAst);
+            const canGrimVal = GrimVal.fromAst(canAst);
             console.log(`  Simple CanParser result: ${canGrimVal.toString()}`);
             console.log(`  Simple CanParser type: ${canGrimVal.constructor.name}`);
             
             // Robust parser approach (also produces CanAst)
             const robustAst = robustParser.parse(testCase);
-            const robustGrimVal = GrimVal.fromCanAst(robustAst);
+            const robustGrimVal = GrimVal.fromAst(robustAst);
             console.log(`  Robust parser result: ${robustGrimVal.toString()}`);
             console.log(`  Robust parser type: ${robustGrimVal.constructor.name}`);
             

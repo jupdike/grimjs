@@ -1,7 +1,5 @@
 import gmp from 'gmp-wasm';
 
-import parser from  "../parser/_parser-old.js"
-import { Ast } from "../parser/OldAst.js"
 import { GrimVal, AstJson, locToStr } from "./GrimVal.js";
 import type { Location } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
@@ -14,32 +12,32 @@ import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
 
 function addMakers() {
     // CanAst makers - register the same makers for type-safe CanAst processing
-    GrimVal.makerMap.set("Str", GrimStr.canAstMaker);
-    GrimVal.makerMap.set("Nat", GrimNat.canAstMaker);
-    GrimVal.makerMap.set("Dec", GrimDec.canAstMaker);
+    GrimVal.makerMap.set("Str", GrimStr.maker);
+    GrimVal.makerMap.set("Nat", GrimNat.maker);
+    GrimVal.makerMap.set("Dec", GrimDec.maker);
 
     // includes a few builtin atoms like True, False, None
-    GrimVal.makerMap.set("Tag", GrimTag.canAstMaker);
+    GrimVal.makerMap.set("Tag", GrimTag.maker);
     // Sym("x") --> can only evaluate if bound lexically in code, otherwise it is an error / Build error (not just an Eval error)
-    GrimVal.makerMap.set("Sym", GrimSym.canAstMaker);
+    GrimVal.makerMap.set("Sym", GrimSym.maker);
     // Var("x") always evaluates to itself, but could be used to bind a variable with some extra operator or function
-    GrimVal.makerMap.set("Var", GrimVar.canAstMaker);
-    GrimVal.makerMap.set("Bool", GrimBool.canAstMaker);
-    GrimVal.makerMap.set("Some", GrimOpt.canAstMaker);
-    GrimVal.makerMap.set("Error", GrimError.canAstMaker);
+    GrimVal.makerMap.set("Var", GrimVar.maker);
+    GrimVal.makerMap.set("Bool", GrimBool.maker);
+    GrimVal.makerMap.set("Some", GrimOpt.maker);
+    GrimVal.makerMap.set("Error", GrimError.maker);
 
     // Collection types
-    GrimVal.makerMap.set("List", GrimList.canAstMaker);
+    GrimVal.makerMap.set("List", GrimList.maker);
     // version of List with fixed length, very different later in the type system
     // can only by pair or wider
-    GrimVal.makerMap.set("Tuple", GrimTuple.canAstMaker);
-    GrimVal.makerMap.set("Map", GrimMap.canAstMaker);
-    GrimVal.makerMap.set("Set", GrimSet.canAstMaker);
+    GrimVal.makerMap.set("Tuple", GrimTuple.maker);
+    GrimVal.makerMap.set("Map", GrimMap.maker);
+    GrimVal.makerMap.set("Set", GrimSet.maker);
     
     // Function application and definitions
-    GrimVal.makerMap.set("App", GrimApp.canAstMaker);
-    GrimVal.makerMap.set("@", GrimApp.canAstMaker);
-    GrimVal.makerMap.set("Fun", GrimFun.canAstMaker);
-    GrimVal.makerMap.set("Let", GrimLet.canAstMaker);
+    GrimVal.makerMap.set("App", GrimApp.maker);
+    GrimVal.makerMap.set("@", GrimApp.maker);
+    GrimVal.makerMap.set("Fun", GrimFun.maker);
+    GrimVal.makerMap.set("Let", GrimLet.maker);
 }
 addMakers();
