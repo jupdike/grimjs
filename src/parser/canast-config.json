@@ -1,0 +1,11 @@
+{
+    "dependencies": {
+        "canast": "../parser/CanAst.js"
+    },
+    "dts": true,
+    "returnType": {
+        "Expr": "CanAst"
+    },
+    "input": "parser/CanParser.pegjs",
+    "output": "parser/parser-canon.js"
+}

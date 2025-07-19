@@ -7,7 +7,7 @@ class GrimAst extends GrimVal {
         super();
         if (typeof ast === "string") {
             this.tag = "Str";
-            this.location = { start: { line: 0, column: 0 }, end: { line: 0, column: 0 } };
+            this.location = { source: null, start: { line: 0, column: 0 }, end: { line: 0, column: 0 } };
             this.children = [ast]; // assuming ast is a string
             return;
         }

@@ -32,46 +32,85 @@ class CanAst {
     }
 }
 
+function strEscape(str: string): string {
+    // Escapes backslashes and double quotes
+    return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+// copied from ast.js, so keep those in sync manually
+function strOf(x: string): string {
+    // use single quotes sometimes and don't escape double quotes in that case
+    if(x.indexOf('"') >= 0) {
+        return "'" + strEscape(x).replace(/[\\]"/g, '"') + "'";
+    }
+    // just use double quotes by default normally
+    return '"' + strEscape(x) + '"'; // use double quotes
+}
+
 // CanAst = CanStr | CanTag | CanApp | CanTaggedApp
 
 class CanStr extends CanAst {
     public str: string;
-    constructor(str: string, location: Location) {
+    constructor(location: Location, str: string) {
         super(location);
         this.str = str;
+    }
+    toString(): string {
+        return strOf(this.str);
     }
 }
 
 class CanTag extends CanAst {
     public tag: string;
-    constructor(tag: string, location: Location) {
+    constructor(location: Location, tag: string) {
         super(location);
         this.tag = tag;
+    }
+    toString(): string {
+        return this.tag; // just the tag name, no quotes
     }
 }
 
 class CanApp extends CanAst {
     public fun: CanAst;
     public args: Array<CanAst>;
-    constructor(fun: CanAst, args: Array<CanAst>, location: Location) {
+    constructor(location: Location, fun: CanAst, args: Array<CanAst>) {
         super(location);
         this.fun = fun;
         this.args = args;
+    }
+    toString(): string {
+        return `${this.fun.toString()}@(${this.args.map(arg => arg.toString()).join(", ")})`;
     }
 }
 
 class CanTaggedApp extends CanAst {
     public tag: CanTag;
     public args: Array<CanAst>;
-    constructor(tag: CanTag, args: Array<CanAst>, location: Location) {
+    constructor(location: Location, tag: CanTag, args: Array<CanAst>) {
         super(location);
         this.tag = tag;
         this.args = args;
     }
-    static from(tagStr: string, args: Array<CanAst>, location: Location): CanTaggedApp {
-        const tag = new CanTag(tagStr, location);
-        return new CanTaggedApp(tag, args, location);
+    static from(location: Location, tagStr: string, args: Array<CanAst>): CanTaggedApp {
+        const tag = new CanTag(location, tagStr);
+        return new CanTaggedApp(location, tag, args);
+    }
+    toString(): string {
+        return `${this.tag.toString()}(${this.args.map(arg => arg.toString()).join(", ")})`;
     }
 }
 
-export { Location, CanAst, CanStr, CanTag, CanApp, CanTaggedApp };
+function aTag(location: Location, tagStr: string): CanTag {
+    return new CanTag(location, tagStr);
+}
+function aStr(location: Location, str: string): CanStr {
+    return new CanStr(location, str);
+}
+function aApp(location: Location, fun: CanAst, args: Array<CanAst>): CanApp {
+    return new CanApp(location, fun, args);
+}
+function aTagApp(location: Location, tagStr: string, args: Array<CanAst>): CanTaggedApp {
+    return CanTaggedApp.from(location, tagStr, args);
+}
+
+export { Location, aTag, aStr, aApp, aTagApp };
