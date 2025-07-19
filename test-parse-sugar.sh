@@ -1,2 +1,2 @@
 #!/bin/bash
-(cd src && peggy --dependency ast:../parser/OldAst.js --allowed-start-rules Atom,Ex,Expr,Start,Def parser/ParserOld.pegjs -o parser/_parser-old.js && bun test/test-parse-sugar.js)
+(cd src && peggy parser/ParserRobust.pegjs --dependency canast:./CanAst.js -o parser/_parser-robust.js && bun test/test-parse-sugar.js)

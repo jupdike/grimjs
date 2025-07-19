@@ -17,35 +17,20 @@ The codebase follows a modular architecture with clear separation between parsin
 - All values implement `hashCode()`, `equals()`, and `toString()` methods
 
 ### Parser System (`src/parser/`)
-- **Two parser implementations**: Legacy parser (`parser.pegjs`) and new simple canonical parser (`CanParser.pegjs`)
-- **CanAst.ts**: Canonical AST classes (`CanStr`, `CanTag`, `CanApp`, `CanTaggedApp`) for the new parser
+- **Two parser implementations**: "Sugared" parser (`ParserRobust.pegjs`) and simple canonical ("desugared") parser (`CanParser.pegjs`)
+- **CanAst.ts**: Canonical AST classes (`CanStr`, `CanTag`, `CanApp`, `CanTaggedApp`) for both parsers
 - **canast-config.json**: PegJS configuration for canonical parser generation, options for `peggy` command-line tool
-- **ast.js**: Legacy AST utilities (no real TypeScript equivalents)
 
 ### Test System (`src/test/`)
-- **test-canon.ts**: Tests for new canonical parser system
-- **test.js**: Legacy parser tests
-
-## Common Development Commands
-
-### Build and Test (Legacy Parser)
-```bash
-./test.sh
-```
-
-### Build and Test (Canonical Parser) 
-```bash
-./test-canon.sh
-```
+- **test-canon.ts**: Tests for parsers and builder (sending parsed `CanAst` output into `GrimVal.fromAst()`)
 
 ## Key Development Notes
 
-- The project uses **two different parser systems** - legacy and canonical. The canonical system (CanAst) is small prototype for the newer, preferred approach, but too simple.
-- **TypeScript compilation is required** before running PegJS generation for the canonical parser
-- **Bun runtime** is used for running canonical parser tests, not Node.js
-- When working with CanAst.ts, remember to compile to JavaScript before generating parsers, so parsers can import that code as JS and export it as `parser-whatever.js`
-- Keep AST utility functions in sync between TypeScript and JavaScript versions
-- The project uses a factory pattern for value creation from AST nodes via `GrimVal.makerMap`. This all uses the old fragile AstJson / mostly untyped JSON approach (called `Ast()` in parser.pegjs code itself)
+- The project uses **two different parser systems** - canonical and advanced (robust).
+- **TypeScript compilation is required** before running PegJS generation for both parsers
+- **Bun runtime** is used for running parser tests, not Node.js
+- When working with CanAst.ts, remember to compile to JavaScript before generating parsers, so parsers can import that code as JS and export it as `parser/_parser-whatever.js`
+- The project uses a factory pattern for building GrimVal runtime values from AST nodes via `GrimVal.makerMap`.
 
 ## Dependencies
 

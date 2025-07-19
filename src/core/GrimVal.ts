@@ -29,19 +29,12 @@ function strOf(x: string): string {
     return '"' + strEscape(x) + '"'; // use double quotes
 }
 
-type AstToVal = (ast: Array<AstJson | string>) => GrimVal;
-type CanAstToVal = (ast: CanAst) => GrimVal;
+type AstToVal = (ast: CanAst) => GrimVal;
 
 class GrimVal {
     static makerMap: Map<string, AstToVal> = new Map();
-    static canAstMakerMap: Map<string, CanAstToVal> = new Map();
 
-    static maker(children: Array<AstJson | string>): GrimVal {
-        // Default maker, can be overridden by specific GrimVal subclasses
-        return new GrimVal();
-    }
-
-    static canAstMaker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst): GrimVal {
         // Default CanAst maker, can be overridden by specific GrimVal subclasses
         return new GrimVal();
     }
@@ -73,29 +66,29 @@ class GrimVal {
         // Type-safe CanAst processing
         if (ast instanceof CanStr) {
             // String literal
-            const maker = GrimVal.canAstMakerMap.get("Str");
+            const maker = GrimVal.makerMap.get("Str");
             return maker ? maker(ast) : new GrimVal();
         }
         
         if (ast instanceof CanTag) {
             // Tag literal 
-            const maker = GrimVal.canAstMakerMap.get("Tag");
+            const maker = GrimVal.makerMap.get("Tag");
             return maker ? maker(ast) : new GrimVal();
         }
         
         if (ast instanceof CanApp) {
             // Function application
-            const maker = GrimVal.canAstMakerMap.get("@");
+            const maker = GrimVal.makerMap.get("@");
             return maker ? maker(ast) : new GrimVal();
         }
         
         if (ast instanceof CanTaggedApp) {
             // Tagged application - use the tag to determine the maker
             const tagName = ast.tag.tag;
-            const maker = GrimVal.canAstMakerMap.get(tagName);
+            const maker = GrimVal.makerMap.get(tagName);
             if (!maker) {
-                const appMaker = GrimVal.canAstMakerMap.get("@");
-                const tagMaker = GrimVal.canAstMakerMap.get("Tag");
+                const appMaker = GrimVal.makerMap.get("@");
+                const tagMaker = GrimVal.makerMap.get("Tag");
                 if (appMaker && tagMaker) {
                     return appMaker(
                         new CanApp(ast.location, new CanTag(ast.location, tagName), ast.args)
