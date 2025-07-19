@@ -55,6 +55,7 @@
 // The places to start a parse
 
 Start = Expression
+// Defs = def:Def+ { return Ast(location(), "Defs", def); } // will use whitespace / newlines to separate defs
 
 AssignOp = (":=" / ":=>")
 
@@ -160,7 +161,6 @@ FuncApply
   / head:Molecule _ "(" _ items:ArgList _ "," _ ")" { return aApp(location(), head, items);}
   // / head:Molecule _ items:(ExprR8 _)+
   //    { return aTagApp(location(), "Bin", [head].concat([aTag(location(), "_")]).concat(items.map(function(x) { return x[0]; }))); }
-  // also, make whitespace function app or multiply have lower precedence than exponentiation
 
 Factor "a function application, a parenthesized expression, a function, or a list, tuple, map or atom"
   = FuncApply
@@ -193,7 +193,7 @@ ObjKey "an object key"
   / Atom
 
 ObjPair "a colon-separated key-value pair"
-  = key:ObjKey _ ":" _ mol:Molecule { return aTagApp(location(), "Pair", [key, mol]); }
+  = key:ObjKey _ ":" _ mol:Molecule { return aTagApp(location(), "Tuple", [key, mol]); }
 
 // here just so we can do check() on this in test.js
 Ex "an expression"

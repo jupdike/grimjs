@@ -176,13 +176,28 @@ class GrimMap extends GrimVal {
         return new GrimMap(entries);
     }
 
+    private static keyToString(key: CanAst): GrimVal {
+        if (key instanceof CanStr) {
+            return new GrimStr(key.str);
+        }
+        // special case for CanTaggedApp where the tag is a Sym
+        if (key instanceof CanTaggedApp) {
+            // like JavaScript, not Python, so keys turn from Sym("key") to Str("key")
+            // instead of being looked up as a variable in the environment before being used as a key
+            if (key.tag.tag === "Sym" && key.args.length === 1 && key.args[0] instanceof CanStr) {
+                return new GrimStr((key.args[0] as CanStr).str); // Convert to string representation
+            }
+        }
+        return GrimVal.fromCanAst(key);
+    }
+
     static canAstMaker(ast: CanAst): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Map") {
             const entries: [GrimVal, GrimVal][] = [];
             
             for (const arg of ast.args) {
-                if (arg instanceof CanTaggedApp && arg.tag.tag === "Pair" && arg.args.length === 2) {
-                    const key = GrimVal.fromCanAst(arg.args[0]);
+                if (arg instanceof CanTaggedApp && arg.tag.tag === "Tuple" && arg.args.length === 2) {
+                    const key = GrimMap.keyToString(arg.args[0]);
                     const value = GrimVal.fromCanAst(arg.args[1]);
                     entries.push([key, value]);
                 } else {

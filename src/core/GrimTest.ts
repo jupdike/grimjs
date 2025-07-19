@@ -1,13 +1,14 @@
-import gmp from 'gmp-wasm';
+// TODO figure this one out
+//import gmp from 'gmp-wasm';
 
 // TODO put in new robust parser instead
-import parser from  "../parser/_parser-old.js"
-import { Ast } from "../parser/OldAst.js"
-import { GrimVal, AstJson, locToStr } from "./GrimVal.js";
-import type { Location } from "./GrimVal.js";
+import parser from  "../parser/_parser-robust.js"
+import { CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js"
+import "./GrimBuild.js"; // This loads all the makers
+import { GrimVal, locToStr } from "./GrimVal.js";
 
-function check(str: string, start: string | null = null, onlyErrors = false): AstJson {
-    start = start || "Expr";
+function check(str: string, start: string | null = null, onlyErrors = false): CanAst {
+    start = start || "Start";
     try {
         var ret = parser.parse(str, {startRule: start});
         if (!onlyErrors) {
@@ -19,7 +20,11 @@ function check(str: string, start: string | null = null, onlyErrors = false): As
         console.log('---');
         //console.log("Error", [e.message]);
         console.log(str, '  ~~ EXCEPTION THROWN as ~~>\n  ', `Error('${e.message}', '${locToStr(e.location)}')` );
-        return Ast( e.location || 'unknown', "Error", [e.message] );
+        //return Ast( e.location || 'unknown', "Error", [e.message] );
+        return new CanTaggedApp(e.location,
+            new CanTag(e.location, "Error"),
+            [e.message, e.location].map(x => new CanStr(e.location, x))
+        );
     }
 }
 //gmp.init().then(({ getContext }) => {
@@ -27,11 +32,11 @@ function check(str: string, start: string | null = null, onlyErrors = false): As
 //});
 
 function analyzeOne(str: string) {
-    let ast = check(str);
+    let ast: CanAst = check(str);
     //console.log('Parsed AST JSON    :', JSON.stringify(ast, null, 2));
     console.log('Parsed AST toString:', ast.toString());
     // TODO work on this
-    let val = GrimVal.fromAst(ast);
+    let val = GrimVal.fromCanAst(ast);
     console.log('GrimVal from AST   :', val.toString());
 }
 
@@ -101,6 +106,20 @@ analyzeOne('Error("Description of problem goes here")');
 analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
 analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
 
+// analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
+
+analyzeOne('f("x")');
+analyzeOne('(f)("x")');
+analyzeOne('App(f,"x")');
+analyzeOne('(f)("x", "y")');
+
+analyzeOne('x => x + 4');
+analyzeOne('(x => x + 4)(4)');
+analyzeOne('(x := 5) => x + 4');
+
+analyzeOne('{"key": "value", "another": "thing"}');
+analyzeOne('Map(Tuple("key", "value"), Tuple("another", "thing"))');
+
 analyzeOne('{"key": "value", "another": "thing"}');
 analyzeOne("{'key': 'value', 'another': 'thing'}");
 analyzeOne('{key: "value", another: "thing"}');
@@ -114,20 +133,6 @@ analyzeOne('Set()');
 analyzeOne('Set("a", "b", "c", "a")'); // duplicates removed
 analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 
-// analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
-
-analyzeOne('f("x")');
-analyzeOne('(f)("x")');
-analyzeOne('App(f,"x")');
-analyzeOne('(f)("x", "y")');
-
-// TODO why is this broken?
-//analyzeOne('Map(Pair("a", 1), Pair("b", 1), Pair("c", 1))');
-// TODO once that works, this should work too
-//analyzeOne('(Map)(Pair("a", 1), Pair("b", 1), Pair("c", 1))');
-
-analyzeOne('x => x + 4');
-analyzeOne('(x => x + 4)(4)');
-analyzeOne('(x := 5) => x + 4');
-
-analyzeOne('Map(Pair("key", "value"), Pair("another", "thing"))');
+analyzeOne('Map(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))');
+analyzeOne('(Map)(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))');
+analyzeOne('Map(Tuple("key", "value"), Tuple("another", "thing"))');
