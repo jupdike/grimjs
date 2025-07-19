@@ -93,6 +93,15 @@ class GrimVal {
             // Tagged application - use the tag to determine the maker
             const tagName = ast.tag.tag;
             const maker = GrimVal.canAstMakerMap.get(tagName);
+            if (!maker) {
+                const appMaker = GrimVal.canAstMakerMap.get("@");
+                const tagMaker = GrimVal.canAstMakerMap.get("Tag");
+                if (appMaker && tagMaker) {
+                    return appMaker(
+                        new CanApp(ast.location, new CanTag(ast.location, tagName), ast.args)
+                    );
+                }
+            }
             return maker ? maker(ast) : new GrimVal();
         }
         
