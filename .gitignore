@@ -1,4 +1,4 @@
 node_modules/*
 .DS_Store
-src/parser/parser*.js
+src/parser/_parser*.js
 src/parser/CanAst.js

@@ -113,4 +113,5 @@ function aTagApp(location: Location, tagStr: string, args: Array<CanAst>): CanTa
     return CanTaggedApp.from(location, tagStr, args);
 }
 
-export { Location, aTag, aStr, aApp, aTagApp };
+export { CanAst, CanStr, CanTag, CanApp, CanTaggedApp, aTag, aStr, aApp, aTagApp };
+export type { Location };

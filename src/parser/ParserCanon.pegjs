@@ -7,10 +7,6 @@
   const aStr = canast.aStr;
   const aApp = canast.aApp;
   const aTagApp = canast.aTagApp;
-//   const cons = ast.cons;
-//   const optionalPairAst = ast.optionalPairAst;
-//   const leftBinaryAst = ast.leftBinaryAst;
-//   const opMap = ast.opMap;
 }}
 
 Start = Expr

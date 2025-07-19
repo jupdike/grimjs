@@ -1,4 +1,4 @@
-import parser from '../parser/parser-canon.js';
+import parser from '../parser/_parser-canon.js';
 import { Location } from '../parser/CanAst.js';
 //import fs from 'fs';
 //import { Ast } from './ast.js';

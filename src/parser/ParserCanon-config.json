@@ -6,6 +6,6 @@
     "returnType": {
         "Expr": "CanAst"
     },
-    "input": "parser/CanParser.pegjs",
-    "output": "parser/parser-canon.js"
+    "input": "parser/ParserCanon.pegjs",
+    "output": "parser/_parser-canon.js"
 }
