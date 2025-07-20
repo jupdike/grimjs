@@ -2,6 +2,7 @@ import { GrimStr } from "./GrimStr";
 import { GrimVal, AstJson } from "./GrimVal";
 import { CanApp, CanTaggedApp, CanAst } from "../parser/CanAst.js";
 import { GrimList } from "./GrimCollect";
+import { Builder } from "./Builder.js";
 
 class GrimApp extends GrimVal {
     // Represents an application of a function to arguments
@@ -31,14 +32,14 @@ class GrimApp extends GrimVal {
         // TODO remove @ from above, but useful to keep for now, for debugging
     }
 
-    static wrap(one: AstJson | string): GrimVal {
-        return typeof one === 'string' ? new GrimStr(one) : GrimVal.fromAst(one);
-    }
+    // static wrap(one: AstJson | string, builder: Builder): GrimVal {
+    //     return typeof one === 'string' ? new GrimStr(one) : builder.fromAst(one);
+    // }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst, builder: Builder): GrimVal {
         if (ast instanceof CanApp) {
-            const lhs = GrimVal.fromAst(ast.fun);
-            const rhs = ast.args.map(arg => GrimVal.fromAst(arg));
+            const lhs = builder.fromAst(ast.fun);
+            const rhs = ast.args.map(arg => builder.fromAst(arg));
             return new GrimApp(lhs, rhs);
         }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "App") {
@@ -46,8 +47,8 @@ class GrimApp extends GrimVal {
                 console.warn("GrimApp.maker called with no args, returning empty GrimVal");
                 return new GrimVal();
             }
-            const lhs = GrimVal.fromAst(ast.args[0]);
-            const rhs = ast.args.slice(1).map(arg => GrimVal.fromAst(arg));
+            const lhs = builder.fromAst(ast.args[0]);
+            const rhs = ast.args.slice(1).map(arg => builder.fromAst(arg));
             return new GrimApp(lhs, rhs);
         }
         console.warn(`GrimApp.maker received unexpected AST type: ${ast.constructor.name}`);
@@ -76,15 +77,15 @@ class GrimFun extends GrimVal {
         return `Fun(List(${argsStr}), ${this.body.toString()})`;
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst, builder: Builder): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Fun") {
             if (ast.args.length !== 2) {
                 console.warn("GrimFun.maker called with insufficient args, returning empty GrimVal");
                 return new GrimVal();
             }
-            const argsAst = GrimVal.fromAst(ast.args[0]);
-            const body = GrimVal.fromAst(ast.args[1]);
-            
+            const argsAst = builder.fromAst(ast.args[0]);
+            const body = builder.fromAst(ast.args[1]);
+
             if (argsAst instanceof GrimList) {
                 return new GrimFun(argsAst.asArray(), body);
             } else {
@@ -113,15 +114,15 @@ class GrimLet extends GrimVal {
         return `Let(List(${argsStr}), ${this.body.toString()})`;
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst, builder: Builder): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Let") {
             if (ast.args.length !== 2) {
                 console.warn("GrimLet.maker called with insufficient args, returning empty GrimVal");
                 return new GrimVal();
             }
-            const bindingsAst = GrimVal.fromAst(ast.args[0]);
-            const body = GrimVal.fromAst(ast.args[1]);
-            
+            const bindingsAst = builder.fromAst(ast.args[0]);
+            const body = builder.fromAst(ast.args[1]);
+
             if (bindingsAst instanceof GrimList) {
                 return new GrimLet(bindingsAst.asArray(), body);
             } else {

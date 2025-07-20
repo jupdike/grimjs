@@ -29,15 +29,7 @@ function strOf(x: string): string {
     return '"' + strEscape(x) + '"'; // use double quotes
 }
 
-type AstToVal = (ast: CanAst) => GrimVal;
-
 class GrimVal {
-    static makerMap: Map<string, AstToVal> = new Map();
-
-    static maker(ast: CanAst): GrimVal {
-        // Default CanAst maker, can be overridden by specific GrimVal subclasses
-        return new GrimVal();
-    }
 
     hashCode(): number {
         // useful to see if equals() testing can help us avoid calls to hashCode() when possible
@@ -62,50 +54,11 @@ class GrimVal {
         return this.hashCode() === other.hashCode();
     }
 
-    static fromAst(ast: CanAst): GrimVal {
-        if (ast instanceof CanStr) {
-            // String literal
-            const maker = GrimVal.makerMap.get("Str");
-            return maker ? maker(ast) : new GrimVal();
-        }
-        if (ast instanceof CanTag) {
-            // Tag literal 
-            const maker = GrimVal.makerMap.get("Tag");
-            return maker ? maker(ast) : new GrimVal();
-        }
-        if (ast instanceof CanApp) {
-            // Function application
-            const maker = GrimVal.makerMap.get("@");
-            return maker ? maker(ast) : new GrimVal();
-        }
-        if (ast instanceof CanTaggedApp) {
-            // Tagged application - use the tag to determine the maker
-            const tagName = ast.tag.tag;
-            const maker = GrimVal.makerMap.get(tagName);
-            if (!maker) {
-                const appMaker = GrimVal.makerMap.get("@");
-                const tagMaker = GrimVal.makerMap.get("Tag");
-                if (appMaker && tagMaker) {
-                    return appMaker(
-                        new CanApp(ast.location, new CanTag(ast.location, tagName), ast.args)
-                    );
-                }
-            }
-            return maker ? maker(ast) : new GrimVal();
-        }
-        
-        if(!ast) {
-            console.warn("GrimVal.fromAst received undefined or null AST");
-            return new GrimVal();
-        }
-        console.warn(`No CanAst maker found for AST type: ${ast.constructor.name}`);
-        return new GrimVal();
-    }
-
     toString(): string {
         return '';
     }
 
+    // TODO remove this and put it in Builder instead
     isCallable(): boolean {
         return false; // Default implementation, can be overridden
     }

@@ -1,15 +1,19 @@
-import { AstJson, GrimVal } from "./GrimVal.js";
+import type { GMPLib } from 'gmp-wasm';
+import gmp from 'gmp-wasm';
+import { Integer } from "gmp-wasm/dist/types/integer.js";
+import { GrimVal } from "./GrimVal.js";
 import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimError } from "./GrimOpt.js";
 
 class GrimNat extends GrimVal {
-    constructor(private value: number | string) {
+    value: string;
+    constructor(value: number | string) {
         super();
         if (typeof value === "string") {
             this.value = value.trim();
         }
         else if (typeof value === "number") {
-            this.value = value;
+            this.value = ""+(value|0); // Convert to string, ensuring no decimal point
         }
         else {
             throw new Error(`Invalid type for GrimNat: ${typeof value}. Expected number or string.`);
@@ -38,6 +42,22 @@ class GrimNat extends GrimVal {
         console.warn(`GrimNat.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimError(["NOPE_CanNat"]);
     }
+
+    static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
+        fn: (a: any, b: any) => string): GrimVal {
+        if (left instanceof GrimNat && right instanceof GrimNat) {
+            let ret: string = "";
+            const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
+            const options = { precisionBits: 400, roundingMode };
+            const ctx = gmpLib.getContext(options);
+            let x: any = ctx.Integer(left.value);
+            let y: any = ctx.Integer(right.value);
+            ret = fn(x, y).toString();
+            setTimeout(() => ctx.destroy(), 50);
+            return new GrimNat(ret);
+        }
+        return new GrimError(["NOPE_CanNat"]);
+    }   
 }
 
 class GrimDec extends GrimVal {

@@ -22,7 +22,7 @@ The codebase follows a modular architecture with clear separation between parsin
 - **canast-config.json**: PegJS configuration for canonical parser generation, options for `peggy` command-line tool
 
 ### Test System (`src/test/`)
-- **test-canon.ts**: Tests for parsers and builder (sending parsed `CanAst` output into `GrimVal.fromAst()`)
+- **test-canon.ts**: Tests for parsers and builder (sending parsed `CanAst` output into `builder.fromAst()`)
 
 ## Key Development Notes
 

@@ -1,3 +1,5 @@
+import { Map, List, Set } from "immutable";
+
 import { GrimVal, AstJson, locToStr, strOf } from "./GrimVal.js";
 import { CanAst, CanTag, CanTaggedApp, CanStr } from "../parser/CanAst.js";
 import type { Location } from "../parser/CanAst.js";
@@ -5,8 +7,10 @@ import { GrimBool } from "./GrimBool.js";
 import { GrimOpt, GrimError } from "./GrimOpt.js";
 
 class GrimTag extends GrimVal {
-    constructor(private value: string) {
+    readonly value: string;
+    constructor(value: string) {
         super();
+        this.value = value;
     }
 
     toString(): string {
@@ -17,6 +21,18 @@ class GrimTag extends GrimVal {
 
     isAtom(): boolean {
         return true;
+    }
+
+    // this needs to get moved to Builder
+    // isCallable(): boolean {
+    //     // some tags are callable
+    //     if (GrimVal.makerMap.has(this.value) || GrimTag.callableTagMethodIsAvailable.has(this.value)) {
+    //         return true;
+    //     }
+    //     return false;
+    // }
+    isCallable(): boolean {
+        return true;  // for now, GrimTag is callable, until we implement a better system
     }
 
     head(): string {
@@ -66,7 +82,7 @@ class GrimTag extends GrimVal {
 //      and Unicode: ⍺ := Var("⍺") and β := Var("β") ... ⍵ := Var("⍵")
 //      ? even cooler(?) is that you could do z := CC("z") which is an unbound complex number variable
 class GrimVar extends GrimVal {
-    value: string;
+    readonly value: string;
     constructor(value: string) {
         super();
         this.value = value;
@@ -115,7 +131,7 @@ class GrimVar extends GrimVal {
 }
 
 class GrimSym extends GrimVal {
-    value: string;
+    readonly value: string;
     constructor(value: string) {
         super();
         this.value = value;

@@ -1,6 +1,7 @@
 import { GrimVal, AstJson } from "./GrimVal.js";
 import { CanTaggedApp, CanAst, CanStr } from "../parser/CanAst.js";
 import { GrimStr } from "./GrimStr.js";
+import { Builder } from "./Builder.js";
 
 class GrimOpt extends GrimVal {
     private value: GrimVal | null;
@@ -28,13 +29,13 @@ class GrimOpt extends GrimVal {
         return "Option";
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst, builder: Builder): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Some") {
             if (ast.args.length === 0) {
                 return GrimOpt.None;
             }
             if (ast.args.length === 1) {
-                const arg = GrimVal.fromAst(ast.args[0]);
+                const arg = builder.fromAst(ast.args[0]);
                 return GrimOpt.Some(arg);
             }
         }
@@ -73,13 +74,13 @@ class GrimError extends GrimVal {
         return "Error";
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst, builder: Builder): GrimVal {
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Error") {
             const errorArgs = ast.args.map(arg => {
                 if (arg instanceof CanStr) {
                     return arg.str;
                 }
-                return GrimVal.fromAst(arg);
+                return builder.fromAst(arg);
             });
             return new GrimError(errorArgs);
         }

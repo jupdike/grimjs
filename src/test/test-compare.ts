@@ -1,11 +1,14 @@
 import { GrimVal } from "../core/GrimVal.js";
 import "../core/GrimBuild.js"; // This loads all the makers
 
+import type { GMPLib } from "gmp-wasm";
+
 // Import both parsers for comparison
 import canParser from "../parser/_parser-canon.js";
 import robustParser from "../parser/_parser-sugar.js";
+import { Builder } from "../core/Builder.js";
 
-function testCanAst() {
+function testCanAst(builder: Builder) {
     console.log("=== Testing CanAst to GrimVal conversion ===");
     
     try {
@@ -13,21 +16,21 @@ function testCanAst() {
         const strResult = canParser.parse('"hello"');
         console.log("Parsed string AST:", strResult.toString());
         
-        const grimVal = GrimVal.fromAst(strResult);
+        const grimVal = builder.fromAst(strResult);
         console.log("Converted to GrimVal:", grimVal.toString());
         
         // Test simple tag parsing  
         const tagResult = canParser.parse('MyTag');
         console.log("Parsed tag AST:", tagResult.toString());
-        
-        const tagGrimVal = GrimVal.fromAst(tagResult);
+
+        const tagGrimVal = builder.fromAst(tagResult);
         console.log("Converted to GrimVal:", tagGrimVal.toString());
         
         // Test tagged application parsing
         const appResult = canParser.parse('Str("test")');
         console.log("Parsed tagged app AST:", appResult.toString());
-        
-        const appGrimVal = GrimVal.fromAst(appResult);
+
+        const appGrimVal = builder.fromAst(appResult);
         console.log("Converted to GrimVal:", appGrimVal.toString());
         
     } catch (error) {
@@ -35,7 +38,7 @@ function testCanAst() {
     }
 }
 
-function testBasicExpressions() {
+function testBasicExpressions(builder: Builder) {
     console.log("\n=== Testing Basic Expressions ===");
     
     const testCases = [
@@ -53,7 +56,7 @@ function testBasicExpressions() {
             console.log(`  AST: ${ast.toString()}`);
             
             // Convert to GrimVal using CanAst
-            const grimVal = GrimVal.fromAst(ast);
+            const grimVal = builder.fromAst(ast);
             console.log(`  GrimVal: ${grimVal.toString()}`);
             console.log(`  Type: ${grimVal.constructor.name}`);
             
@@ -63,7 +66,7 @@ function testBasicExpressions() {
     }
 }
 
-function compareWithLegacy() {
+function compareWithLegacy(builder: Builder) {
     console.log("\n=== Comparing Simple CanParser vs Robust Parser ===");
     
     const testCases = [
@@ -78,13 +81,13 @@ function compareWithLegacy() {
             
             // Simple CanParser approach
             const canAst = canParser.parse(testCase);
-            const canGrimVal = GrimVal.fromAst(canAst);
+            const canGrimVal = builder.fromAst(canAst);
             console.log(`  Simple CanParser result: ${canGrimVal.toString()}`);
             console.log(`  Simple CanParser type: ${canGrimVal.constructor.name}`);
             
             // Robust parser approach (also produces CanAst)
             const robustAst = robustParser.parse(testCase);
-            const robustGrimVal = GrimVal.fromAst(robustAst);
+            const robustGrimVal = builder.fromAst(robustAst);
             console.log(`  Robust parser result: ${robustGrimVal.toString()}`);
             console.log(`  Robust parser type: ${robustGrimVal.constructor.name}`);
             
@@ -102,8 +105,11 @@ function compareWithLegacy() {
 console.log("\n============================")
 console.log("Starting Robust Parser Tests\n");
 
-testCanAst();
-testBasicExpressions();
-compareWithLegacy();
+let lib: GMPLib = await gmp.init();
+const builder = new Builder(lib);
+
+testCanAst(builder);
+testBasicExpressions(builder);
+compareWithLegacy(builder);
 
 console.log("\n=== Robust Parser Tests Complete ===");
