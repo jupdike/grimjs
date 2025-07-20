@@ -45,11 +45,8 @@ function analyzeOne(str: string) {
     console.log('Eval result        :', result.toString());
 }
 
-// broken
-//analyzeOne('( (x,y) => (y) )(4, 5)');
-
 // WORKS! k or const
-//analyzeOne('((x,y) => (y))(4, 5)');
+analyzeOne('( (x,y) => (y) )(4, 5)');
 
 /*
 analyzeOne("True");

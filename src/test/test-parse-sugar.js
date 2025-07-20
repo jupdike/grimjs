@@ -279,6 +279,9 @@ check("x => x");
 check("(x) => x");
 check("(x,y) => x + y");
 
+check("((x,y) => x + y)(4,5)");
+check("( (x,y) => x + y )(4,5)");
+
 process.exit(1); // TODO continue with this
 
 // these are const/let statements

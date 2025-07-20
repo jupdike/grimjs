@@ -153,9 +153,9 @@ ArgList
   = head:Expression tail:(_ "," _ Expression)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
 FuncApply
-  = "(" head:Factor ")" _ "(" _ ")" { return aApp(location(), head, []); }
+  = "(" _ head:Factor _ ")" _ "(" _ ")" { return aApp(location(), head, []); }
   / head:Molecule _ "(" _ ")" { return aApp(location(), head, []); }
-  / "(" head:Factor ")" _ "(" _ items:ArgList _ ")" { return aApp(location(), head, items);}
+  / "(" _ head:Factor _ ")" _ "(" _ items:ArgList _ ")" { return aApp(location(), head, items);}
   / head:Molecule _ "(" _ items:ArgList _ ")" { return aApp(location(), head, items);}
   // allow trailing comma
   / head:Molecule _ "(" _ items:ArgList _ "," _ ")" { return aApp(location(), head, items);}
