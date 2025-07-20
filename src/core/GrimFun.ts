@@ -9,12 +9,12 @@ class GrimApp extends GrimVal {
     // e.g. lhs(rhs...) or if rhs is x, y then it is App(lhs: f, rhs: [x, y])
     // e.g. f(x, y) --> App(f, x, y) --> App(lhs: f, rhs: [x, y])
     // you get the idea
-    private lhs: GrimVal;
-    private rhs: Array<GrimVal>;
+    lhs: GrimVal;
+    rhs: Array<GrimVal>;
 
     head(): string { return 'App'; }
 
-    static isAtom(): boolean {
+    isAtom(): boolean {
         return false; // GrimApp is not an atom
     }
 
@@ -56,10 +56,13 @@ class GrimApp extends GrimVal {
 }
 
 class GrimFun extends GrimVal {
-    private args: Array<GrimVal>;
-    private body: GrimVal;
-    static isAtom(): boolean {
-        return false; // GrimFun is not an atom
+    args: Array<GrimVal>;
+    body: GrimVal;
+    isAtom(): boolean {
+        return true; // GrimFun is an atom in the sense that it is evaluates to itself
+    }
+    isCallable(): boolean {
+        return true; // GrimFun is callable
     }
     constructor(args: Array<GrimVal>, body: GrimVal) {
         super();
@@ -68,6 +71,8 @@ class GrimFun extends GrimVal {
     }
     toString(): string {
         let argsStr = this.args.map(arg => arg.toString()).join(", ");
+        // TODO ultimately this should not be printable because of lexical scoping
+        // but for now, it is useful to see the function definition
         return `Fun(List(${argsStr}), ${this.body.toString()})`;
     }
 
@@ -95,7 +100,7 @@ class GrimFun extends GrimVal {
 class GrimLet extends GrimVal {
     private bindings: Array<GrimVal>; // TODO make this a GrimMap or Immutable.Map
     private body: GrimVal;
-    static isAtom(): boolean {
+    isAtom(): boolean {
         return false; // GrimLet is not an atom
     }
     constructor(args: Array<GrimVal>, body: GrimVal) {

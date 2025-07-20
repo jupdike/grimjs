@@ -106,7 +106,11 @@ class GrimVal {
         return '';
     }
 
-    static isAtom(): boolean {
+    isCallable(): boolean {
+        return false; // Default implementation, can be overridden
+    }
+
+    isAtom(): boolean {
         return true; // Default implementation, can be overridden
     }
 

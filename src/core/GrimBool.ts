@@ -9,6 +9,10 @@ class GrimBool extends GrimVal {
 
     private value: boolean;
 
+    isAtom(): boolean {
+        return true; // GrimBool is an atom
+    }
+
     public constructor(value: boolean = true) {
         super();
         this.value = value;

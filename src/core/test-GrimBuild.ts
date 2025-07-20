@@ -1,11 +1,13 @@
 // TODO figure this one out
 //import gmp from 'gmp-wasm';
 
-// TODO put in new robust parser instead
 import parser from  "../parser/_parser-sugar.js"
 import { CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js"
-import "./GrimBuild.js"; // This loads all the makers
+import { addMakers } from "./GrimBuild.js"; // This loads all the makers
 import { GrimVal, locToStr } from "./GrimVal.js";
+import { EvalState, Eval } from "./Eval.js";
+
+addMakers();
 
 function check(str: string, start: string | null = null, onlyErrors = false): CanAst {
     start = start || "Start";
@@ -38,8 +40,18 @@ function analyzeOne(str: string) {
     // TODO work on this
     let val = GrimVal.fromAst(ast);
     console.log('GrimVal from AST   :', val.toString());
+    let state = new EvalState(val);
+    let result = Eval.evaluate(state).expr;
+    console.log('Eval result        :', result.toString());
 }
 
+// broken
+//analyzeOne('( (x,y) => (y) )(4, 5)');
+
+// WORKS! k or const
+//analyzeOne('((x,y) => (y))(4, 5)');
+
+/*
 analyzeOne("True");
 analyzeOne("False");
 analyzeOne('Bool("True")');
@@ -136,3 +148,4 @@ analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 analyzeOne('Map(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))');
 analyzeOne('(Map)(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))');
 analyzeOne('Map(Tuple("key", "value"), Tuple("another", "thing"))');
+*/

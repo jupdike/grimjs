@@ -4,46 +4,6 @@ import type { Location } from "../parser/CanAst.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimOpt, GrimError } from "./GrimOpt.js";
 
-// hopefully this is not needed
-/*
-class GrimAst extends GrimVal {
-    constructor(private ast: AstJson | string) {
-        super();
-        if (typeof ast === "string") {
-            this.tag = "Str";
-            this.location = { source: null, start: { line: 0, column: 0 }, end: { line: 0, column: 0 } };
-            this.children = [ast]; // assuming ast is a string
-            return;
-        }
-        this.tag = ast.tag;
-        this.location = ast.location;
-        // console.log("GrimAst constructor called with ast:", JSON.stringify(ast, null, 2));
-        // console.log("GrimAst constructor called with ast.children:", ast.children);
-        this.children = ast.children.map((child) => {
-            if (typeof(child) === typeof("")) {
-                //@ts-ignore
-                return ""+child; // checked that a child is a string
-            }
-            return new GrimAst(child);
-        });
-    }
-    tag: string;
-    location: Location;
-    children: Array<GrimVal | string>;
-
-    // TODO think about this
-    isAtom(): boolean {
-        throw new Error("isAtom() not implemented for GrimAst");
-    }
-    // TODO test this
-    toString(): string {
-        return `GrimAst(${this.tag}, ${locToStr(this.location)}, [${this.children.map(arg => arg.toString()).join(', ')}])`;
-    }
-
-    head(): string { return this.tag; }
-}
-*/
-
 class GrimTag extends GrimVal {
     constructor(private value: string) {
         super();
@@ -106,8 +66,10 @@ class GrimTag extends GrimVal {
 //      and Unicode: ⍺ := Var("⍺") and β := Var("β") ... ⍵ := Var("⍵")
 //      ? even cooler(?) is that you could do z := CC("z") which is an unbound complex number variable
 class GrimVar extends GrimVal {
-    constructor(private value: string) {
+    value: string;
+    constructor(value: string) {
         super();
+        this.value = value;
     }
 
     // canonical
@@ -153,8 +115,10 @@ class GrimVar extends GrimVal {
 }
 
 class GrimSym extends GrimVal {
-    constructor(private value: string) {
+    value: string;
+    constructor(value: string) {
         super();
+        this.value = value;
     }
 
     toString(): string {
@@ -175,7 +139,7 @@ class GrimSym extends GrimVal {
     }
 
     isAtom(): boolean {
-        return true;
+        return false; // it does not evaluate to itself, it is a symbol looked up in the environment
     }
 
     head(): string {

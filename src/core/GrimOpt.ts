@@ -21,7 +21,7 @@ class GrimOpt extends GrimVal {
     }
 
     isAtom(): boolean {
-        return false; // Options are not considered atoms
+        return this.value === null;
     }
 
     head(): string {
@@ -66,7 +66,7 @@ class GrimError extends GrimVal {
     }
 
     isAtom(): boolean {
-        return false; // Errors are not considered atoms
+        return true;
     }
 
     head(): string {

@@ -10,7 +10,13 @@ import { GrimStr } from "./GrimStr.js";
 import { GrimError, GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
 
+let didInit = false;
 function addMakers() {
+    if(didInit) {
+        return;
+    }
+    didInit = true;
+
     // CanAst makers - register the same makers for type-safe CanAst processing
     GrimVal.makerMap.set("Str", GrimStr.maker);
     GrimVal.makerMap.set("Nat", GrimNat.maker);
@@ -40,4 +46,5 @@ function addMakers() {
     GrimVal.makerMap.set("Fun", GrimFun.maker);
     GrimVal.makerMap.set("Let", GrimLet.maker);
 }
-addMakers();
+
+export { addMakers }
