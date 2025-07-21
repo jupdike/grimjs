@@ -55,23 +55,22 @@ class GrimOpt extends GrimVal {
 }
 
 class GrimError extends GrimVal {
-    private message: Array<string | GrimVal | AstJson>;
+    private message: Array<GrimVal>;
 
-    constructor(message: Array<string | GrimVal | AstJson>) {
+    constructor(message: Array<string | GrimVal>) {
         super();
-        this.message = message;
+        this.message = message.map(item => {
+            if (typeof item === "string") {
+                return new GrimStr(item);
+            }
+            return item;
+        });
     }
 
     toString(): string {
         let pieces: Array<string> = [];
         for (let part of this.message) {
-            if (typeof part === "string") {
-                pieces.push(part);
-            } else if (part instanceof GrimVal) {
-                pieces.push(part.toString());
-            } else {
-                pieces.push(JSON.stringify(part));
-            }
+            pieces.push(part.toString());
         }
         return `Error(${pieces.join(", ")})`;
     }
@@ -84,7 +83,10 @@ class GrimError extends GrimVal {
         return "Error";
     }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            return new GrimError(ast);
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Error") {
             const errorArgs = ast.args.map(arg => {
                 if (arg instanceof CanStr) {

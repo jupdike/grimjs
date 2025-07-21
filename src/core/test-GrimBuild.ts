@@ -52,12 +52,17 @@ builder.analyzeOne('Some()'); // ==> None
 builder.analyzeOne('Some(None)'); // not None
 builder.analyzeOne('Some("value")');
 
-/*
 builder.analyzeOne('Some([])'); // ==> nested empty list inside of Some
 
+builder.analyzeOne('List()');
+builder.analyzeOne('List("a")');
+builder.analyzeOne('List("a", "b", "c")');
+
+builder.analyzeOne('[]');
+builder.analyzeOne('["a"]');
+builder.analyzeOne('["a", "b", "c"]');
+
 builder.analyzeOne('Error("Description of problem goes here")');
-builder.analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
-builder.analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
 
 builder.analyzeOne("12345");
 builder.analyzeOne('Nat("12345")');
@@ -79,13 +84,9 @@ builder.analyzeOne('Dec("123.456e+2")');
 builder.analyzeOne('Dec("123.e-1")');
 builder.analyzeOne('Dec(".456e2")');
 
-builder.analyzeOne('List()');
-builder.analyzeOne('List("a")');
-builder.analyzeOne('List("a", "b", "c")');
-
-builder.analyzeOne('[]');
-builder.analyzeOne('["a"]');
-builder.analyzeOne('["a", "b", "c"]');
+/*
+builder.analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
+builder.analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
 
 // -------------------------------
 // // Empty Tuples are not allowed

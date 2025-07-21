@@ -175,7 +175,7 @@ class Builder {
         // CanAst makers - register the same makers for type-safe CanAst processing
         this.addMaker("Str", GrimStr.maker);
         this.addMaker("Nat", GrimNat.maker);
-        // this.addMaker("Dec", GrimDec.maker);
+        this.addMaker("Dec", GrimDec.maker);
 
         // includes a few builtin atoms like True, False, None
         this.addMaker("Tag", GrimTag.maker);
@@ -185,10 +185,10 @@ class Builder {
         this.addMaker("Var", GrimVar.maker);
         this.addMaker("Bool", GrimBool.maker);
         this.addMaker("Some", GrimOpt.maker);
-        // this.addMaker("Error", GrimError.maker);
+        this.addMaker("Error", GrimError.maker);
 
         // // Collection types
-        // this.addMaker("List", GrimList.maker);
+        this.addMaker("List", GrimList.maker);
         // // version of List with fixed length, very different later in the type system
         // // can only by pair or wider
         // this.addMaker("Tuple", GrimTuple.maker);

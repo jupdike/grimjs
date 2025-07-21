@@ -34,7 +34,10 @@ class GrimList extends GrimVal {
         return "List";
     }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            return new GrimList(ast);
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "List") {
             const elements = ast.args.map(arg => builder.fromAst(arg));
             return new GrimList(elements);

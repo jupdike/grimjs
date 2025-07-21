@@ -4,6 +4,7 @@ import { Integer } from "gmp-wasm/dist/types/integer.js";
 import { GrimVal } from "./GrimVal.js";
 import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimError } from "./GrimOpt.js";
+import { GrimStr } from './GrimStr.js';
 
 class GrimNat extends GrimVal {
     value: string;
@@ -38,14 +39,18 @@ class GrimNat extends GrimVal {
 
     static maker(ast: CanAst | Array<GrimVal>): GrimVal {
         if (Array.isArray(ast)) {
-            // TODO could allow cast from other types, to GrimNat
+            // TODO could allow cast from other types?, to GrimNat
             // later
-            if (ast.length !== 1 || !(ast[0] instanceof GrimNat || ast[0] instanceof CanStr)) {
+            if (ast.length !== 1 || !(ast[0] instanceof GrimNat ||
+                ast[0] instanceof CanStr || ast[0] instanceof GrimStr)) {
                 console.warn(`GrimNat.maker received unexpected array format: ${JSON.stringify(ast)}`);
                 return new GrimError(["NOPE_CanNat"]);
             }
             if (ast[0] instanceof GrimNat) {
                 return ast[0]; // Already a GrimNat, just return it
+            }
+            if (ast[0] instanceof GrimStr) {
+                return new GrimNat(ast[0].value);
             }
             if (ast[0] instanceof CanStr) {
                 return new GrimNat(ast[0].toString());
@@ -75,14 +80,19 @@ class GrimNat extends GrimVal {
             return new GrimNat(ret);
         }
         return new GrimError(["NOPE_CanNat"]);
-    }   
+    }
 }
 
 class GrimDec extends GrimVal {
     constructor(private value: number | string) {
         super();
         if (typeof value === "string") {
+            // problem should check with regex
             this.value = value.trim();
+            // also should ensure that digits, a decimal point and/or exponent are present
+            if (!/^(\d+\.(\d+)?|\d*\.(\d+)?)([eE][+-]?\d+)?$/.test(this.value)) {
+                throw new Error(`Invalid string for GrimDec: ${value}. Expected a decimal number.`);
+            }
         }
         else if (typeof value === "number") {
             this.value = value;
@@ -104,7 +114,36 @@ class GrimDec extends GrimVal {
         return "Dec";
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+        if (Array.isArray(ast)) {
+            // TODO could allow cast from other types?, to GrimDec
+            // later
+            if (ast.length !== 1 ||
+                !(ast[0] instanceof GrimDec ||
+                    ast[0] instanceof GrimNat ||
+                    ast[0] instanceof CanStr ||
+                    ast[0] instanceof GrimStr)
+            ) {
+                console.warn(`GrimDec.maker received unexpected array format: ${JSON.stringify(ast)}`);
+                return new GrimError(["NOPE_CanDec"]);
+            }
+            if (ast[0] instanceof GrimDec) {
+                return ast[0]; // Already a GrimDec, just return it
+            }
+            if (ast[0] instanceof GrimNat) {
+                let s: string = ast[0].value.trim();
+                if (s.indexOf('.') === -1) {
+                    s += '.0'; // Ensure it has a decimal point
+                }
+                return new GrimDec(s);
+            }
+            if (ast[0] instanceof CanStr) {
+                return new GrimDec(ast[0].str);
+            }
+            if (ast[0] instanceof GrimStr) {
+                return new GrimDec(ast[0].value);
+            }
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Dec" && ast.args.length === 1) {
             const arg = ast.args[0];
             if (arg instanceof CanStr) {
