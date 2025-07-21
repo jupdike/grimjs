@@ -193,8 +193,8 @@ class Builder {
         // // can only be pair or wider
         this.addMaker("Tuple", GrimTuple.maker);
         this.addMaker("Map", GrimMap.maker);
-        // this.addMaker("Set", GrimSet.maker);
-        
+        this.addMaker("Set", GrimSet.maker);
+
         // // Function application and definitions
         this.addMaker("App", GrimApp.maker);
         this.addMaker("@", GrimApp.maker);

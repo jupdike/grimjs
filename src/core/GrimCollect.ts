@@ -104,6 +104,14 @@ class GrimMap extends GrimVal {
             }
             const key = grimVal.tuple.get(0);
             const value = grimVal.tuple.get(1);
+            if (!key) {
+                console.warn("GrimMap.fromArrayOfGrimTuples: Key is undefined in tuple", grimVal.toString());
+                continue; // Skip if key is undefined
+            }
+            if (!value) {
+                console.warn("GrimMap.fromArrayOfGrimTuples: Value is undefined in tuple", grimVal.toString());
+                continue; // Skip if value is undefined
+            }
             if (!(key instanceof GrimVal) || !(value instanceof GrimVal)) {
                 // this should never happen
                 console.warn(`PROGRAMMER ERROR: GrimMap.fromArrayOfGrimTuples: Expected GrimVal for key and value, got: ${key.toString()} and ${value.toString()}`);
@@ -185,7 +193,10 @@ class GrimSet extends GrimVal {
         return "Set";
     }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            return new GrimSet(ast);
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Set") {
             const elements = ast.args.map(arg => builder.fromAst(arg));
             return new GrimSet(elements);

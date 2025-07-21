@@ -115,6 +115,12 @@ builder.analyzeOne('Map(Tuple("key", "value"), Tuple("another", "thing"))');
 builder.analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
 builder.analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
 
+builder.analyzeOne('Set("a", "b", "c")');
+builder.analyzeOne('(Set)("a", "b", "c")');
+builder.analyzeOne('Set()');
+builder.analyzeOne('Set("a", "b", "c", "a")'); // duplicates removed
+builder.analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
+
 /*
 // analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
 
@@ -126,11 +132,5 @@ builder.analyzeOne('(f)("x", "y")');
 builder.analyzeOne('x => x + 4');
 builder.analyzeOne('(x => x + 4)(4)');
 builder.analyzeOne('(x := 5) => x + 4');
-
-builder.analyzeOne('Set("a", "b", "c")');
-builder.analyzeOne('(Set)("a", "b", "c")');
-builder.analyzeOne('Set()');
-builder.analyzeOne('Set("a", "b", "c", "a")'); // duplicates removed
-builder.analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 
 */
