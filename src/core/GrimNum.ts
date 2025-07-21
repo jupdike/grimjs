@@ -68,7 +68,7 @@ class GrimNat extends GrimVal {
         return new GrimError(["NOPE_CanNat"]);
     }
 
-    private static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
+    static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
         fn: (a: any, b: any) => string): GrimVal {
         if (left instanceof GrimNat && right instanceof GrimNat) {
             let ret: string = "";
@@ -158,7 +158,7 @@ class GrimInt extends GrimNat {
         return new GrimError(["NOPE_CanInt"]);
     }
 
-     private static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
+    static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
         fn: (a: any, b: any) => string): GrimVal {
         if ((left instanceof GrimInt  || left instanceof GrimNat) &&
             (right instanceof GrimInt || right instanceof GrimNat)) {
