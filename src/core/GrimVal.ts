@@ -66,5 +66,5 @@ class GrimVal {
     }
 }
 
-export { AstJson, GrimVal, locToStr, strOf };
+export { AstJson, GrimVal, strOf };
 export type { Location };
