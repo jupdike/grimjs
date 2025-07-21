@@ -5,6 +5,7 @@ import { GrimApp, GrimFun, GrimLet } from './GrimFun';
 import { GrimSym, GrimTag } from './GrimAst';
 import { Builder } from './Builder';
 import { GrimTuple } from './GrimCollect';
+import { GrimStr } from './GrimStr';
 
 class EvalState {
     expr: GrimVal;
@@ -46,17 +47,28 @@ class Eval {
             let bindings: Array<GrimVal> = letExpr.bindings;
             // add the bindings to the environment env2
             bindings.forEach((binding, index) => {
+                //console.log(`Binding ${index}: ${binding}`);
                 if (!(binding instanceof GrimTuple) || binding.tuple.size !== 2) {
                     throw new Error(`Expected GrimTuple in bindings, got ${binding}`);
                 }
                 const [sym, value] = binding.tuple.toArray();
-                if (!(sym instanceof GrimSym)) {
+                let sym2 = sym as GrimSym;
+                if (sym2 instanceof GrimApp) {
+                    // try to see if it's Sym@(rhs), treat it the same
+                    const oneApp = sym2 as GrimApp;
+                    if (oneApp.lhs instanceof GrimTag && oneApp.lhs.value == "Sym" &&
+                        oneApp.rhs.length === 1 && oneApp.rhs[0] instanceof GrimStr) {
+                        sym2 = new GrimSym(oneApp.rhs[0].value); // use the Sym part of the App, as if evaluated
+                        //console.log(`Converted Sym App to Sym: ${sym2.value}`);
+                    }
+                }
+                if (!sym2 || !(sym2 instanceof GrimSym)) {
                     throw new Error(`Expected GrimSym as first element of binding, got ${sym}`);
                 }
                 let theEnv = env2; // allow earlier bindings in this same Let to be used in later bindings
                 // or this could be 'env' to not allow that
                 let value2 = Eval.evaluate(new EvalState(value, theEnv, builder)).expr;
-                env2 = env2.set(sym.value, value2);
+                env2 = env2.set(sym2.value, value2);
             });
             // Evaluate the body in the new environment
             return Eval.evaluate(new EvalState(body, env2, builder))
@@ -66,6 +78,15 @@ class Eval {
             let app = expr as GrimApp;
             if (app.lhs instanceof GrimTag) {
                 let tag = app.lhs as GrimTag;
+                if (tag.value === "App" || tag.value === "@" || tag.value === "Fun" || tag.value === "Let") {
+                    // Special case for App, Fun, Let, do not evaluate the args
+                    const maker = builder.getMaker(tag.value);
+                    if (!maker) {
+                        throw new Error(`PROGRAMMER ERROR (should not happen): No maker found for special built-in tag: ${tag.value}`);
+                    }
+                    e2 = maker(app.rhs, builder);
+                    return Eval.evaluate(new EvalState(e2, env2, builder));
+                }
                 let tuple: List<string> = List([tag.value]);
                 let argsEvaluated: Array<GrimVal> = app.rhs.map(
                     arg => Eval.evaluate(new EvalState(arg, env, builder)).expr
@@ -86,7 +107,8 @@ class Eval {
                 if (maker) {
                     // console.warn("@ found tag maker for", tag.value);
                     // TODO deal with this discrepancy (CanAst vs GrimVal)
-                    e2 = maker(argsEvaluated, builder);
+                    let a = argsEvaluated;
+                    e2 = maker(a, builder);
                     return new EvalState(e2, env2, builder);
                 }
             }
