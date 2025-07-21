@@ -14,14 +14,6 @@ builder.analyzeOne("'test'");
 builder.analyzeOne("Tag('Test')");
 builder.analyzeOne("Str('test')");
 
-// WORKS! k or const
-// builder.analyzeOne('( (x,y) => (y) )(4, 5)');
-
-// builder.analyzeOne("Mul(6, 7)"); // Should return 42, a very important number
-// builder.analyzeOne("1234567890123456789012345678901234567890 * 9876543210987654321098765432109876543210");
-// builder.analyzeOne('((x, y) => x * y)(6, 7)'); // Should return 42, a very important number
-// builder.analyzeOne('((x) => x * 7)(6)'); // Should return 42, a very important number
-
 builder.analyzeOne("True");
 builder.analyzeOne("False");
 
@@ -121,16 +113,24 @@ builder.analyzeOne('Set()');
 builder.analyzeOne('Set("a", "b", "c", "a")'); // duplicates removed
 builder.analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 
-/*
+builder.analyzeOne('x => 42');
+builder.analyzeOne('(x => 42)(5)');
+
+// // WORKS! k or const
+builder.analyzeOne('( (x,y) => (y) )(5, 42)');
+builder.analyzeOne('((x, y) => y)(5, 42)');
+
+// should fail because f is not defined
+// // builder.analyzeOne('f("x")');
+// // builder.analyzeOne('(f)("x")');
+// // builder.analyzeOne('App(f,"x")');
+// // builder.analyzeOne('(f)("x", "y")');
+
 // analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
 
-builder.analyzeOne('f("x")');
-builder.analyzeOne('(f)("x")');
-builder.analyzeOne('App(f,"x")');
-builder.analyzeOne('(f)("x", "y")');
+builder.analyzeOne("Mul(6, 7)"); // Should return 42, a very important number
+builder.analyzeOne("1234567890123456789012345678901234567890 * 9876543210987654321098765432109876543210");
+builder.analyzeOne('((x, y) => x * y)(6, 7)'); // Should return 42, a very important number
+builder.analyzeOne('((x) => x * 7)(6)'); // Should return 42, a very important number
 
-builder.analyzeOne('x => x + 4');
-builder.analyzeOne('(x => x + 4)(4)');
-builder.analyzeOne('(x := 5) => x + 4');
-
-*/
+builder.analyzeOne('(x := 6) => x * 7');

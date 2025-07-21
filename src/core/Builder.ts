@@ -198,7 +198,7 @@ class Builder {
         // // Function application and definitions
         this.addMaker("App", GrimApp.maker);
         this.addMaker("@", GrimApp.maker);
-        // this.addMaker("Fun", GrimFun.maker);
+        this.addMaker("Fun", GrimFun.maker);
         // this.addMaker("Let", GrimLet.maker);
 
         this.addCallableTag(List(["Mul", "Nat", "Nat"]), (args: Array<GrimVal>) => {

@@ -3,6 +3,7 @@ import { GrimVal, AstJson } from "./GrimVal";
 import { CanApp, CanTaggedApp, CanAst } from "../parser/CanAst.js";
 import { GrimList } from "./GrimCollect";
 import { Builder } from "./Builder.js";
+import { GrimError } from "./GrimOpt.js";
 
 class GrimApp extends GrimVal {
     // Represents an application of a function to arguments
@@ -80,6 +81,7 @@ class GrimFun extends GrimVal {
         this.args = args;
         this.body = body;
     }
+    
     toString(): string {
         let argsStr = this.args.map(arg => arg.toString()).join(", ");
         // TODO ultimately this should not be printable because of lexical scoping
@@ -87,7 +89,21 @@ class GrimFun extends GrimVal {
         return `Fun(List(${argsStr}), ${this.body.toString()})`;
     }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        // this means you can build functions at runtime with Fun acting as a first-class callable thing
+        if (Array.isArray(ast)) {
+            if (ast.length !== 2) {
+                console.warn("GrimFun.maker called with wrong number of args, expected 2, returning empty GrimVal");
+                return new GrimError(["GrimFun.maker called with wrong number of args, expected 2"]);
+            }
+            const args = ast[0];
+            const body = ast[1];
+            if (!(args instanceof GrimList)) {
+                console.warn("GrimFun.maker called with first arg not a GrimList, returning empty GrimVal");
+                return new GrimError(["GrimFun.maker called with first arg not a GrimList"]);
+            }
+            return new GrimFun(args.asArray(), body);
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Fun") {
             if (ast.args.length !== 2) {
                 console.warn("GrimFun.maker called with insufficient args, returning empty GrimVal");
