@@ -125,22 +125,38 @@ class GrimFun extends GrimVal {
 }
 
 class GrimLet extends GrimVal {
-    private bindings: Array<GrimVal>; // TODO make this a GrimMap or Immutable.Map
-    private body: GrimVal;
-    isAtom(): boolean {
-        return false; // GrimLet is not an atom
-    }
+    readonly bindings: Array<GrimVal>; // TODO make this a GrimMap or Immutable.Map
+    readonly body: GrimVal;
+
     constructor(args: Array<GrimVal>, body: GrimVal) {
         super();
         this.bindings = args;
         this.body = body;
     }
+
+    isAtom(): boolean {
+        return false; // GrimLet is not an atom
+    }
+
     toString(): string {
         let argsStr = this.bindings.map(arg => arg.toString()).join(", ");
         return `Let(List(${argsStr}), ${this.body.toString()})`;
     }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            if (ast.length !== 2) {
+                console.warn("GrimLet.maker called with wrong number of args, expected 2, returning empty GrimVal");
+                return new GrimVal();
+            }
+            const bindings = ast[0];
+            const body = ast[1];
+            if (!(bindings instanceof GrimList)) {
+                console.warn("GrimLet.maker called with first arg not a GrimList, returning empty GrimVal");
+                return new GrimVal();
+            }
+            return new GrimLet(bindings.asArray(), body);
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Let") {
             if (ast.args.length !== 2) {
                 console.warn("GrimLet.maker called with insufficient args, returning empty GrimVal");

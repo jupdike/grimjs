@@ -134,3 +134,6 @@ builder.analyzeOne('((x, y) => x * y)(6, 7)'); // Should return 42, a very impor
 builder.analyzeOne('((x) => x * 7)(6)'); // Should return 42, a very important number
 
 builder.analyzeOne('(x := 6) => x * 7');
+builder.analyzeOne('((z := 2) => (z * 3))');
+builder.analyzeOne('(x := 6, y := 7) => x * y');
+builder.analyzeOne('(x := ((z := 2) => (z * 3)), y := 7) => x * y');

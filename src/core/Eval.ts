@@ -1,9 +1,10 @@
 import { List, Map } from 'immutable';
 
 import { GrimVal } from './GrimVal';
-import { GrimApp, GrimFun } from './GrimFun';
+import { GrimApp, GrimFun, GrimLet } from './GrimFun';
 import { GrimSym, GrimTag } from './GrimAst';
 import { Builder } from './Builder';
+import { GrimTuple } from './GrimCollect';
 
 class EvalState {
     expr: GrimVal;
@@ -38,6 +39,27 @@ class Eval {
             } else {
                 throw new Error(`Symbol '${sym.value}' not found in environment: ${env.toString()}`);
             }
+        }
+        else if (expr instanceof GrimLet) {
+            let letExpr = expr as GrimLet;
+            let body = letExpr.body;
+            let bindings: Array<GrimVal> = letExpr.bindings;
+            // add the bindings to the environment env2
+            bindings.forEach((binding, index) => {
+                if (!(binding instanceof GrimTuple) || binding.tuple.size !== 2) {
+                    throw new Error(`Expected GrimTuple in bindings, got ${binding}`);
+                }
+                const [sym, value] = binding.tuple.toArray();
+                if (!(sym instanceof GrimSym)) {
+                    throw new Error(`Expected GrimSym as first element of binding, got ${sym}`);
+                }
+                let theEnv = env2; // allow earlier bindings in this same Let to be used in later bindings
+                // or this could be 'env' to not allow that
+                let value2 = Eval.evaluate(new EvalState(value, theEnv, builder)).expr;
+                env2 = env2.set(sym.value, value2);
+            });
+            // Evaluate the body in the new environment
+            return Eval.evaluate(new EvalState(body, env2, builder))
         }
         else if (expr instanceof GrimApp) {
             // Multiple-dispatch method application or MDMA

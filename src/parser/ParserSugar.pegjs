@@ -57,32 +57,32 @@
 Start = Expression
 // Defs = def:Def+ { return Ast(location(), "Defs", def); } // will use whitespace / newlines to separate defs
 
-AssignOp = (":=" / ":=>")
+AssignOp = ":="
 
-Def "a let definition or a macro definition"
+Def "a symbol definition"
   = sym:Sym _ op:AssignOp _ body:Expression {
-    return aTagApp(location(), op === ":=" ? "Def" : "Macro",
+    return aTagApp(location(), "Tuple",
       [sym, body]
       );
     }
   / sym1:Sym _ op:Op _ sym2:Sym _ assignOp:AssignOp _ body:Expression {
     // assign code to an infix operator
-    return aTagApp(location(), assignOp === ":=" ? "Def" : "Macro",
-      [op, aTagApp(location(), "List", [sym1, sym2]), body]
+    return aTagApp(location(), "Tuple",
+      [opMap[op], aTagApp(location(), "List", [sym1, sym2]), body]
       );
     }
   / sym:Sym _ syms:(Sym _)+ _ op:AssignOp _ body:Expression {
-    return aTagApp(location(), op === ":=" ? "Def" : "Macro",
+    return aTagApp(location(), "Tuple",
       [sym, aTagApp(location(), "List", syms.map(function(x) { return x[0]; })), body]
       );
     }
   / sym:Sym _ "(" _ ")" _ op:AssignOp _ body:Expression {
-    return aTagApp(location(), op === ":=" ? "Def" : "Macro",
+    return aTagApp(location(), "Tuple",
       [sym, aTagApp(location(), "List", []), body]
     );
   }
   / sym:Sym _ "(" _ args:SymList _ ")" _ op:AssignOp _ body:Expression {
-    return aTagApp(location(), op === ":=" ? "Def" : "Macro",
+    return aTagApp(location(), "Tuple",
       [sym, aTagApp(location(), "List", args), body]
     );
   }
