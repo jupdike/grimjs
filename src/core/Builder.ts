@@ -16,7 +16,6 @@ import { Location, CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parse
 import { Eval, EvalState } from "./Eval.js";
 
 type AstToVal = (ast: CanAst | Array<GrimVal>, builder: Builder) => GrimVal;
-
 type FuncType = (args: Array<GrimVal>) => GrimVal;
 
 class Builder {
@@ -58,7 +57,8 @@ class Builder {
             const tagName = ast.tag.tag;
             const maker = this.makerMap.get(tagName);
             if (!maker) {
-                console.warn(`Builder.fromAst: No maker found for tag '${tagName}'`);
+                // this is not a problem, because we can use the tag to find a maker and restructure the AST
+                //console.warn(`Builder.fromAst: No maker found for tag '${tagName}'`);
                 const appMaker = this.makerMap.get("@");
                 const tagMaker = this.makerMap.get("Tag");
                 if (appMaker && tagMaker) {
@@ -201,26 +201,11 @@ class Builder {
         this.addMaker("Fun", GrimFun.maker);
         this.addMaker("Let", GrimLet.maker);
 
-        this.addCallableTag(List(["Mul", "Nat", "Nat"]), (args: Array<GrimVal>) => {
-            console.log("called Mul.Nat.Nat 1");
-            if (args.length !== 2) {
-                console.log("called Mul.Nat.Nat 2");
-                console.warn("GrimTag.addCallableTag called with invalid args for Mul.Nat.Nat");
-                return new GrimError(["Mul.Nat.Nat requires exactly 2 arguments"]);
-            }
-            console.log("called Mul.Nat.Nat 3");
-            if (args[0] instanceof GrimNat && args[1] instanceof GrimNat) {
-                //return new GrimNat(args[0].value.add(args[1].value));
-                console.log("called Mul.Nat.Nat 4");
-                return GrimNat.fromBinaryFunction(this.gmpLib, args[0], args[1], (a: any, b: any) => {
-                    console.log("called Mul.Nat.Nat 5");
-                    return a.mul(b); // Use GMP's multiply function for IntegerType
-                });
-            }
-            console.log("called Mul.Nat.Nat 6");
-            return new GrimError(["Mul(Nat,Nat) requires Nat arguments"]);
-        });
+        this.addCallableTag(List(["Mul", "Nat", "Nat"]),
+            GrimNat.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
+        this.addCallableTag(List(["Add", "Nat", "Nat"]),
+            GrimNat.wrapBinaryOp(this, (a, b) => { return a.add(b); }));
     }
 }
 
-export { Builder }
+export { Builder, FuncType };

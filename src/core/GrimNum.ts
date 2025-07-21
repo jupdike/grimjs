@@ -5,6 +5,8 @@ import { GrimVal } from "./GrimVal.js";
 import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimError } from "./GrimOpt.js";
 import { GrimStr } from './GrimStr.js';
+import { Builder } from './Builder.js';
+import type { FuncType } from './Builder.js';
 
 class GrimNat extends GrimVal {
     value: string;
@@ -66,7 +68,7 @@ class GrimNat extends GrimVal {
         return new GrimError(["NOPE_CanNat"]);
     }
 
-    static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
+    private static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
         fn: (a: any, b: any) => string): GrimVal {
         if (left instanceof GrimNat && right instanceof GrimNat) {
             let ret: string = "";
@@ -80,6 +82,21 @@ class GrimNat extends GrimVal {
             return new GrimNat(ret);
         }
         return new GrimError(["NOPE_CanNat"]);
+    }
+
+    static wrapBinaryOp(builder: Builder, fn: (a: any, b: any) => any): FuncType {
+        return (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Mul.Nat.Nat");
+                return new GrimError(["Mul.Nat.Nat requires exactly 2 arguments"]);
+            }
+            if (args[0] instanceof GrimNat && args[1] instanceof GrimNat) {
+                return GrimNat.fromBinaryFunction(builder.gmpLib, args[0], args[1], (a: any, b: any) => {
+                    return fn(a, b); // Use GMP's operation on two IntegerTypes
+                });
+            }
+            return new GrimError(["Mul(Nat,Nat) requires Nat arguments"]);
+        };
     }
 }
 

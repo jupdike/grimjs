@@ -139,3 +139,11 @@ builder.analyzeOne('(x := 6, y := 7) => x * y');
 builder.analyzeOne('(x := ((z := 2) => (z * 3)), y := 7) => x * y');
 builder.analyzeOne('Let([(x, 6), (y, 7)], x * y)');
 builder.analyzeOne('Let([(Sym("x"), 6), (Sym("y"), 7)], x * y)');
+
+builder.analyzeOne('20 + 22'); // Should return 42, a very important number
+builder.analyzeOne('((x, y) => x + y)(20, 22)'); // Should return 42, a very important number
+builder.analyzeOne('((x := 20, y := 22) => x + y)'); // Should return 42, a very important number
+builder.analyzeOne('Add(19, 23)'); // Should return 42, a very important number
+
+builder.analyzeOne("123456789 + 987654321");
+builder.analyzeOne("123456789+987654321");
