@@ -2,6 +2,7 @@ import { GrimVal } from "./GrimVal.js";
 import { AstJson } from "./GrimVal.js";
 import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimError } from "./GrimOpt.js";
+import { GrimStr } from "./GrimStr.js";
 
 class GrimBool extends GrimVal {
     static True = new GrimBool();
@@ -29,7 +30,24 @@ class GrimBool extends GrimVal {
         return new GrimBool(a.isTrue() === b.isTrue());
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+        if (Array.isArray(ast)) {
+            if (ast.length !== 1 || !(ast[0] instanceof GrimBool || ast[0] instanceof GrimStr)) {
+                console.warn(`GrimBool.maker received unexpected array length, or item is not a boolean: ${ast.length}`);
+                return new GrimError(["NOPE_CanBool"]);
+            }
+            // already a GrimBool, just return it
+            if (ast[0] instanceof GrimBool) {
+                return ast[0];
+            }
+            if (ast[0] instanceof GrimStr) {
+                if (ast[0].value !== "True" && ast[0].value !== "False") {
+                    console.warn(`GrimBool.maker received unexpected string: ${ast[0].value}`);
+                    return new GrimError(["NOPE_CanBool"]);
+                }
+                return new GrimBool(ast[0].value === "True");
+            }
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Bool" && ast.args.length === 1) {
             const arg = ast.args[0];
             if (arg instanceof CanStr) {

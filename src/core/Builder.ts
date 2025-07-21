@@ -15,7 +15,7 @@ import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
 import { Location, CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js";
 import { Eval, EvalState } from "./Eval.js";
 
-type AstToVal = (ast: CanAst, builder: Builder) => GrimVal;
+type AstToVal = (ast: CanAst | Array<GrimVal>, builder: Builder) => GrimVal;
 
 type FuncType = (args: Array<GrimVal>) => GrimVal;
 
@@ -155,8 +155,15 @@ class Builder {
         let val = this.fromAst(ast);
         console.log('GrimVal from AST   :', val.toString());
         let state = new EvalState(val, Map(), this);
-        let result = Eval.evaluate(state).expr;
-        console.log('Eval result        :', result.toString());
+        let result: GrimVal | null = null;
+        try {
+            result = Eval.evaluate(state).expr;
+        } catch (e) {
+            console.error('Eval error          :', e);
+        }
+        if (result) {
+            console.log('Eval result        :', result.toString());
+        }
     }
 
     private addMakers() {
@@ -168,7 +175,7 @@ class Builder {
         // CanAst makers - register the same makers for type-safe CanAst processing
         this.addMaker("Str", GrimStr.maker);
         this.addMaker("Nat", GrimNat.maker);
-        this.addMaker("Dec", GrimDec.maker);
+        // this.addMaker("Dec", GrimDec.maker);
 
         // includes a few builtin atoms like True, False, None
         this.addMaker("Tag", GrimTag.maker);
@@ -178,21 +185,21 @@ class Builder {
         this.addMaker("Var", GrimVar.maker);
         this.addMaker("Bool", GrimBool.maker);
         this.addMaker("Some", GrimOpt.maker);
-        this.addMaker("Error", GrimError.maker);
+        // this.addMaker("Error", GrimError.maker);
 
-        // Collection types
-        this.addMaker("List", GrimList.maker);
-        // version of List with fixed length, very different later in the type system
-        // can only by pair or wider
-        this.addMaker("Tuple", GrimTuple.maker);
-        this.addMaker("Map", GrimMap.maker);
-        this.addMaker("Set", GrimSet.maker);
+        // // Collection types
+        // this.addMaker("List", GrimList.maker);
+        // // version of List with fixed length, very different later in the type system
+        // // can only by pair or wider
+        // this.addMaker("Tuple", GrimTuple.maker);
+        // this.addMaker("Map", GrimMap.maker);
+        // this.addMaker("Set", GrimSet.maker);
         
-        // Function application and definitions
+        // // Function application and definitions
         this.addMaker("App", GrimApp.maker);
         this.addMaker("@", GrimApp.maker);
-        this.addMaker("Fun", GrimFun.maker);
-        this.addMaker("Let", GrimLet.maker);
+        // this.addMaker("Fun", GrimFun.maker);
+        // this.addMaker("Let", GrimLet.maker);
 
         this.addCallableTag(List(["Mul", "Nat", "Nat"]), (args: Array<GrimVal>) => {
             console.log("called Mul.Nat.Nat 1");

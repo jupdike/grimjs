@@ -10,6 +10,10 @@ class GrimNat extends GrimVal {
     constructor(value: number | string) {
         super();
         if (typeof value === "string") {
+            value = value.trim();
+            if (!/^\d+$/.test(value)) {
+                throw new Error(`Invalid string for GrimNat: ${value}. Expected a string of one or more decimal digits.`);
+            }
             this.value = value.trim();
         }
         else if (typeof value === "number") {
@@ -32,7 +36,21 @@ class GrimNat extends GrimVal {
         return "Nat";
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+        if (Array.isArray(ast)) {
+            // TODO could allow cast from other types, to GrimNat
+            // later
+            if (ast.length !== 1 || !(ast[0] instanceof GrimNat || ast[0] instanceof CanStr)) {
+                console.warn(`GrimNat.maker received unexpected array format: ${JSON.stringify(ast)}`);
+                return new GrimError(["NOPE_CanNat"]);
+            }
+            if (ast[0] instanceof GrimNat) {
+                return ast[0]; // Already a GrimNat, just return it
+            }
+            if (ast[0] instanceof CanStr) {
+                return new GrimNat(ast[0].toString());
+            }
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Nat" && ast.args.length === 1) {
             const arg = ast.args[0];
             if (arg instanceof CanStr) {

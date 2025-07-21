@@ -4,6 +4,8 @@ import { GrimVal, strOf } from "./GrimVal.js";
 import { CanAst, CanTag, CanTaggedApp, CanStr } from "../parser/CanAst.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimOpt, GrimError } from "./GrimOpt.js";
+import { Builder } from "./Builder.js";
+import { GrimStr } from "./GrimStr.js";
 
 class GrimTag extends GrimVal {
     readonly value: string;
@@ -39,7 +41,21 @@ class GrimTag extends GrimVal {
         return false;
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            let arr = ast as Array<GrimVal>;
+            if (!arr || arr.length !== 1 || !(arr[0] instanceof GrimTag || arr[0] instanceof GrimStr)) {
+                console.warn(`GrimTag.maker received unexpected array length, or item is not a tag: ${arr.length}`);
+                return new GrimError(["NOPE_CanTag"]);
+            }
+            // already a GrimTag, just return it
+            if (arr[0] instanceof GrimTag) {
+                return arr[0];
+            }
+            if (arr[0] instanceof GrimStr) {
+                return new GrimTag(arr[0].value);
+            }
+        }
         if (ast instanceof CanTag) {
             // Special built-in tags
             if (ast.tag === "True") return GrimBool.True;
@@ -75,13 +91,12 @@ class GrimVar extends GrimVal {
         this.value = value;
     }
 
-    // canonical
-    // toString(): string {
-    //     return `Var(${strOf(this.name)})`;
-    // }
-
+    // var has to evaluate with Var tag in place, so it does not turn into a symbol
+    // after multiple evaluations
+    // but the future .toMathString() will show the name of the variable
+    // also for the purposes of a CAS, all lowercase letters will be bound to Var("a") ... Var("z")
     toString(): string {
-        return this.value;
+        return `Var(${strOf(this.value)})`;
     }
 
     equals(other: GrimVal): boolean {
@@ -105,7 +120,20 @@ class GrimVar extends GrimVal {
         return "Var";
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+        if (Array.isArray(ast)) {
+            if (ast.length !== 1 || !(ast[0] instanceof GrimVar || ast[0] instanceof GrimStr)) {
+                console.warn(`GrimVar.maker received unexpected array length, or item is not a variable: ${ast.length}`);
+                return new GrimError(["NOPE_CanVar"]);
+            }
+            // already a GrimVar, just return it
+            if (ast[0] instanceof GrimVar) {
+                return ast[0];
+            }
+            if (ast[0] instanceof GrimStr) {
+                return new GrimVar(ast[0].value);
+            }
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Var" && ast.args.length === 1) {
             const arg = ast.args[0];
             if (arg instanceof CanStr) {
@@ -149,7 +177,21 @@ class GrimSym extends GrimVal {
         return "Sym";
     }
 
-    static maker(ast: CanAst): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+        if (Array.isArray(ast)) {
+            if (ast.length !== 1) {
+                console.warn(`GrimSym.maker expects a single symbol or string: ${ast.length}`);
+                return new GrimError(["NOPE_CanSym"]);
+            }
+            if (ast[0] instanceof GrimSym) {
+                return ast[0];
+            }
+            if (ast[0] instanceof GrimStr) {
+                return new GrimSym(ast[0].value);
+            }
+            console.warn(`GrimSym.maker expects a GrimSym or GrimStr, got: ${ast[0].constructor.name}`);
+            return new GrimError(["NOPE_CanSym"]);
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Sym" && ast.args.length === 1) {
             const arg = ast.args[0];
             if (arg instanceof CanStr) {

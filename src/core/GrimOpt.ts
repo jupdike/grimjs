@@ -29,7 +29,17 @@ class GrimOpt extends GrimVal {
         return "Option";
     }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            if (ast.length === 0) {
+                return GrimOpt.None; // Empty array means None
+            }
+            if (ast.length === 1 && ast[0] instanceof GrimVal) {
+                return GrimOpt.Some(ast[0]); // Single value means Some(value)
+            }
+            console.warn(`GrimOpt.maker received unexpected array format: ${JSON.stringify(ast)}`);
+            return new GrimError(["NOPE_CanOpt"]);
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Some") {
             if (ast.args.length === 0) {
                 return GrimOpt.None;

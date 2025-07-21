@@ -45,7 +45,9 @@ class Eval {
             if (app.lhs instanceof GrimTag) {
                 let tag = app.lhs as GrimTag;
                 let tuple: List<string> = List([tag.value]);
-                let argsEvaluated: Array<GrimVal> = app.rhs.map(arg => Eval.evaluate(new EvalState(arg, env, builder)).expr);
+                let argsEvaluated: Array<GrimVal> = app.rhs.map(
+                    arg => Eval.evaluate(new EvalState(arg, env, builder)).expr
+                );
                 argsEvaluated.forEach(arg => {
                     let type = arg.head();
                     tuple = tuple.push(type);
@@ -57,11 +59,14 @@ class Eval {
                     return new EvalState(e2, env2, builder);
                 }
                 // Otherwise, check if we have a tag maker like Bool("True"), Var("x"), etc.
-                // const maker = builder.getMaker(tag.value);
-                // if (maker) {
-                //     // TODO deal with this discrepancy (CanAst vs GrimVal)
-                //     e2 = maker(argsEvaluated, builder);
-                // }
+                // console.warn("@ looking for tag maker for", tag.value);
+                const maker = builder.getMaker(tag.value);
+                if (maker) {
+                    // console.warn("@ found tag maker for", tag.value);
+                    // TODO deal with this discrepancy (CanAst vs GrimVal)
+                    e2 = maker(argsEvaluated, builder);
+                    return new EvalState(e2, env2, builder);
+                }
             }
             // Evaluate the function and arguments
             let fun: GrimFun | null = null;

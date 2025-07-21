@@ -1,6 +1,7 @@
 import gmp from "gmp-wasm";
 import type { GMPLib } from "gmp-wasm";
 import { Builder } from "./Builder.js"; // This loads all the makers
+import { build } from "pegjs/lib/compiler/visitor.js";
 
 let gmpLib: GMPLib = await gmp.init();
 if (!gmpLib) {
@@ -9,30 +10,57 @@ if (!gmpLib) {
 console.log("got GMPLib with this many bindings:", Object.keys((gmpLib as any).binding).length);
 let builder: Builder = new Builder(gmpLib); // Initialize the builder with gmp-wasm
 
-// WORKS! k or const
-builder.analyzeOne('( (x,y) => (y) )(4, 5)');
+builder.analyzeOne("'test'");
+builder.analyzeOne("Tag('Test')");
+builder.analyzeOne("Str('test')");
 
-builder.analyzeOne("Mul(6, 7)"); // Should return 42, a very important number
-builder.analyzeOne("1234567890123456789012345678901234567890 * 9876543210987654321098765432109876543210");
-builder.analyzeOne('((x, y) => x * y)(6, 7)'); // Should return 42, a very important number
-builder.analyzeOne('((x) => x * 7)(6)'); // Should return 42, a very important number
+// WORKS! k or const
+// builder.analyzeOne('( (x,y) => (y) )(4, 5)');
+
+// builder.analyzeOne("Mul(6, 7)"); // Should return 42, a very important number
+// builder.analyzeOne("1234567890123456789012345678901234567890 * 9876543210987654321098765432109876543210");
+// builder.analyzeOne('((x, y) => x * y)(6, 7)'); // Should return 42, a very important number
+// builder.analyzeOne('((x) => x * 7)(6)'); // Should return 42, a very important number
 
 builder.analyzeOne("True");
 builder.analyzeOne("False");
 
-/*
+builder.analyzeOne("None");
+
+// // fails, as expected -->
+// // builder.analyzeOne("x");  // because x is not defined
+
+builder.analyzeOne("Sym('x')"); // this is like Quote(x), you get a symbol, not the value bound to x in scope
+
 builder.analyzeOne('Bool("True")');
 builder.analyzeOne('Bool("False")');
 
 builder.analyzeOne("Anything");
 builder.analyzeOne('Tag("Anything")');
 
-builder.analyzeOne("12345");
-builder.analyzeOne('Nat("12345")');
-
 builder.analyzeOne('"Hello, world!"');
 builder.analyzeOne('Str("Hello, world!")');
 builder.analyzeOne('Str("Hello, \\"world\\"!")');
+
+builder.analyzeOne('Var("x")');
+
+builder.analyzeOne('None');
+// // ? analyzeOne('Option()');  // probably a bad idea
+// // ? analyzeOne('Option("None")');
+builder.analyzeOne('Some()'); // ==> None
+
+builder.analyzeOne('Some(None)'); // not None
+builder.analyzeOne('Some("value")');
+
+/*
+builder.analyzeOne('Some([])'); // ==> nested empty list inside of Some
+
+builder.analyzeOne('Error("Description of problem goes here")');
+builder.analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
+builder.analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
+
+builder.analyzeOne("12345");
+builder.analyzeOne('Nat("12345")');
 
 builder.analyzeOne('0.1234');
 builder.analyzeOne('Dec("0.1234")');
@@ -71,19 +99,6 @@ builder.analyzeOne('["a", "b", "c"]');
 //analyzeOne('("a",)'); // not parsing any more
 //analyzeOne('("a", "b", "c")');
 builder.analyzeOne('Tuple("a", "b", "c")');
-
-builder.analyzeOne('None');
-// // ? analyzeOne('Option()');  // probably a bad idea
-// // ? analyzeOne('Option("None")');
-builder.analyzeOne('Some()'); // ==> None
-
-builder.analyzeOne('Some(None)'); // not None
-builder.analyzeOne('Some("value")');
-builder.analyzeOne('Some([])'); // ==> nested empty list inside of Some
-
-builder.analyzeOne('Error("Description of problem goes here")');
-builder.analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
-builder.analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
 
 // analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
 

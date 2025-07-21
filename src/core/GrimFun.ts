@@ -36,10 +36,23 @@ class GrimApp extends GrimVal {
     //     return typeof one === 'string' ? new GrimStr(one) : builder.fromAst(one);
     // }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            if (ast.length !== 2) {
+                console.warn("GrimApp.maker called with wrong number of args, expected 2, returning empty GrimVal");
+                return new GrimVal();
+            }
+            const lhs = ast[0];
+            if (!(ast[1] instanceof GrimList)) {
+                console.warn("GrimApp.maker called with first arg not a GrimVal, returning empty GrimVal");
+                return new GrimVal();
+            }
+            const rhs: Array<GrimVal> = ast[1].asArray();
+            return new GrimApp(lhs, rhs);
+        }
         if (ast instanceof CanApp) {
             const lhs = builder.fromAst(ast.fun);
-            const rhs = ast.args.map(arg => builder.fromAst(arg));
+            const rhs: Array<GrimVal> = ast.args.map(arg => builder.fromAst(arg));
             return new GrimApp(lhs, rhs);
         }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "App") {
