@@ -142,7 +142,7 @@ ExprN4 = head:ExprR5 tail:(_ OpN4 _ ExprR5)? { return optionalPairAst(location()
 ExprR5 = head:ExprL6 tail:(_ OpR5 _ ExprR5)? { return optionalPairAst(location(), head, tail); } // right-associative
 ExprL6 = head:ExprL7 tail:(_ OpL6 _ ExprL7)* { return leftBinaryAst(location(), head, tail); }
 ExprL7 = head:ExprU8 tail:(_ OpL7 _ ExprU8)* { return leftBinaryAst(location(), head, tail); }
-ExprU8 = _ head:OpU8 tail:ExprR9 { return aTagApp(location(), head === "-" ? "Neg" : "Pos", [tail]); } // unary operators: +x -x
+ExprU8 = _ head:OpU8 _ tail:ExprR9 { return aTagApp(location(), head === "-" ? "Neg" : "Pos", [tail]); } // unary operators: +x -x
   / ExprR9
 ExprR9 = head:Factor tail:(_ OpR9 _ ExprU8)? { return optionalPairAst(location(), head, tail); } // right-associative
 

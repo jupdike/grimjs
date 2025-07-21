@@ -8,7 +8,7 @@ import { GrimVal } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimApp, GrimFun, GrimLet } from "./GrimFun.js";
 import { GrimTag, GrimVar, GrimSym } from "./GrimAst.js";
-import { GrimNat, GrimDec } from "./GrimNum.js";
+import { GrimNat, GrimDec, GrimInt } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimError, GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
@@ -175,6 +175,7 @@ class Builder {
         // CanAst makers - register the same makers for type-safe CanAst processing
         this.addMaker("Str", GrimStr.maker);
         this.addMaker("Nat", GrimNat.maker);
+        this.addMaker("Int", GrimInt.maker);
         this.addMaker("Dec", GrimDec.maker);
 
         // includes a few builtin atoms like True, False, None
@@ -205,6 +206,62 @@ class Builder {
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
         this.addCallableTag(List(["Add", "Nat", "Nat"]),
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.add(b); }));
+
+        this.addCallableTag(List(["Pos", "Nat"]), (args: Array<GrimVal>) => {
+            if (args.length !== 1 || !(args[0] instanceof GrimNat)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Pos.Nat");
+                return new GrimError(["Pos.Nat requires exactly 1 Nat argument"]);
+            }
+            return args[0];
+        });
+        this.addCallableTag(List(["Neg", "Nat"]), (args: Array<GrimVal>) => {
+            if (args.length !== 1 || !(args[0] instanceof GrimNat)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Neg.Nat");
+                return new GrimError(["Neg.Nat requires exactly 1 Nat argument"]);
+            }
+            if (args[0] instanceof GrimNat) {
+                return new GrimInt("-" + args[0].value);
+            }
+            return new GrimError(["Neg.Nat requires Nat argument"]);
+        });
+
+        this.addCallableTag(List(["Sub", "Nat", "Nat"]),
+            GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
+        this.addCallableTag(List(["Sub", "Nat", "Int"]),
+            GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
+        this.addCallableTag(List(["Sub", "Int", "Nat"]),
+            GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
+
+        this.addCallableTag(List(["Mul", "Int", "Int"]),
+            GrimInt.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
+        this.addCallableTag(List(["Add", "Int", "Int"]),
+            GrimInt.wrapBinaryOp(this, (a, b) => { return a.add(b); }));
+        this.addCallableTag(List(["Sub", "Int", "Int"]),
+            GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
+
+        this.addCallableTag(List(["Pos", "Int"]), (args: Array<GrimVal>) => {
+            if (args.length !== 1 || !(args[0] instanceof GrimInt)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Pos.Int");
+                return new GrimError(["Pos.Int requires exactly 1 Int argument"]);
+            }
+            return args[0];
+        });
+        this.addCallableTag(List(["Neg", "Int"]), (args: Array<GrimVal>) => {
+            if (args.length !== 1 || !(args[0] instanceof GrimInt)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Neg.Int");
+                return new GrimError(["Neg.Int requires exactly 1 Int argument"]);
+            }
+            if (args[0] instanceof GrimInt) {
+                if (args[0].value.startsWith("-")) {
+                    // already negative, just return it
+                    return new GrimInt(args[0].value.substring(1)); // remove the leading '-'
+                }
+                else {
+                    return new GrimInt(-args[0].value);
+                }
+            }
+            return new GrimError(["Neg.Int requires Int argument"]);
+        });
     }
 }
 

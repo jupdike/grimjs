@@ -147,3 +147,14 @@ builder.analyzeOne('Add(19, 23)'); // Should return 42, a very important number
 
 builder.analyzeOne("123456789 + 987654321");
 builder.analyzeOne("123456789+987654321");
+
+builder.analyzeOne('Int("1234567890123456789012345678901234567890")');
+builder.analyzeOne('Int("-1234567890123456789012345678901234567890")');
+builder.analyzeOne('-1234567890123456789012345678901234567890');
+
+builder.analyzeOne('45 - 46');
+
+builder.analyzeOne('(x := 99) => 0 - x');
+builder.analyzeOne('(x := -99) => 0 - x');
+builder.analyzeOne('- (-99)'); // Should return 99
+builder.analyzeOne('Neg(99)'); // Should return -99
