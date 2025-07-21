@@ -62,9 +62,6 @@ class GrimFun extends GrimVal {
     isAtom(): boolean {
         return true; // GrimFun is an atom in the sense that it is evaluates to itself
     }
-    isCallable(): boolean {
-        return true; // GrimFun is callable
-    }
     constructor(args: Array<GrimVal>, body: GrimVal) {
         super();
         this.args = args;

@@ -65,19 +65,17 @@ class Eval {
             }
             // Evaluate the function and arguments
             let fun: GrimFun | null = null;
-            if (!app.lhs.isCallable()) {
+            if (!builder.isCallable(app.lhs)) {
                 let reduced: GrimVal = Eval.evaluate(new EvalState(app.lhs, env, builder)).expr;
                 if (reduced instanceof GrimFun) {
                     fun = reduced;
                 }
-            }
-            else if (app.lhs instanceof GrimFun) {
+            } else if (app.lhs instanceof GrimFun) {
                 fun = app.lhs as GrimFun;
             }
-            if (!fun || !fun.isCallable()) {
+            if (!fun || !builder.isCallable(fun)) {
                 throw new Error(`Expected a callable GrimVal for first argument to App(), got ${app.lhs}`);
             }
-            //
             const fargs = fun.args;
             if (fargs.length !== app.rhs.length) {
                 throw new Error(`Function ${fun} expected ${fargs.length} arguments, got ${app.rhs.length}`);

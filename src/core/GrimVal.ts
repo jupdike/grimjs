@@ -1,6 +1,5 @@
 // Import CanAst types from parser module
 import { CanAst, CanStr, CanTag, CanApp, CanTaggedApp } from '../parser/CanAst.js';
-import type { Location } from '../parser/CanAst.js';
 
 // Legacy interface for backward compatibility during transition
 interface AstJson {
@@ -52,11 +51,6 @@ class GrimVal {
         return '';
     }
 
-    // TODO remove this and put it in Builder instead
-    isCallable(): boolean {
-        return false; // Default implementation, can be overridden
-    }
-
     isAtom(): boolean {
         return true; // Default implementation, can be overridden
     }
@@ -67,4 +61,3 @@ class GrimVal {
 }
 
 export { AstJson, GrimVal, strOf };
-export type { Location };

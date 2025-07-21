@@ -101,6 +101,23 @@ class Builder {
         this.callableTagMethodTupleToFuncMap = this.callableTagMethodTupleToFuncMap.set(tag, func);
     }
 
+    isCallable(val: GrimVal): boolean {
+        if (val instanceof GrimTag) {
+            if (this.callableTagMethodIsAvailable.has(val.value)) {
+                return true;
+            }
+            if (this.makerMap.has(val.value)) {
+                return true; // If there's a maker for this tag, it is callable
+            }
+            // some tags are callable, like "Add", "Mul", etc.
+            // but only under certain conditions
+        }
+        if (val instanceof GrimFun) {
+            return true; // GrimFun is callable
+        }
+        return false;
+    }
+
     // TESTING CODE
     locToStr(loc: Location | undefined): string {
         if(!loc) {
