@@ -48,14 +48,13 @@ class GrimList extends GrimVal {
 }
 
 class GrimTuple extends GrimVal {
-    private tuple: List<GrimVal>;
-
+    readonly tuple: List<GrimVal>;
     // no Empty tuple
 
     constructor(collection: Iterable<GrimVal> | ArrayLike<GrimVal>) {
         super();
-        if (Array.isArray(collection) && collection.length === 0) {
-            throw new Error("Empty tuples are not allowed");
+        if (Array.isArray(collection) && collection.length < 2) {
+            throw new Error("Tuples must have at least two elements");
         }
         this.tuple = List(collection);
     }
@@ -72,7 +71,10 @@ class GrimTuple extends GrimVal {
         return "Tuple";
     }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            return new GrimTuple(ast);
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Tuple") {
             if (ast.args.length === 0) {
                 throw new Error("Empty tuples are not allowed in Grim");
@@ -91,6 +93,25 @@ class GrimMap extends GrimVal {
     constructor(entries?: [GrimVal, GrimVal][]) {
         super();
         this.map = Map(entries);
+    }
+
+    static fromArrayOfGrimTuples(array: Array<GrimVal>, builder: Builder): GrimMap {
+        const entries: [GrimVal, GrimVal][] = [];
+        for (const grimVal of array) {
+            if (!(grimVal instanceof GrimTuple) || grimVal.tuple.size !== 2) {
+                console.warn(`GrimMap.fromArrayOfGrimTuples: Expected GrimTuple of size 2, got: ${grimVal.toString()}`);
+                continue; // Skip invalid pairs
+            }
+            const key = grimVal.tuple.get(0);
+            const value = grimVal.tuple.get(1);
+            if (!(key instanceof GrimVal) || !(value instanceof GrimVal)) {
+                // this should never happen
+                console.warn(`PROGRAMMER ERROR: GrimMap.fromArrayOfGrimTuples: Expected GrimVal for key and value, got: ${key.toString()} and ${value.toString()}`);
+                continue;
+            }
+            entries.push([key, value]);
+        }
+        return new GrimMap(entries);
     }
 
     toString(): string {
@@ -120,7 +141,10 @@ class GrimMap extends GrimVal {
         return builder.fromAst(key);
     }
 
-    static maker(ast: CanAst, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (Array.isArray(ast)) {
+            return GrimMap.fromArrayOfGrimTuples(ast, builder)
+        }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Map") {
             const entries: [GrimVal, GrimVal][] = [];
             

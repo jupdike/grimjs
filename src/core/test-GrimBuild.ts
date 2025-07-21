@@ -84,33 +84,19 @@ builder.analyzeOne('Dec("123.456e+2")');
 builder.analyzeOne('Dec("123.e-1")');
 builder.analyzeOne('Dec(".456e2")');
 
-/*
-builder.analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
-builder.analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
-
 // -------------------------------
 // // Empty Tuples are not allowed
 // // analyzeOne('Tuple()');
 // // analyzeOne('()');
 // // analyzeOne('(,)');
 // -------------------------------
-
 // // Tuples of one or more elements
-//analyzeOne('Tuple("a")'); // we don't want to allow this either
-//analyzeOne('("a",)'); // not parsing any more
-//analyzeOne('("a", "b", "c")');
+// //analyzeOne('Tuple("a")'); // we don't want to allow this either
+// //analyzeOne('("a",)'); // not parsing any more
+
+builder.analyzeOne('("a", "b")');
+builder.analyzeOne('("a", "b", "c")');
 builder.analyzeOne('Tuple("a", "b", "c")');
-
-// analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
-
-builder.analyzeOne('f("x")');
-builder.analyzeOne('(f)("x")');
-builder.analyzeOne('App(f,"x")');
-builder.analyzeOne('(f)("x", "y")');
-
-builder.analyzeOne('x => x + 4');
-builder.analyzeOne('(x => x + 4)(4)');
-builder.analyzeOne('(x := 5) => x + 4');
 
 builder.analyzeOne('{"key": "value", "another": "thing"}');
 builder.analyzeOne('Map(Tuple("key", "value"), Tuple("another", "thing"))');
@@ -122,13 +108,29 @@ builder.analyzeOne('{Key: "value", Another: "thing"}');
 builder.analyzeOne('{1: "value", 2: "thing"}');
 builder.analyzeOne('{(1, 2): "value", (3, 4): "thing"}');
 
+builder.analyzeOne('Map(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))');
+builder.analyzeOne('(Map)(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))');
+builder.analyzeOne('Map(Tuple("key", "value"), Tuple("another", "thing"))');
+
+builder.analyzeOne('Error("Something\'s Always Wrong with", Dec("123.456"))');
+builder.analyzeOne('Error("Something\'s Always Wrong with", Var("x"), "at", {location: {start: {line: 1, column: 2}, end: {line: 3, column: 4}}})');
+
+/*
+// analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
+
+builder.analyzeOne('f("x")');
+builder.analyzeOne('(f)("x")');
+builder.analyzeOne('App(f,"x")');
+builder.analyzeOne('(f)("x", "y")');
+
+builder.analyzeOne('x => x + 4');
+builder.analyzeOne('(x => x + 4)(4)');
+builder.analyzeOne('(x := 5) => x + 4');
+
 builder.analyzeOne('Set("a", "b", "c")');
 builder.analyzeOne('(Set)("a", "b", "c")');
 builder.analyzeOne('Set()');
 builder.analyzeOne('Set("a", "b", "c", "a")'); // duplicates removed
 builder.analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 
-builder.analyzeOne('Map(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))');
-builder.analyzeOne('(Map)(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))');
-builder.analyzeOne('Map(Tuple("key", "value"), Tuple("another", "thing"))');
 */

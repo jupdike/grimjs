@@ -190,9 +190,9 @@ class Builder {
         // // Collection types
         this.addMaker("List", GrimList.maker);
         // // version of List with fixed length, very different later in the type system
-        // // can only by pair or wider
-        // this.addMaker("Tuple", GrimTuple.maker);
-        // this.addMaker("Map", GrimMap.maker);
+        // // can only be pair or wider
+        this.addMaker("Tuple", GrimTuple.maker);
+        this.addMaker("Map", GrimMap.maker);
         // this.addMaker("Set", GrimSet.maker);
         
         // // Function application and definitions
