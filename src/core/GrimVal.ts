@@ -9,12 +9,6 @@ interface AstJson {
     children: Array<AstJson | string>;
 }
 
-function locToStr(loc: Location | undefined): string {
-  if(!loc) {
-    return "unknown location";
-  }
-  return `line ${loc.start.line} col ${loc.start.column} to line ${loc.end.line} col ${loc.end.column}`;
-}
 function strEscape(str: string): string {
     // Escapes backslashes and double quotes
     return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');

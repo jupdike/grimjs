@@ -1,6 +1,6 @@
-import { GrimVal } from "../core/GrimVal.js";
-import "../core/GrimBuild.js"; // This loads all the makers
+import "../core/Builder.js"; // This loads all the makers
 
+import gmp from "gmp-wasm"; // Import the GMP library
 import type { GMPLib } from "gmp-wasm";
 
 // Import both parsers for comparison

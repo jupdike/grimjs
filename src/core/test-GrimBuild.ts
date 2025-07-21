@@ -1,86 +1,26 @@
-// TODO figure this one out
 import gmp from "gmp-wasm";
 import type { GMPLib } from "gmp-wasm";
-import { Integer } from "gmp-wasm/dist/types/integer.js";
-
-import parser from  "../parser/_parser-sugar.js"
-import { CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js"
 import { Builder } from "./Builder.js"; // This loads all the makers
-import { GrimVal, locToStr } from "./GrimVal.js";
-import { EvalState, Eval } from "./Eval.js";
-import { GrimNat } from "./GrimNum.js";
-import { GrimTag } from "./GrimAst.js";
-import { List } from "immutable";
 
-// WORKS! k or const
-//analyzeOne('( (x,y) => (y) )(4, 5)');
-
-// let func = GrimTag.callableTagMethodTupleToFuncMap.get(List(["Mul", "Nat", "Nat"]));
-// if (func) {
-//     let ret = func([new GrimNat("12345678987654321"), new GrimNat("98765432123456789")]);
-//     console.log('GrimTag callable Mul result:', ret.toString());
-// }
-
-// async function multiplyBigIntegers() {
-//     await gmp.init(); // Initialize GMP-wasm
-
-//     // Parse two large integers from strings
-//     const a: Integer = gmp.Integer.fromString("1234567890123456789012345678901234567890");
-//     const b: Integer = gmp.Integer.fromString("9876543210987654321098765432109876543210");
-
-//     // Multiply them
-//     const result: Integer = a.mul(b);
-
-//     // Print the result as a string
-//     console.log(result.toString());
-// }
-// multiplyBigIntegers();
-
-// works
-// gmp.init().then(({ getContext }) => {
-//     const ctx = getContext();
-//     let x = ctx.Integer("1234567890123456789012345678901234567890");
-//     let y = ctx.Integer("9876543210987654321098765432109876543210");
-//     let z = x.mul(y);
-//     console.log(z.toString());
-//     setTimeout(() => ctx.destroy(), 50);
-// });
-
-// works
-// gmp.init().then((ob) => {
-//     const ctx = ob.getContext();
-//     let x = ctx.Integer("1234567890123456789012345678901234567890");
-//     let y = ctx.Integer("9876543210987654321098765432109876543210");
-//     let z = x.mul(y);
-//     console.log(z.toString());
-//     setTimeout(() => ctx.destroy(), 50);
-// });
-
-// works
-async function multiplyBigIntegers(): Promise<GMPLib> {
-    let ob = await gmp.init();
-    let ret = ob as GMPLib; // Type assertion to GMPLib
-    const ctx = ob.getContext();
-    let x = ctx.Integer("1234567890123456789012345678901234567890");
-    let y = ctx.Integer("9876543210987654321098765432109876543210");
-    let z = x.mul(y);
-    console.log(z.toString());
-    setTimeout(() => ctx.destroy(), 50);
-    return ret; // Return the GMP library object for further use if needed
+let gmpLib: GMPLib = await gmp.init();
+if (!gmpLib) {
+    throw new Error("GMP library failed to initialize");
 }
-let gmpLib: GMPLib = await multiplyBigIntegers();
-console.log("After with multiplyBigIntegers(), got a lib");
-
+console.log("got GMPLib with this many bindings:", Object.keys((gmpLib as any).binding).length);
 let builder: Builder = new Builder(gmpLib); // Initialize the builder with gmp-wasm
 
+// WORKS! k or const
+builder.analyzeOne('( (x,y) => (y) )(4, 5)');
+
 builder.analyzeOne("Mul(6, 7)"); // Should return 42, a very important number
-builder.analyzeOne("Mul(1234567890123456789012345678901234567890, 9876543210987654321098765432109876543210)");
+builder.analyzeOne("1234567890123456789012345678901234567890 * 9876543210987654321098765432109876543210");
 builder.analyzeOne('((x, y) => x * y)(6, 7)'); // Should return 42, a very important number
 builder.analyzeOne('((x) => x * 7)(6)'); // Should return 42, a very important number
 
-/*
 builder.analyzeOne("True");
 builder.analyzeOne("False");
+
+/*
 builder.analyzeOne('Bool("True")');
 builder.analyzeOne('Bool("False")');
 

@@ -1,7 +1,6 @@
 import { List, Map, Set } from "immutable";
 
 import type { GMPLib } from "gmp-wasm";
-import { Integer } from "gmp-wasm/dist/types/integer.js";
 
 import parser from  "../parser/_parser-sugar.js"
 
@@ -13,7 +12,7 @@ import { GrimNat, GrimDec } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimError, GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
-import { CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js";
+import { Location, CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js";
 import { Eval, EvalState } from "./Eval.js";
 
 type AstToVal = (ast: CanAst, builder: Builder) => GrimVal;
@@ -26,7 +25,7 @@ class Builder {
         this.addMakers();
     }
     gmpLib: GMPLib; // Will be set after gmp.init(), by async caller
-    makerMap: Map<string, AstToVal> = Map<string, AstToVal>();
+    private makerMap: Map<string, AstToVal> = Map<string, AstToVal>();
     didInit = false;
 
     addMaker(tag: string, maker: AstToVal) {
@@ -103,6 +102,12 @@ class Builder {
     }
 
     // TESTING CODE
+    locToStr(loc: Location | undefined): string {
+        if(!loc) {
+            return "unknown location";
+        }
+        return `line ${loc.start.line} col ${loc.start.column} to line ${loc.end.line} col ${loc.end.column}`;
+    }
 
     check(str: string, start: string | null = null, onlyErrors = false): CanAst {
         start = start || "Start";
@@ -116,7 +121,7 @@ class Builder {
         } catch (e) {
             console.log('---');
             //console.log("Error", [e.message]);
-            console.log(str, '  ~~ EXCEPTION THROWN as ~~>\n  ', `Error('${e.message}', '${locToStr(e.location)}')` );
+            console.log(str, '  ~~ EXCEPTION THROWN as ~~>\n  ', `Error('${e.message}', '${this.locToStr(e.location)}')` );
             //return Ast( e.location || 'unknown', "Error", [e.message] );
             return new CanTaggedApp(e.location,
                 new CanTag(e.location, "Error"),
