@@ -191,6 +191,124 @@ class GrimInt extends GrimNat {
     }
 }
 
+class GrimRat extends GrimVal {
+    constructor(private numerator: GrimInt, private denominator: GrimInt) {
+        super();
+    }
+
+    toString(): string {
+        return `${this.numerator.toString()}/${this.denominator.toString()}`;
+    }
+
+    isAtom(): boolean {
+        // Rational numbers are considered atoms -- although they print
+        // as fractions which must be eval'd to get back to a Rat
+        return true;
+    }
+
+    head(): string {
+        return "Rat";
+    }
+
+    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+        if (Array.isArray(ast)) {
+            // If it's an array, we expect two elements: numerator and denominator
+            if (ast.length !== 1) {
+                console.warn("GrimRat.maker received invalid array length");
+                return new GrimError(["NOPE_CanRat1"]);
+            }
+            if (ast[0] instanceof GrimRat) {
+                return ast[0]; // Already a GrimRat, just return it
+            }
+            if (ast[0] instanceof GrimInt || ast[0] instanceof GrimNat) {
+                // If it's a GrimInt or GrimNat, we expect it to be a valid numerator/denominator pair
+                return new GrimRat(ast[0], new GrimInt("1")); // Default denominator to 1
+            }
+            if (ast[0] instanceof GrimStr) {
+                // If it's a GrimInt, GrimNat, or GrimStr, we
+                // expect it to be a valid numerator/denominator pair
+                return GrimRat.fromString(ast[0].value);
+            }
+        }
+        if (ast instanceof CanStr) {
+            return GrimRat.fromString(ast.str);
+        }
+        // If it's a single AST node, we need to handle it accordingly
+        return new GrimError(["NOPE_CanRat2"]);
+    }
+
+    static fromString(value: string): GrimVal {
+        const parts = value.split('/');
+        if (parts.length === 1) {
+            // If there's no denominator, treat it as a whole number
+            return new GrimRat(new GrimInt(parts[0].trim()), new GrimInt("1"));
+        }
+        if (parts.length !== 2) {
+            console.warn(`GrimRat.fromString received invalid format: ${value}`);
+            return new GrimError(["NOPE_CanRat"]);
+        }
+        // If there are two parts, treat them as numerator and denominator
+        const numerator = new GrimInt(parts[0].trim());
+        const denominator = new GrimInt(parts[1].trim());
+        if (denominator.value === "0") {
+            console.warn("GrimRat.fromString received zero denominator, returning error");
+            return new GrimError(["NOPE_CanRat"]);
+        }
+        return new GrimRat(numerator, denominator);
+    }
+
+    static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
+        fn: (a: any, b: any) => string): GrimVal {
+        if (!(left instanceof GrimRat)) {
+            left = GrimRat.fromString(left.toString());
+        }
+        if (!(right instanceof GrimRat)) {
+            right = GrimRat.fromString(right.toString());
+        }
+        if (left instanceof GrimRat && right instanceof GrimRat) {
+            let ret: string = "";
+            const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
+            const options = { precisionBits: 400, roundingMode };
+            const ctx = gmpLib.getContext(options);
+            let x: any = ctx.Rational(left.toString());
+            let y: any = ctx.Rational(right.toString());
+            let val: any = fn(x, y);
+            if (val.denominator() == 1) {
+                return new GrimInt(val.numerator().toString());
+            }
+            let result = val.toString();
+            let final = GrimRat.fromString(result);
+
+            setTimeout(() => ctx.destroy(), 50);
+            return final;
+        }
+        return new GrimError(["NOPE_CanInt"]);
+    }
+
+    static wrapBinaryOp(builder: Builder, fn: (a: any, b: any) => any): FuncType {
+        return (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.error("uno -- GrimTag.addCallableTag called with invalid args for Rat -- Op.Type.Type");
+                return new GrimError(["Rat -- Op.Type.Type requires exactly 2 arguments"]);
+            }
+            let args0 = args[0];
+            let args1 = args[1];
+            if (!(args0 instanceof GrimRat)) {
+                args0 = GrimRat.fromString(args0.toString());
+            }
+            if (!(args1 instanceof GrimRat)) {
+                args1 = GrimRat.fromString(args1.toString());
+            }
+            if (args0 instanceof GrimRat && args1 instanceof GrimRat) {
+                return GrimRat.fromBinaryFunction(builder.gmpLib, args0, args1, (a: any, b: any) => {
+                    return fn(a, b); // Use GMP's operation on two IntegerTypes
+                });
+            }
+            return new GrimError(["dos -- Rat -- Op.Type.Type requires Type arguments"]);
+        };
+    }
+}
+
 class GrimDec extends GrimVal {
     constructor(private value: number | string) {
         super();
@@ -263,4 +381,4 @@ class GrimDec extends GrimVal {
     }
 }
 
-export { GrimNat, GrimInt, GrimDec };
+export { GrimNat, GrimInt, GrimRat, GrimDec };

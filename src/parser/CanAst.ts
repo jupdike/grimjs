@@ -38,6 +38,13 @@ function strEscape(str: string): string {
 }
 // copied from ast.js, so keep those in sync manually
 function strOf(x: string): string {
+    if (x == null || x === undefined) {
+        return '<UNDEFINED/or/NULL>'; // empty string if null or undefined
+    }
+    if(typeof x !== 'string') {
+        console.warn(`strOf called with non-string value: ${x}`);
+        return '<INVALID_STRING>'; // handle non-string cases gracefully
+    }
     // use single quotes sometimes and don't escape double quotes in that case
     if(x.indexOf('"') >= 0) {
         return "'" + strEscape(x).replace(/[\\]"/g, '"') + "'";

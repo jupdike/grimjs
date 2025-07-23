@@ -93,9 +93,14 @@ class Eval {
                 );
                 argsEvaluated.forEach(arg => {
                     let type = arg.head();
+                    if (type === "Error") {
+                        // If any argument is an error, propagate it
+                        console.error("Error in argument:", arg.toString());
+                    }
                     tuple = tuple.push(type);
                 });
                 // Check if we have a callable tag method for this tuple
+                //console.log("looking for callable tag method for tuple:", tuple.toString());
                 if (builder.callableTagMethodTupleToFuncMap.has(tuple)) {
                     // If we have a callable tag method for this tuple, use it
                     e2 = builder.callableTagMethodTupleToFuncMap.get(tuple)!(argsEvaluated);

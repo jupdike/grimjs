@@ -8,7 +8,7 @@ import { GrimVal } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimApp, GrimFun, GrimLet } from "./GrimFun.js";
 import { GrimTag, GrimVar, GrimSym } from "./GrimAst.js";
-import { GrimNat, GrimDec, GrimInt } from "./GrimNum.js";
+import { GrimNat, GrimDec, GrimInt, GrimRat } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimError, GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
@@ -176,6 +176,7 @@ class Builder {
         this.addMaker("Str", GrimStr.maker);
         this.addMaker("Nat", GrimNat.maker);
         this.addMaker("Int", GrimInt.maker);
+        this.addMaker("Rat", GrimRat.maker);
         this.addMaker("Dec", GrimDec.maker);
 
         // includes a few builtin atoms like True, False, None
@@ -262,6 +263,46 @@ class Builder {
             }
             return new GrimError(["Neg.Int requires Int argument"]);
         });
+
+        this.addCallableTag(List(["Div", "Int", "Int"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+        this.addCallableTag(List(["Div", "Nat", "Nat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+        this.addCallableTag(List(["Div", "Rat", "Rat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+        this.addCallableTag(List(["Div", "Int", "Rat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+        this.addCallableTag(List(["Div", "Rat", "Int"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+        this.addCallableTag(List(["Div", "Rat", "Nat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+        this.addCallableTag(List(["Div", "Nat", "Rat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+        this.addCallableTag(List(["Div", "Nat", "Int"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+        this.addCallableTag(List(["Div", "Int", "Nat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
+
+        this.addCallableTag(List(["Mul", "Rat", "Rat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => {
+                return a.mul(b);
+            }));
+        this.addCallableTag(List(["Mul", "Rat", "Nat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => {
+                return a.mul(b);
+            }));
+        this.addCallableTag(List(["Mul", "Nat", "Rat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => {
+                return a.mul(b);
+            }));
+        this.addCallableTag(List(["Mul", "Rat", "Int"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => {
+                return a.mul(b);
+            }));
+        this.addCallableTag(List(["Mul", "Int", "Rat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => {
+                return a.mul(b);
+            }));
     }
 }
 

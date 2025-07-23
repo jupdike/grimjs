@@ -158,3 +158,13 @@ builder.analyzeOne('(x := 99) => 0 - x');
 builder.analyzeOne('(x := -99) => 0 - x');
 builder.analyzeOne('- (-99)'); // Should return 99
 builder.analyzeOne('Neg(99)'); // Should return -99
+
+builder.analyzeOne('123/456');
+builder.analyzeOne('Nat("321")/Nat("654")');
+builder.analyzeOne('Int("-321")/Nat("654")');
+builder.analyzeOne('Nat("321")/Int("654")');
+builder.analyzeOne('Rat("654/321")');
+
+builder.analyzeOne('(2/3)*(3/2)'); // Should return 1 as GrimInt
+builder.analyzeOne('Rat("2/3") * Rat("3/2")'); // Should return 1 as GrimInt
+builder.analyzeOne('3 * Rat("22/2") * Rat("44/12") / Rat("11")'); // Should return 11 as GrimInt
