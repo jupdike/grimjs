@@ -34,3 +34,4 @@ check("Anything");
 check('Tag("Anything")');
 check("Equals(Var('x'), Var('y'))");
 check("(Equals)(Var('x'), Var('y'))");
+check("'I am the \u0251 and the \u03c9'");

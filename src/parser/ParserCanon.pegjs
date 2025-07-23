@@ -43,15 +43,13 @@ Str "a string"
   }
 
 EscapeChar "an escaped character"
-  = "\\" ([nrt\\"'] / [0-7]{1,3} / [xX][0-9a-fA-F]+) {
+  = "\\" ([nrt\\"'] / [u][0-9a-fA-F]{2,4}) {
     if (text() === '\\n') return '\n';
     if (text() === '\\r') return '\r';
     if (text() === '\\t') return '\t';
-    // TODO handle unicode escapes
-    // TODO handle octal escapes
-    // TODO handle hex escapes
-    // TODO handle unicode escapes
-    // TODO handle other escape sequences
+    if (text().startsWith('\\u')) {
+      return String.fromCharCode(parseInt(text().substring(2), 16));
+    }
     return text().substring(1); // remove the leading backslash
   }
 
