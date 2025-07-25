@@ -31,6 +31,17 @@ class Builder {
         this.makerMap = this.makerMap.set(tag, maker);
     }
 
+    private castPairs: Set<List<string>> = Set();
+    addCast(tagBig: string, tagSmall: string) {
+        // This is a way to add a cast from one tag to another, e.g. from "Nat" into "Int"
+        this.castPairs = this.castPairs.add(List([tagBig, tagSmall]));
+    }
+
+    hasCast(tagBig: string, tagSmall: string): boolean {
+        let ret = this.castPairs.has(List([tagBig, tagSmall]));
+        return ret;
+    }
+
     // is this needed?
     getMaker(tag: string): AstToVal | undefined {
         return this.makerMap.get(tag);
@@ -203,6 +214,10 @@ class Builder {
         this.addMaker("Fun", GrimFun.maker);
         this.addMaker("Let", GrimLet.maker);
 
+        this.addCast("Int", "Nat");
+        this.addCast("Rat", "Int");
+        this.addCast("Rat", "Nat");
+
         this.addCallableTag(List(["Mul", "Nat", "Nat"]),
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
         this.addCallableTag(List(["Add", "Nat", "Nat"]),
@@ -228,11 +243,6 @@ class Builder {
 
         this.addCallableTag(List(["Sub", "Nat", "Nat"]),
             GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
-        this.addCallableTag(List(["Sub", "Nat", "Int"]),
-            GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
-        this.addCallableTag(List(["Sub", "Int", "Nat"]),
-            GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
-
         this.addCallableTag(List(["Mul", "Int", "Int"]),
             GrimInt.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
         this.addCallableTag(List(["Add", "Int", "Int"]),
@@ -270,39 +280,34 @@ class Builder {
             GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
         this.addCallableTag(List(["Div", "Rat", "Rat"]),
             GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
-        this.addCallableTag(List(["Div", "Int", "Rat"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
-        this.addCallableTag(List(["Div", "Rat", "Int"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
-        this.addCallableTag(List(["Div", "Rat", "Nat"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
-        this.addCallableTag(List(["Div", "Nat", "Rat"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
-        this.addCallableTag(List(["Div", "Nat", "Int"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
-        this.addCallableTag(List(["Div", "Int", "Nat"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
-
         this.addCallableTag(List(["Mul", "Rat", "Rat"]),
             GrimRat.wrapBinaryOp(this, (a, b) => {
                 return a.mul(b);
             }));
-        this.addCallableTag(List(["Mul", "Rat", "Nat"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => {
-                return a.mul(b);
-            }));
-        this.addCallableTag(List(["Mul", "Nat", "Rat"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => {
-                return a.mul(b);
-            }));
-        this.addCallableTag(List(["Mul", "Rat", "Int"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => {
-                return a.mul(b);
-            }));
-        this.addCallableTag(List(["Mul", "Int", "Rat"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => {
-                return a.mul(b);
-            }));
+
+        // casting allows just these definitions
+        //   Tag(x, x)
+        //   Tag(y, y)
+        //   Tag(z, z)
+        // plus
+        //   y :> x
+        //   z :> y
+        //   z :> x
+        // to be used in a function like this:
+        // to automatically cast from
+        // Tag(x, y)
+        // or
+        // Tag(y, x)
+        // or
+        // Tag(z, x)
+        // or
+        // Tag(z, y)
+        // TO...
+        // Tag(y, y)
+        // or
+        // Tag(z, z)
+        // as long as Z(y) and Z(x) are defined
+        // This all eliminates a lot of boilerplate M x N code
     }
 }
 

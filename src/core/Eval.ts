@@ -91,6 +91,7 @@ class Eval {
                 let argsEvaluated: Array<GrimVal> = app.rhs.map(
                     arg => Eval.evaluate(new EvalState(arg, env, builder)).expr
                 );
+                //console.log("Evaluated args:", argsEvaluated.map(arg => arg.toString()).join(", "));
                 argsEvaluated.forEach(arg => {
                     let type = arg.head();
                     if (type === "Error") {
@@ -106,8 +107,56 @@ class Eval {
                     e2 = builder.callableTagMethodTupleToFuncMap.get(tuple)!(argsEvaluated);
                     return new EvalState(e2, env2, builder);
                 }
+                // if not, try casting argumnets from smaller tags to bigger tags
+                // e.g. Nat to Int, Int to Rat, etc.
+                // This is a way to handle cases like Nat(123) + Int(456)
+                if (tuple.size >= 3) {
+                    //console.log("No callable tag method found for tuple:", tuple.toString());
+                    // Try to find a cast for this pair of tags, in either direction, then
+                    // use SmallerTag to BiggerTag, e.g. Nat to Int, Int to Rat, etc.
+                    let smallTag: string = "";
+                    let bigTag: string = "";
+                    tuple.slice(1).forEach((tagA, index) => {
+                        tuple.slice(1).forEach((tagB, index) => {
+                            if (tagA === tagB || bigTag !== "" && smallTag !== "") {
+                                return; // skip if it's the same tag or we found a pair already
+                            }
+                            // console.log("Checking cast for tagA, tagB:", tagA, tagB);
+                            if (builder.hasCast(tagB, tagA)) {
+                                // console.log("Found cast from", tagB, ":>", tagA);
+                                bigTag = tagB; // tagB is the bigger tag
+                                smallTag = tagA; // tagA is the smaller tag
+                            }
+                            else if (builder.hasCast(tagA, tagB)) {
+                                // console.log("Found cast from", tagA, ":>", tagB);
+                                bigTag = tagA; // tagB is the smaller tag
+                                smallTag = tagB; // tagA is the bigger tag
+                            }
+                        });
+                    });
+                    // console.log("hasCast?", bigTag, ":>", smallTag);
+                    let newTuple: List<string> | null = null;
+                    newTuple = tuple.map((x, index) => {
+                        if (index === 0) {
+                            return x; // keep the tag name as is
+                        }
+                        if (x !== bigTag) {
+                            return bigTag; // replace smaller tag with bigger tag
+                        }
+                        return x;
+                    });
+                    // console.log("newTuple:", newTuple.toString());
+                    if (newTuple) {
+                        if (builder.callableTagMethodTupleToFuncMap.has(newTuple)) {
+                            // If we have a callable tag method for this tuple, use it
+                            e2 = builder.callableTagMethodTupleToFuncMap.get(newTuple)!(argsEvaluated);
+                            return new EvalState(e2, env2, builder);
+                        }
+                    }
+                }
+
                 // Otherwise, check if we have a tag maker like Bool("True"), Var("x"), etc.
-                // console.warn("@ looking for tag maker for", tag.value);
+                //console.warn("@ looking for tag maker for", tag.value);
                 const maker = builder.getMaker(tag.value);
                 if (maker) {
                     // console.warn("@ found tag maker for", tag.value);

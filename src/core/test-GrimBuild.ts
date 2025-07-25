@@ -143,6 +143,7 @@ builder.analyzeOne('Let([(Sym("x"), 6), (Sym("y"), 7)], x * y)');
 builder.analyzeOne('20 + 22'); // Should return 42, a very important number
 builder.analyzeOne('((x, y) => x + y)(20, 22)'); // Should return 42, a very important number
 builder.analyzeOne('((x := 20, y := 22) => x + y)'); // Should return 42, a very important number
+
 builder.analyzeOne('Add(19, 23)'); // Should return 42, a very important number
 
 builder.analyzeOne("123456789 + 987654321");
@@ -168,3 +169,5 @@ builder.analyzeOne('Rat("654/321")');
 builder.analyzeOne('(2/3)*(3/2)'); // Should return 1 as GrimInt
 builder.analyzeOne('Rat("2/3") * Rat("3/2")'); // Should return 1 as GrimInt
 builder.analyzeOne('3 * Rat("22/2") * Rat("44/12") / Rat("11")'); // Should return 11 as GrimInt
+
+builder.analyzeOne('Nat("321")/Int("654")');
