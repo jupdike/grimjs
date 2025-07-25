@@ -37,4 +37,6 @@ builder.analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 // // builder.analyzeOne('App(f,"x")');
 // // builder.analyzeOne('(f)("x", "y")');
 // analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
+also fails, as expected -->
+sugar:       (x, x) => x / 2
 */

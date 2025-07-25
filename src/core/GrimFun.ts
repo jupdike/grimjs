@@ -1,8 +1,10 @@
 import { GrimVal, AstJson } from "./GrimVal";
+import { Set } from 'immutable';
 import { CanApp, CanTaggedApp, CanAst } from "../parser/CanAst.js";
 import { GrimList } from "./GrimCollect";
 import { Builder } from "./Builder.js";
 import { GrimError } from "./GrimOpt.js";
+import { GrimSym } from "./GrimAst.js";
 
 class GrimApp extends GrimVal {
     // Represents an application of a function to arguments
@@ -120,9 +122,21 @@ class GrimFun extends GrimVal {
             }
             const argsAst = builder.fromAst(ast.args[0]);
             const body = builder.fromAst(ast.args[1]);
-
             if (argsAst instanceof GrimList) {
-                return new GrimFun(argsAst.asArray(), body);
+                let arr = argsAst.asArray();
+                let set = Set<string>();
+                for (let arg of arr) {
+                    if (arg instanceof GrimSym) {
+                        if (set.has(arg.value)) {
+                            throw new Error(`Duplicate argument name '${arg.value}' in ast: ${ast.toString()}`);
+                        }
+                        set = set.add(arg.value);
+                    } else {
+                        console.warn("GrimFun.maker called with arg not a GrimSym, returning empty GrimVal");
+                        return new GrimError([ `GrimFun.maker called with arg not a GrimSym: ${arg.toString()}`]);
+                    }
+                }
+                return new GrimFun(arr, body);
             } else {
                 console.warn("GrimFun.maker called with first arg not a GrimList, returning empty GrimVal");
                 return new GrimVal();
@@ -177,6 +191,7 @@ class GrimLet extends GrimVal {
                 return new GrimVal();
             }
             const bindingsAst = builder.fromAst(ast.args[0]);
+            // TODO check that there are no duplicate names in bindingsAst
             const body = builder.fromAst(ast.args[1]);
 
             if (bindingsAst instanceof GrimList) {

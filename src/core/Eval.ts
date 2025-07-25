@@ -1,4 +1,4 @@
-import { List, Map } from 'immutable';
+import { List, Map, Set } from 'immutable';
 
 import { GrimVal } from './GrimVal';
 import { GrimApp, GrimFun, GrimLet } from './GrimFun';
@@ -187,12 +187,18 @@ class Eval {
                 throw new Error(`Function ${fun} has non-symbol arguments: ${fargs}`);
             }
             let newEnv = env;
+            let set = Set<string>();
             fargs.forEach((arg, index) => {
                 const a = arg as GrimSym;
                 const argName = a.value;
                 if (!argName || typeof argName !== 'string') {
                     throw new Error(`GrimSym ${a} has no name`);
                 }
+                if (set.has(argName)) {
+                    throw new Error(`Duplicate argument name '${argName}' in function ${fun}`);
+                }
+                set = set.add(argName);
+                // Create a new environment with the argument name bound to the evaluated value
                 const argValueUnEvaluated = app.rhs[index];
                 const argValue = Eval.evaluate(new EvalState(argValueUnEvaluated, env, builder)).expr;
                 // override lexically (making a new copy of the environment, but it's not a copy because Immutable.Map is amazing)
