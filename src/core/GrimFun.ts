@@ -1,4 +1,3 @@
-import { GrimStr } from "./GrimStr";
 import { GrimVal, AstJson } from "./GrimVal";
 import { CanApp, CanTaggedApp, CanAst } from "../parser/CanAst.js";
 import { GrimList } from "./GrimCollect";
@@ -31,6 +30,11 @@ class GrimApp extends GrimVal {
         let rhsStr = this.rhs.map(r => r.toString()).join(", ");
         return `${this.lhs.toString()}@(${rhsStr})`;
         // TODO remove @ from above, but useful to keep for now, for debugging
+    }
+
+    toCanonicalString(): string {
+        let rhsStr = this.rhs.map(r => r.toCanonicalString()).join(", ");
+        return `App(${this.lhs.toCanonicalString()}, List(${rhsStr}))`;
     }
 
     // static wrap(one: AstJson | string, builder: Builder): GrimVal {
@@ -89,6 +93,11 @@ class GrimFun extends GrimVal {
         return `Fun(List(${argsStr}), ${this.body.toString()})`;
     }
 
+    toCanonicalString(): string {
+        let argsStr = this.args.map(arg => arg.toCanonicalString()).join(", ");
+        return `Fun(List(${argsStr}), ${this.body.toCanonicalString()})`;
+    }
+
     static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
         // this means you can build functions at runtime with Fun acting as a first-class callable thing
         if (Array.isArray(ast)) {
@@ -141,6 +150,11 @@ class GrimLet extends GrimVal {
     toString(): string {
         let argsStr = this.bindings.map(arg => arg.toString()).join(", ");
         return `Let(List(${argsStr}), ${this.body.toString()})`;
+    }
+
+    toCanonicalString(): string {
+        let argsStr = this.bindings.map(arg => arg.toCanonicalString()).join(", ");
+        return `Let(List(${argsStr}), ${this.body.toCanonicalString()})`;
     }
 
     static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {

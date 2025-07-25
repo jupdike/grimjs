@@ -1,0 +1,552 @@
+# Strings & Tags
+sugar:       'test'
+desugared:   "test"
+built:       "test"
+canonical:   "test"
+evaluated:   "test"
+#
+sugar:       Tag('Test')
+desugared:   Tag("Tag")@("Test")
+built:       Tag@("Test")
+canonical:   App(Tag, List("Test"))
+evaluated:   Test
+#
+sugar:       Str('test')
+desugared:   Tag("Str")@("test")
+built:       Str@("test")
+canonical:   App(Str, List("test"))
+evaluated:   "test"
+#
+sugar:       True
+desugared:   Tag("True")
+built:       True
+canonical:   True
+evaluated:   True
+#
+sugar:       False
+desugared:   Tag("False")
+built:       False
+canonical:   False
+evaluated:   False
+#
+sugar:       None
+desugared:   Tag("None")
+built:       None
+canonical:   None
+evaluated:   None
+#
+sugar:       Sym('x')
+desugared:   Tag("Sym")@("x")
+built:       Sym@("x")
+canonical:   App(Sym, List("x"))
+evaluated:   Sym("x")
+#
+sugar:       Bool("True")
+desugared:   Tag("Bool")@("True")
+built:       Bool@("True")
+canonical:   App(Bool, List("True"))
+evaluated:   True
+#
+sugar:       Bool("False")
+desugared:   Tag("Bool")@("False")
+built:       Bool@("False")
+canonical:   App(Bool, List("False"))
+evaluated:   False
+#
+sugar:       Anything
+desugared:   Tag("Anything")
+built:       Anything
+canonical:   Anything
+evaluated:   Anything
+#
+sugar:       Tag("Anything")
+desugared:   Tag("Tag")@("Anything")
+built:       Tag@("Anything")
+canonical:   App(Tag, List("Anything"))
+evaluated:   Anything
+#
+sugar:       "Hello, world!"
+desugared:   "Hello, world!"
+built:       "Hello, world!"
+canonical:   "Hello, world!"
+evaluated:   "Hello, world!"
+#
+sugar:       Str("Hello, world!")
+desugared:   Tag("Str")@("Hello, world!")
+built:       Str@("Hello, world!")
+canonical:   App(Str, List("Hello, world!"))
+evaluated:   "Hello, world!"
+#
+sugar:       Str("Hello, \"world\"!")
+desugared:   Tag("Str")@('Hello, "world"!')
+built:       Str@('Hello, "world"!')
+canonical:   App(Str, List('Hello, "world"!'))
+evaluated:   'Hello, "world"!'
+#
+# Some & None
+sugar:       None
+desugared:   Tag("None")
+built:       None
+canonical:   None
+evaluated:   None
+#
+sugar:       Some()
+desugared:   Tag("Some")@()
+built:       Some@()
+canonical:   App(Some, List())
+evaluated:   None
+#
+sugar:       Some(None)
+desugared:   Tag("Some")@(Tag("None"))
+built:       Some@(None)
+canonical:   App(Some, List(None))
+evaluated:   Some(None)
+#
+# List
+sugar:       Some([])
+desugared:   Tag("Some")@(List())
+built:       Some@([])
+canonical:   App(Some, List(List()))
+evaluated:   Some([])
+#
+sugar:       List()
+desugared:   Tag("List")@()
+built:       List@()
+canonical:   App(List, List())
+evaluated:   []
+#
+sugar:       List("a")
+desugared:   Tag("List")@("a")
+built:       List@("a")
+canonical:   App(List, List("a"))
+evaluated:   ["a"]
+#
+sugar:       List("a", "b", "c")
+desugared:   Tag("List")@("a", "b", "c")
+built:       List@("a", "b", "c")
+canonical:   App(List, List("a", "b", "c"))
+evaluated:   ["a", "b", "c"]
+#
+sugar:       []
+desugared:   List()
+built:       []
+canonical:   List()
+evaluated:   []
+#
+sugar:       ["a"]
+desugared:   List("a")
+built:       ["a"]
+canonical:   List("a")
+evaluated:   ["a"]
+#
+# Numbers
+sugar:       12345
+desugared:   Nat("12345")
+built:       12345
+canonical:   Nat("12345")
+evaluated:   12345
+#
+sugar:       Nat("12345")
+desugared:   Tag("Nat")@("12345")
+built:       Nat@("12345")
+canonical:   App(Nat, List("12345"))
+evaluated:   12345
+#
+sugar:       0.1234
+desugared:   Dec("0.1234")
+built:       0.1234
+canonical:   Dec("0.1234")
+evaluated:   0.1234
+#
+sugar:       Dec("0.1234")
+desugared:   Tag("Dec")@("0.1234")
+built:       Dec@("0.1234")
+canonical:   App(Dec, List("0.1234"))
+evaluated:   0.1234
+#
+sugar:       123.456
+desugared:   Dec("123.456")
+built:       123.456
+canonical:   Dec("123.456")
+evaluated:   123.456
+#
+sugar:       123.
+desugared:   Dec("123.")
+built:       123.
+canonical:   Dec("123.")
+evaluated:   123.
+#
+sugar:       .456
+desugared:   Dec(".456")
+built:       .456
+canonical:   Dec(".456")
+evaluated:   .456
+#
+sugar:       123.456e+2
+desugared:   Dec("123.456e+2")
+built:       123.456e+2
+canonical:   Dec("123.456e+2")
+evaluated:   123.456e+2
+#
+sugar:       123.e-1
+desugared:   Dec("123.e-1")
+built:       123.e-1
+canonical:   Dec("123.e-1")
+evaluated:   123.e-1
+#
+sugar:       .456e2
+desugared:   Dec(".456e2")
+built:       .456e2
+canonical:   Dec(".456e2")
+evaluated:   .456e2
+#
+sugar:       Dec("123.456")
+desugared:   Tag("Dec")@("123.456")
+built:       Dec@("123.456")
+canonical:   App(Dec, List("123.456"))
+evaluated:   123.456
+#
+sugar:       Dec("123.")
+desugared:   Tag("Dec")@("123.")
+built:       Dec@("123.")
+canonical:   App(Dec, List("123."))
+evaluated:   123.
+#
+sugar:       Dec(".456")
+desugared:   Tag("Dec")@(".456")
+built:       Dec@(".456")
+canonical:   App(Dec, List(".456"))
+evaluated:   .456
+#
+sugar:       Dec("123.456e+2")
+desugared:   Tag("Dec")@("123.456e+2")
+built:       Dec@("123.456e+2")
+canonical:   App(Dec, List("123.456e+2"))
+evaluated:   123.456e+2
+#
+sugar:       Dec("123.e-1")
+desugared:   Tag("Dec")@("123.e-1")
+built:       Dec@("123.e-1")
+canonical:   App(Dec, List("123.e-1"))
+evaluated:   123.e-1
+#
+# Tuple
+sugar:       ("a", "b")
+desugared:   Tuple("a", "b")
+built:       ("a", "b")
+canonical:   Tuple("a", "b")
+evaluated:   ("a", "b")
+#
+sugar:       ("a", "b", "c")
+desugared:   Tuple("a", "b", "c")
+built:       ("a", "b", "c")
+canonical:   Tuple("a", "b", "c")
+evaluated:   ("a", "b", "c")
+#
+# Map
+sugar:       {"key": "value", "another": "thing"}
+desugared:   Map(Tuple("key", "value"), Tuple("another", "thing"))
+built:       {"key": "value", "another": "thing"}
+canonical:   Map(Tuple("key", "value"), Tuple("another", "thing"))
+evaluated:   {"key": "value", "another": "thing"}
+#
+sugar:       Map(Tuple("key", "value"), Tuple("another", "thing"))
+desugared:   Tag("Map")@(Tag("Tuple")@("key", "value"), Tag("Tuple")@("another", "thing"))
+built:       Map@(Tuple@("key", "value"), Tuple@("another", "thing"))
+canonical:   App(Map, List(App(Tuple, List("key", "value")), App(Tuple, List("another", "thing"))))
+evaluated:   {"key": "value", "another": "thing"}
+#
+sugar:       {"key": "value", "another": "thing"}
+desugared:   Map(Tuple("key", "value"), Tuple("another", "thing"))
+built:       {"key": "value", "another": "thing"}
+canonical:   Map(Tuple("key", "value"), Tuple("another", "thing"))
+evaluated:   {"key": "value", "another": "thing"}
+#
+sugar:       {'key': 'value', 'another': 'thing'}
+desugared:   Map(Tuple("key", "value"), Tuple("another", "thing"))
+built:       {"key": "value", "another": "thing"}
+canonical:   Map(Tuple("key", "value"), Tuple("another", "thing"))
+evaluated:   {"key": "value", "another": "thing"}
+#
+sugar:       {key: "value", another: "thing"}
+desugared:   Map(Tuple(Sym("key"), "value"), Tuple(Sym("another"), "thing"))
+built:       {"key": "value", "another": "thing"}
+canonical:   Map(Tuple("key", "value"), Tuple("another", "thing"))
+evaluated:   {"key": "value", "another": "thing"}
+#
+sugar:       {Key: "value", Another: "thing"}
+desugared:   Map(Tuple(Tag("Key"), "value"), Tuple(Tag("Another"), "thing"))
+built:       {Key: "value", Another: "thing"}
+canonical:   Map(Tuple(Key, "value"), Tuple(Another, "thing"))
+evaluated:   {Key: "value", Another: "thing"}
+#
+sugar:       {1: "value", 2: "thing"}
+desugared:   Map(Tuple(Nat("1"), "value"), Tuple(Nat("2"), "thing"))
+built:       {1: "value", 2: "thing"}
+canonical:   Map(Tuple(Nat("1"), "value"), Tuple(Nat("2"), "thing"))
+evaluated:   {1: "value", 2: "thing"}
+#
+sugar:       {(1, 2): "value", (3, 4): "thing"}
+desugared:   Map(Tuple(Tuple(Nat("1"), Nat("2")), "value"), Tuple(Tuple(Nat("3"), Nat("4")), "thing"))
+built:       {(1, 2): "value", (3, 4): "thing"}
+canonical:   Map(Tuple(Tuple(Nat("1"), Nat("2")), "value"), Tuple(Tuple(Nat("3"), Nat("4")), "thing"))
+evaluated:   {(1, 2): "value", (3, 4): "thing"}
+#
+sugar:       Map(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))
+desugared:   Tag("Map")@(Tag("Tuple")@("a", Nat("1")), Tag("Tuple")@("b", Nat("1")), Tag("Tuple")@("c", Nat("1")))
+built:       Map@(Tuple@("a", 1), Tuple@("b", 1), Tuple@("c", 1))
+canonical:   App(Map, List(App(Tuple, List("a", Nat("1"))), App(Tuple, List("b", Nat("1"))), App(Tuple, List("c", Nat("1")))))
+evaluated:   {"a": 1, "b": 1, "c": 1}
+#
+sugar:       (Map)(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))
+desugared:   Tag("Map")@(Tag("Tuple")@("a", Nat("1")), Tag("Tuple")@("b", Nat("1")), Tag("Tuple")@("c", Nat("1")))
+built:       Map@(Tuple@("a", 1), Tuple@("b", 1), Tuple@("c", 1))
+canonical:   App(Map, List(App(Tuple, List("a", Nat("1"))), App(Tuple, List("b", Nat("1"))), App(Tuple, List("c", Nat("1")))))
+evaluated:   {"a": 1, "b": 1, "c": 1}
+#
+# Error
+sugar:       Error("Description of problem goes here")
+desugared:   Tag("Error")@("Description of problem goes here")
+built:       Error@("Description of problem goes here")
+canonical:   App(Error, List("Description of problem goes here"))
+evaluated:   Error("Description of problem goes here")
+#
+sugar:       Error("Something's Always Wrong with", Dec("123.456"))
+desugared:   Tag("Error")@("Something's Always Wrong with", Tag("Dec")@("123.456"))
+built:       Error@("Something's Always Wrong with", Dec@("123.456"))
+canonical:   App(Error, List("Something's Always Wrong with", App(Dec, List("123.456"))))
+evaluated:   Error("Something's Always Wrong with", 123.456)
+#
+# Set
+sugar:       Set("a", "b", "c")
+desugared:   Tag("Set")@("a", "b", "c")
+built:       Set@("a", "b", "c")
+canonical:   App(Set, List("a", "b", "c"))
+evaluated:   Set("a", "b", "c")
+#
+sugar:       (Set)("a", "b", "c")
+desugared:   Tag("Set")@("a", "b", "c")
+built:       Set@("a", "b", "c")
+canonical:   App(Set, List("a", "b", "c"))
+evaluated:   Set("a", "b", "c")
+#
+sugar:       Set()
+desugared:   Tag("Set")@()
+built:       Set@()
+canonical:   App(Set, List())
+evaluated:   Set()
+#
+sugar:       Set("a", "b", "c", "a")
+desugared:   Tag("Set")@("a", "b", "c", "a")
+built:       Set@("a", "b", "c", "a")
+canonical:   App(Set, List("a", "b", "c", "a"))
+evaluated:   Set("a", "b", "c")
+#
+# Fun with Fun
+sugar:       x => 42
+desugared:   Fun(List(Sym("x")), Nat("42"))
+built:       Fun(List(Sym("x")), 42)
+canonical:   Fun(List(Sym("x")), Nat("42"))
+evaluated:   Fun(List(Sym("x")), 42)
+#
+sugar:       (x => 42)(5)
+desugared:   Fun(List(Sym("x")), Nat("42"))@(Nat("5"))
+built:       Fun(List(Sym("x")), 42)@(5)
+canonical:   App(Fun(List(Sym("x")), Nat("42")), List(Nat("5")))
+evaluated:   42
+#
+sugar:       ( (x,y) => (y) )(5, 42)
+desugared:   Fun(List(Sym("x"), Sym("y")), Sym("y"))@(Nat("5"), Nat("42"))
+built:       Fun(List(Sym("x"), Sym("y")), Sym("y"))@(5, 42)
+canonical:   App(Fun(List(Sym("x"), Sym("y")), Sym("y")), List(Nat("5"), Nat("42")))
+evaluated:   42
+#
+sugar:       ((x, y) => y)(5, 42)
+desugared:   Fun(List(Sym("x"), Sym("y")), Sym("y"))@(Nat("5"), Nat("42"))
+built:       Fun(List(Sym("x"), Sym("y")), Sym("y"))@(5, 42)
+canonical:   App(Fun(List(Sym("x"), Sym("y")), Sym("y")), List(Nat("5"), Nat("42")))
+evaluated:   42
+#
+sugar:       Mul(6, 7)
+desugared:   Tag("Mul")@(Nat("6"), Nat("7"))
+built:       Mul@(6, 7)
+canonical:   App(Mul, List(Nat("6"), Nat("7")))
+evaluated:   42
+#
+sugar:       1234567890123456789012345678901234567890 * 9876543210987654321098765432109876543210
+desugared:   Mul(Nat("1234567890123456789012345678901234567890"), Nat("9876543210987654321098765432109876543210"))
+built:       Mul@(1234567890123456789012345678901234567890, 9876543210987654321098765432109876543210)
+canonical:   App(Mul, List(Nat("1234567890123456789012345678901234567890"), Nat("9876543210987654321098765432109876543210")))
+evaluated:   12193263113702179522618503273386678859448712086533622923332237463801111263526900
+#
+sugar:       ((x, y) => x * y)(6, 7)
+desugared:   Fun(List(Sym("x"), Sym("y")), Mul(Sym("x"), Sym("y")))@(Nat("6"), Nat("7"))
+built:       Fun(List(Sym("x"), Sym("y")), Mul@(Sym("x"), Sym("y")))@(6, 7)
+canonical:   App(Fun(List(Sym("x"), Sym("y")), App(Mul, List(Sym("x"), Sym("y")))), List(Nat("6"), Nat("7")))
+evaluated:   42
+#
+# Let
+sugar:       (x := 6) => x * 7
+desugared:   Let(List(Tuple(Sym("x"), Nat("6"))), Mul(Sym("x"), Nat("7")))
+built:       Let(List((Sym("x"), 6)), Mul@(Sym("x"), 7))
+canonical:   Let(List(Tuple(Sym("x"), Nat("6"))), App(Mul, List(Sym("x"), Nat("7"))))
+evaluated:   42
+#
+sugar:       ((z := 2) => (z * 3))
+desugared:   Let(List(Tuple(Sym("z"), Nat("2"))), Mul(Sym("z"), Nat("3")))
+built:       Let(List((Sym("z"), 2)), Mul@(Sym("z"), 3))
+canonical:   Let(List(Tuple(Sym("z"), Nat("2"))), App(Mul, List(Sym("z"), Nat("3"))))
+evaluated:   6
+#
+sugar:       (x := 6, y := 7) => x * y
+desugared:   Let(List(Tuple(Sym("x"), Nat("6")), Tuple(Sym("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
+built:       Let(List((Sym("x"), 6), (Sym("y"), 7)), Mul@(Sym("x"), Sym("y")))
+canonical:   Let(List(Tuple(Sym("x"), Nat("6")), Tuple(Sym("y"), Nat("7"))), App(Mul, List(Sym("x"), Sym("y"))))
+evaluated:   42
+#
+sugar:       (x := ((z := 2) => (z * 3)), y := 7) => x * y
+desugared:   Let(List(Tuple(Sym("x"), Let(List(Tuple(Sym("z"), Nat("2"))), Mul(Sym("z"), Nat("3")))), Tuple(Sym("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
+built:       Let(List((Sym("x"), Let(List((Sym("z"), 2)), Mul@(Sym("z"), 3))), (Sym("y"), 7)), Mul@(Sym("x"), Sym("y")))
+canonical:   Let(List(Tuple(Sym("x"), Let(List(Tuple(Sym("z"), Nat("2"))), App(Mul, List(Sym("z"), Nat("3"))))), Tuple(Sym("y"), Nat("7"))), App(Mul, List(Sym("x"), Sym("y"))))
+evaluated:   42
+#
+sugar:       Let([(x, 6), (y, 7)], x * y)
+desugared:   Tag("Let")@(List(Tuple(Sym("x"), Nat("6")), Tuple(Sym("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
+built:       Let@([(Sym("x"), 6), (Sym("y"), 7)], Mul@(Sym("x"), Sym("y")))
+canonical:   App(Let, List(List(Tuple(Sym("x"), Nat("6")), Tuple(Sym("y"), Nat("7"))), App(Mul, List(Sym("x"), Sym("y")))))
+evaluated:   42
+#
+sugar:       Let([(Sym("x"), 6), (Sym("y"), 7)], x * y)
+desugared:   Tag("Let")@(List(Tuple(Tag("Sym")@("x"), Nat("6")), Tuple(Tag("Sym")@("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
+built:       Let@([(Sym@("x"), 6), (Sym@("y"), 7)], Mul@(Sym("x"), Sym("y")))
+canonical:   App(Let, List(List(Tuple(App(Sym, List("x")), Nat("6")), Tuple(App(Sym, List("y")), Nat("7"))), App(Mul, List(Sym("x"), Sym("y")))))
+evaluated:   42
+#
+sugar:       20 + 22
+desugared:   Add(Nat("20"), Nat("22"))
+built:       Add@(20, 22)
+canonical:   App(Add, List(Nat("20"), Nat("22")))
+evaluated:   42
+#
+sugar:       ((x, y) => x + y)(20, 22)
+desugared:   Fun(List(Sym("x"), Sym("y")), Add(Sym("x"), Sym("y")))@(Nat("20"), Nat("22"))
+built:       Fun(List(Sym("x"), Sym("y")), Add@(Sym("x"), Sym("y")))@(20, 22)
+canonical:   App(Fun(List(Sym("x"), Sym("y")), App(Add, List(Sym("x"), Sym("y")))), List(Nat("20"), Nat("22")))
+evaluated:   42
+#
+# Some basic arithmetic
+sugar:       Add(19, 23)
+desugared:   Tag("Add")@(Nat("19"), Nat("23"))
+built:       Add@(19, 23)
+canonical:   App(Add, List(Nat("19"), Nat("23")))
+evaluated:   42
+#
+sugar:       123456789 + 987654321
+desugared:   Add(Nat("123456789"), Nat("987654321"))
+built:       Add@(123456789, 987654321)
+canonical:   App(Add, List(Nat("123456789"), Nat("987654321")))
+evaluated:   1111111110
+#
+sugar:       123456789+987654321
+desugared:   Add(Nat("123456789"), Nat("987654321"))
+built:       Add@(123456789, 987654321)
+canonical:   App(Add, List(Nat("123456789"), Nat("987654321")))
+evaluated:   1111111110
+#
+sugar:       Int("1234567890123456789012345678901234567890")
+desugared:   Tag("Int")@("1234567890123456789012345678901234567890")
+built:       Int@("1234567890123456789012345678901234567890")
+canonical:   App(Int, List("1234567890123456789012345678901234567890"))
+evaluated:   1234567890123456789012345678901234567890
+#
+sugar:       Int("-1234567890123456789012345678901234567890")
+desugared:   Tag("Int")@("-1234567890123456789012345678901234567890")
+built:       Int@("-1234567890123456789012345678901234567890")
+canonical:   App(Int, List("-1234567890123456789012345678901234567890"))
+evaluated:   -1234567890123456789012345678901234567890
+#
+sugar:       -1234567890123456789012345678901234567890
+desugared:   Neg(Nat("1234567890123456789012345678901234567890"))
+built:       Neg@(1234567890123456789012345678901234567890)
+canonical:   App(Neg, List(Nat("1234567890123456789012345678901234567890")))
+evaluated:   -1234567890123456789012345678901234567890
+#
+sugar:       45 - 46
+desugared:   Sub(Nat("45"), Nat("46"))
+built:       Sub@(45, 46)
+canonical:   App(Sub, List(Nat("45"), Nat("46")))
+evaluated:   -1
+#
+sugar:       (x := 99) => 0 - x
+desugared:   Let(List(Tuple(Sym("x"), Nat("99"))), Sub(Nat("0"), Sym("x")))
+built:       Let(List((Sym("x"), 99)), Sub@(0, Sym("x")))
+canonical:   Let(List(Tuple(Sym("x"), Nat("99"))), App(Sub, List(Nat("0"), Sym("x"))))
+evaluated:   -99
+#
+sugar:       (x := -99) => 0 - x
+desugared:   Let(List(Tuple(Sym("x"), Neg(Nat("99")))), Sub(Nat("0"), Sym("x")))
+built:       Let(List((Sym("x"), Neg@(99))), Sub@(0, Sym("x")))
+canonical:   Let(List(Tuple(Sym("x"), App(Neg, List(Nat("99"))))), App(Sub, List(Nat("0"), Sym("x"))))
+evaluated:   99
+#
+sugar:       - (-99)
+desugared:   Neg(Neg(Nat("99")))
+built:       Neg@(Neg@(99))
+canonical:   App(Neg, List(App(Neg, List(Nat("99")))))
+evaluated:   99
+#
+# Rational numbers
+sugar:       123/456
+desugared:   Div(Nat("123"), Nat("456"))
+built:       Div@(123, 456)
+canonical:   App(Div, List(Nat("123"), Nat("456")))
+evaluated:   41/152
+#
+sugar:       Nat("321")/Nat("654")
+desugared:   Div(Tag("Nat")@("321"), Tag("Nat")@("654"))
+built:       Div@(Nat@("321"), Nat@("654"))
+canonical:   App(Div, List(App(Nat, List("321")), App(Nat, List("654"))))
+evaluated:   107/218
+#
+sugar:       Int("-321")/Nat("654")
+desugared:   Div(Tag("Int")@("-321"), Tag("Nat")@("654"))
+built:       Div@(Int@("-321"), Nat@("654"))
+canonical:   App(Div, List(App(Int, List("-321")), App(Nat, List("654"))))
+evaluated:   -107/218
+#
+sugar:       Nat("321")/Int("654")
+desugared:   Div(Tag("Nat")@("321"), Tag("Int")@("654"))
+built:       Div@(Nat@("321"), Int@("654"))
+canonical:   App(Div, List(App(Nat, List("321")), App(Int, List("654"))))
+evaluated:   107/218
+#
+sugar:       Rat("654/321")
+desugared:   Tag("Rat")@("654/321")
+built:       Rat@("654/321")
+canonical:   App(Rat, List("654/321"))
+evaluated:   654/321
+#
+sugar:       (2/3)*(3/2)
+desugared:   Mul(Div(Nat("2"), Nat("3")), Div(Nat("3"), Nat("2")))
+built:       Mul@(Div@(2, 3), Div@(3, 2))
+canonical:   App(Mul, List(App(Div, List(Nat("2"), Nat("3"))), App(Div, List(Nat("3"), Nat("2")))))
+evaluated:   1
+#
+sugar:       Rat("2/3") * Rat("3/2")
+desugared:   Mul(Tag("Rat")@("2/3"), Tag("Rat")@("3/2"))
+built:       Mul@(Rat@("2/3"), Rat@("3/2"))
+canonical:   App(Mul, List(App(Rat, List("2/3")), App(Rat, List("3/2"))))
+evaluated:   1
+#
+sugar:       3 * Rat("22/2") * Rat("44/12") / Rat("11")
+desugared:   Div(Mul(Mul(Nat("3"), Tag("Rat")@("22/2")), Tag("Rat")@("44/12")), Tag("Rat")@("11"))
+built:       Div@(Mul@(Mul@(3, Rat@("22/2")), Rat@("44/12")), Rat@("11"))
+canonical:   App(Div, List(App(Mul, List(App(Mul, List(Nat("3"), App(Rat, List("22/2")))), App(Rat, List("44/12")))), App(Rat, List("11"))))
+evaluated:   11
+#
+sugar:       Nat("321")/Int("654")
+desugared:   Div(Tag("Nat")@("321"), Tag("Int")@("654"))
+built:       Div@(Nat@("321"), Int@("654"))
+canonical:   App(Div, List(App(Nat, List("321")), App(Int, List("654"))))
+evaluated:   107/218
+#

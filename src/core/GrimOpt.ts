@@ -21,6 +21,10 @@ class GrimOpt extends GrimVal {
         return this.value ? `Some(${this.value.toString()})` : "None";
     }
 
+    toCanonicalString(): string {
+        return this.value ? `Some(${this.value.toCanonicalString()})` : "None";
+    }
+
     isAtom(): boolean {
         return this.value === null;
     }
@@ -71,6 +75,14 @@ class GrimError extends GrimVal {
         let pieces: Array<string> = [];
         for (let part of this.message) {
             pieces.push(part.toString());
+        }
+        return `Error(${pieces.join(", ")})`;
+    }
+
+    toCanonicalString(): string {
+        let pieces: Array<string> = [];
+        for (let part of this.message) {
+            pieces.push(part.toCanonicalString());
         }
         return `Error(${pieces.join(", ")})`;
     }

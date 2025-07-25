@@ -1,8 +1,8 @@
 import { List, Map, Set } from "immutable";
-
 import type { GMPLib } from "gmp-wasm";
 
-import parser from  "../parser/_parser-sugar.js"
+import * as parserSugar from "../parser/_parser-sugar.js"
+import * as parserCanon from '../parser/_parser-canon.js';
 
 import { GrimVal } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
@@ -14,15 +14,99 @@ import { GrimError, GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
 import { Location, CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js";
 import { Eval, EvalState } from "./Eval.js";
+import { parser } from "pegjs";
 
 type AstToVal = (ast: CanAst | Array<GrimVal>, builder: Builder) => GrimVal;
 type FuncType = (args: Array<GrimVal>) => GrimVal;
+
+interface TestEntry {
+    sugar: string;
+    desugared: string;
+    built: string;
+    canonical: string;
+    evaluated: string;
+}
+
+interface TestSuite {
+    section: string;
+    entries: Array<TestEntry>;
+}
 
 class Builder {
     constructor(gmpLib: GMPLib) {
         this.gmpLib = gmpLib;
         this.addMakers();
     }
+
+    static parseTestLines(yaml: string): Array<TestSuite> {
+        // Parse the YAML string into a JavaScript object
+        // Real YAML messes with my quotation marks, so we use a custom parser that preserves explicit quotes
+        let ret: Array<TestSuite> = [];
+        let currentSuite: TestSuite = { section: "", entries: [] };
+        let currentEntry: TestEntry = {
+            sugar: "",
+            desugared: "",
+            built: "",
+            canonical: "",
+            evaluated: "",
+        };
+        yaml.split("\n").forEach((line) => {
+            line = line.trim();
+            if (line.length === 0) {
+                // Skip empty lines
+                return;
+            }
+            if (line.startsWith("#")) {
+                let section = line.substring(1).trim(); // Remove comment marker
+                if (section !== "") {
+                    if (currentSuite.entries.length > 0) {
+                        ret.push(currentSuite); // Save the previous suite (but not an empty one)
+                    }
+                    currentSuite = { section: section, entries: [] }; // Start a new suite
+                } else {
+                    if (currentEntry.sugar !== "") {
+                        currentSuite.entries.push(currentEntry); // Save the current entry
+                    }
+                    // start over for blank comments
+                    currentEntry = {
+                        sugar: "",
+                        desugared: "",
+                        built: "",
+                        canonical: "",
+                        evaluated: "",
+                    };
+                }
+                return;
+            } else {
+                if (line.indexOf(":") > 0) {
+                    // This is a key-value pair
+                    let parts = line.split(":");
+                    let key = parts[0].trim();
+                    let value = parts.slice(1).join(":").trim();
+                    currentEntry[key as keyof TestEntry] = value;
+                }
+            }
+        });
+        ret.push(currentSuite);
+        console.log(`Parsed ${ret.length} test suites from YAML`);
+        return ret;
+    }
+    runTests(testSuites: Array<TestSuite>) {
+        let n = 0;
+        if (!testSuites || testSuites.length === 0) {
+            console.warn("No test suites provided to Builder.runTests");
+            return;
+        }
+        for (const suite of testSuites) {
+            console.log(`# ${suite.section}`);
+            suite.entries.forEach((entry: TestEntry) => {
+                this.testOneEntry(entry);
+                n++;
+            });
+        }
+        console.log(`All ${n} tests completed.`);
+    }
+
     gmpLib: GMPLib; // Will be set after gmp.init(), by async caller
     private makerMap: Map<string, AstToVal> = Map<string, AstToVal>();
     didInit = false;
@@ -140,7 +224,7 @@ class Builder {
     check(str: string, start: string | null = null, onlyErrors = false): CanAst {
         start = start || "Start";
         try {
-            var ret = parser.parse(str, {startRule: start});
+            var ret = parserSugar.parse(str, {startRule: start});
             if (!onlyErrors) {
                 console.log('---');
                 console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
@@ -175,6 +259,89 @@ class Builder {
         if (result) {
             console.log('Eval result        :', result.toString());
         }
+    }
+
+    private sugarToAst(sugar: string): CanAst | null {
+        try {
+            var ret = parserSugar.parse(sugar, {startRule: "Start"});
+            return ret;
+        } catch (e) {
+            console.error('Error parsing sugar:', e);
+            return null;
+        }
+    }
+
+    private evalOne(val: GrimVal): string {
+        let state = new EvalState(val, Map(), this);
+        let result: GrimVal | null = null;
+        try {
+            result = Eval.evaluate(state).expr;
+        } catch (e) {
+            console.error('Eval error:', e);
+            return `Error('${e.message}')`;
+        }
+        if (result) {
+            return result.toString();
+        }
+        return "<ERROR_SO_NO_RESULT>";
+    }
+
+    private parseCanon(input: string): CanAst | null {
+        try {
+            return parserCanon.parse(input, { startRule: "Start" });
+        } catch (e) {
+            console.error('Error parsing canonical:', e);
+            return null;
+        }
+    }
+
+    readonly reportMismatches: boolean = true; // Set to true to report mismatches in test output
+    private testOneEntry(entry: TestEntry) {
+        if (!entry.sugar) {
+            console.warn("Test entry has no sugar:", entry);
+            return;
+        }
+        console.log(`sugar:       ${entry.sugar}`);
+        let ast: CanAst | null = this.sugarToAst(entry.sugar);
+        if (!ast) {
+            console.error("Failed to parse sugar:", entry.sugar);
+            return;
+        }
+        let oneAstStr = ast.toString();
+        console.log(`desugared:   ${oneAstStr}`);
+        if (this.reportMismatches && oneAstStr !== entry.desugared) {
+            console.error(`Desugared AST does not match expected: ${oneAstStr} !== ${entry.desugared}`);
+        }
+        let built: GrimVal = this.fromAst(ast);
+        console.log(`built:       ${built.toString()}`);
+        if (this.reportMismatches && built.toString() !== entry.built) {
+            console.error(`Built GrimVal does not match expected: ${built.toString()} !== ${entry.built}`);
+        }
+        let canonical: string = built.toCanonicalString();
+        console.log(`canonical:   ${canonical}`);
+        if (this.reportMismatches) {
+            // parse using ParserCanon and compare that too
+            let parsedCanon: CanAst | null = this.parseCanon(canonical);
+            if (!parsedCanon) {
+                console.error("Failed to parse canonical string:", canonical);
+                return;
+            }
+            // Check if the parsed canonical string matches the expected canonical string
+            let canonStr = parsedCanon.toString();
+            //console.log(`parsedCanon: ${canonStr}`);
+            if (canonStr !== entry.canonical) {
+                console.error(`Parsed canonical string does not match expected: ${canonStr} !== ${entry.canonical}`);
+            }
+        }
+        if (this.reportMismatches && canonical !== entry.canonical) {
+            console.error(`Canonical string does not match expected: ${canonical} !== ${entry.canonical}`);
+        }
+        let evaluated: string = this.evalOne(built);
+        console.log(`evaluated:   ${evaluated}`);
+        if (this.reportMismatches && evaluated !== entry.evaluated) {
+            console.error(`Evaluated result does not match expected: ${evaluated} !== ${entry.evaluated}`);
+        }
+        console.log("#");
     }
 
     private addMakers() {
@@ -312,3 +479,4 @@ class Builder {
 }
 
 export { Builder, FuncType };
+export type { TestEntry, TestSuite };

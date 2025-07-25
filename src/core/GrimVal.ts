@@ -54,6 +54,11 @@ class GrimVal {
         return '';
     }
 
+    toCanonicalString(): string {
+        // Default canonical string representation, can be overridden by specific GrimVal subclasses
+        return this.toString();
+    }
+
     isAtom(): boolean {
         return true; // Default implementation, can be overridden
     }

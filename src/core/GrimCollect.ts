@@ -26,6 +26,10 @@ class GrimList extends GrimVal {
         return `[${this.list.map(item => item.toString()).join(", ")}]`;
     }
 
+    toCanonicalString(): string {
+        return `List(${this.list.map(item => item.toCanonicalString()).join(", ")})`;
+    }
+
     isAtom(): boolean {
         return false; // Lists are not considered atoms
     }
@@ -61,6 +65,10 @@ class GrimTuple extends GrimVal {
 
     toString(): string {
         return `(${this.tuple.map(item => item.toString()).join(", ")}${this.tuple.size > 1 ? "" : ","})`;
+    }
+
+    toCanonicalString(): string {
+        return `Tuple(${this.tuple.map(item => item.toCanonicalString()).join(", ")})`;
     }
 
     isAtom(): boolean {
@@ -126,6 +134,11 @@ class GrimMap extends GrimVal {
         return `{${Array.from(this.map.entries()).map(([key, value]) => `${key.toString()}: ${value.toString()}`).join(", ")}}`;
     }
 
+    toCanonicalString(): string {
+        return `Map(${Array.from(this.map.entries()).map(([key, value]) =>
+            `Tuple(${key.toCanonicalString()}, ${value.toCanonicalString()})`).join(", ")})`;
+    }
+
     isAtom(): boolean {
         return false; // Maps are not considered atoms
     }
@@ -142,6 +155,7 @@ class GrimMap extends GrimVal {
         if (key instanceof CanTaggedApp) {
             // like JavaScript, not Python, so keys turn from Sym("key") to Str("key")
             // instead of being looked up as a variable in the environment before being used as a key
+            // as Python does, which is weird
             if (key.tag.tag === "Sym" && key.args.length === 1 && key.args[0] instanceof CanStr) {
                 return new GrimStr((key.args[0] as CanStr).str); // Convert to string representation
             }
@@ -183,6 +197,10 @@ class GrimSet extends GrimVal {
 
     toString(): string {
         return `Set(${Array.from(this.set).map(item => item.toString()).join(", ")})`;
+    }
+
+    toCanonicalString(): string {
+        return `Set(${Array.from(this.set).map(item => item.toCanonicalString()).join(", ")})`;
     }
 
     isAtom(): boolean {

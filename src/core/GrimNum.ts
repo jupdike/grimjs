@@ -31,6 +31,11 @@ class GrimNat extends GrimVal {
         return this.value;
     }
 
+    toCanonicalString(): string {
+        // canonical form only has strings, tags, parentheses, commas, not even numbers
+        return `Nat("${this.value}")`;
+    }
+
     isAtom(): boolean {
         return true;
     }
@@ -122,6 +127,11 @@ class GrimInt extends GrimNat {
         return this.value;
     }
 
+    toCanonicalString(): string {
+        // canonical form only has strings, tags, parentheses, commas, not even numbers
+        return `Int("${this.value}")`;
+    }
+
     head(): string {
         return "Int";
     }
@@ -208,6 +218,11 @@ class GrimRat extends GrimVal {
 
     head(): string {
         return "Rat";
+    }
+
+    toCanonicalString(): string {
+        // canonical form only has strings, tags, parentheses, commas, not even numbers
+        return `Rat("${this.toString()}")`;
     }
 
     static maker(ast: CanAst | Array<GrimVal>): GrimVal {
@@ -330,6 +345,11 @@ class GrimDec extends GrimVal {
 
     toString(): string {
         return this.value.toString();
+    }
+
+    toCanonicalString(): string {
+        // canonical form only has strings, tags, parentheses, commas, not even numbers
+        return `Dec("${this.toString()}")`;
     }
 
     isAtom(): boolean {
