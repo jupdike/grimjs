@@ -550,3 +550,9 @@ built:       Div@(Nat@("321"), Int@("654"))
 canonical:   App(Div, List(App(Nat, List("321")), App(Int, List("654"))))
 evaluated:   107/218
 #
+sugar:       Ignore(Crash())
+desugared:   Tag("Ignore")@(Tag("Crash")@())
+built:       Ignore@(Crash@())
+canonical:   App(Ignore, List(App(Crash, List())))
+evaluated:   Ignore
+#

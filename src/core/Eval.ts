@@ -78,6 +78,16 @@ class Eval {
             let app = expr as GrimApp;
             if (app.lhs instanceof GrimTag) {
                 let tag = app.lhs as GrimTag;
+                if (tag.value === "Ignore") {
+                    // Special case for Ignore, just return a constant value
+                    // test if this ignores the arguments inside the list, by passing Crash() to it
+                    e2 = new GrimTag("Ignore");
+                    return new EvalState(e2, env2, builder);
+                }
+                if (tag.value === "Crash") {
+                    // Special case for Crash, to test whether certain code is left unevaluated
+                    throw new Error(`Crash called with args: ${app.rhs.map(arg => arg.toString()).join(", ")}`);
+                }
                 if (tag.value === "App" || tag.value === "@" || tag.value === "Fun" || tag.value === "Let") {
                     // Special case for App, Fun, Let, do not evaluate the args
                     const maker = builder.getMaker(tag.value);
