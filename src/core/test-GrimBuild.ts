@@ -39,4 +39,8 @@ builder.analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 // analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
 also fails, as expected -->
 sugar:       (x, x) => x / 2
+
+sugar:       True ? One $ Two
+sugar:       False ? One $ Two
+
 */

@@ -556,3 +556,9 @@ built:       Ignore@(Crash@())
 canonical:   App(Ignore, List(App(Crash, List())))
 evaluated:   Ignore
 #
+sugar:       Quote(Crash())
+desugared:   Tag("Quote")@(Tag("Crash")@())
+built:       Quote@(Crash@())
+canonical:   App(Quote, List(App(Crash, List())))
+evaluated:   Crash@()
+#
