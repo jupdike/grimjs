@@ -4,8 +4,10 @@ Int :> Nat
 Rat :> Int
 Rat :> Nat
 
-// some test definitions, of scalars, and functions
-x := 41
-y := x + 1
-
-f(x, y) := x + y
+// Test some definitions of scalars and functions, in scope at the module level
+fortyOne := 41
+fortyTwo := add41(1)
+// since they are functions, they should be able to call eachother, no matter the order they are defined in
+add41(x) := sum2(fortyOne, x)
+// functions in a module are 'lifted' to the top, meaning they are evaluated first, so scalar definitions can call them
+sum2 := (x, y) => x + y

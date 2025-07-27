@@ -573,4 +573,16 @@ desugared:   Quote(Add(Nat("1"), Tag("Crash")@()))
 built:       Quote@(Add@(1, Crash@()))
 canonical:   Quote(Add(Nat("1"), Crash()))
 evaluated:   Add@(1, Crash@())
+# Test Module Environment, for boot.grim
+sugar:       fortyTwo
+desugared:   Sym("fortyTwo")
+built:       Sym("fortyTwo")
+canonical:   Sym("fortyTwo")
+evaluated:   42
+#
+sugar:       sum2(21, 21)
+desugared:   Sym("sum2")@(Nat("21"), Nat("21"))
+built:       Sym("sum2")@(21, 21)
+canonical:   App(Sym("sum2"), Nat("21"), Nat("21"))
+evaluated:   42
 #

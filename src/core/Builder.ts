@@ -282,8 +282,9 @@ class Builder {
                     //console.error(`Defining ${lhsName} with expression as rhs: ${rhs.toString()}`);
                     // build rhs into a GrimVal
                     let val = this.fromAst(rhs);
-                    // store it in the module environment
-                    // note that the rhs is code and not evaluated yet
+                    // Store it in the module environment.
+                    // note that the rhs is code and not evaluated yet, because function definitions might
+                    // call each other in any order
                     this.moduleEnv = this.moduleEnv.set(lhsName, val);
                 }
                 else if (ast.args.length === 3) {
@@ -479,8 +480,29 @@ class Builder {
         }
     }
 
+    private evaluatedModuleEnv(): Map<string, GrimVal> {
+        // This is a convenience method to evaluate the module environment
+        // and return the values as GrimVals.
+        let evaluatedEnv: Map<string, GrimVal> = Map<string, GrimVal>();
+        // lift GrimFun instances in the moduleEnv to the top
+        this.moduleEnv
+            .filter((val) => val instanceof GrimFun)
+            .forEach((val, key) => {
+                let result = Eval.evaluate(new EvalState(val, evaluatedEnv, this)).expr;
+                evaluatedEnv = evaluatedEnv.set(key, result);
+            });
+        // scalars and other values are evaluated after all functions are lifted to the top
+        this.moduleEnv
+            .filter((val) => !(val instanceof GrimFun))
+            .forEach((val, key) => {
+                let result = Eval.evaluate(new EvalState(val, evaluatedEnv, this)).expr;
+                evaluatedEnv = evaluatedEnv.set(key, result);
+            });
+        return evaluatedEnv;
+    }
+
     private evalOne(val: GrimVal): string {
-        let state = new EvalState(val, Map(), this);
+        let state = new EvalState(val, this.evaluatedModuleEnv(), this);
         let result: GrimVal | null = null;
         try {
             result = Eval.evaluate(state).expr;
