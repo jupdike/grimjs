@@ -4,7 +4,7 @@ import { CanApp, CanTaggedApp, CanAst } from "../parser/CanAst.js";
 import { GrimList } from "./GrimCollect";
 import { Builder } from "./Builder.js";
 import { GrimError } from "./GrimOpt.js";
-import { GrimSym } from "./GrimAst.js";
+import { GrimSym, GrimTag } from "./GrimAst.js";
 
 class GrimApp extends GrimVal {
     // Represents an application of a function to arguments
@@ -35,8 +35,11 @@ class GrimApp extends GrimVal {
     }
 
     toCanonicalString(): string {
+        if (this.lhs instanceof GrimTag) {
+            return `${this.lhs.value}(${this.rhs.map(r => r.toCanonicalString()).join(", ")})`;
+        }
         let rhsStr = this.rhs.map(r => r.toCanonicalString()).join(", ");
-        return `App(${this.lhs.toCanonicalString()}, List(${rhsStr}))`;
+        return `App(${this.lhs.toCanonicalString()}, ${rhsStr})`;
     }
 
     // static wrap(one: AstJson | string, builder: Builder): GrimVal {
