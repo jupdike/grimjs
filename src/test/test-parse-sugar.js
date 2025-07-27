@@ -24,7 +24,7 @@ function check(str, start, onlyErrors) {
   }
 }
 function checkDef(str) {
-  check(str, "Def");
+  check(str, "Definition");
 }
 function checkMatch(str) {
   check(str, "MatchMolecule");
@@ -284,8 +284,6 @@ check("( (x,y) => x + y )(4,5)");
 
 check("'I am the \u0251 and the \u03c9'");
 
-process.exit(1); // TODO continue with this
-
 // these are const/let statements
 checkDef("x := y");
 checkDef("x := y + z");
@@ -305,10 +303,21 @@ checkDef("sum x := f(x, y, z)");
 checkDef("sum x := f((+), zero, x)");
 checkDef("sum x := f((+), 0, x)");
 
-//checkDef("sum x := foldr (+) 0 x"); // should fail, but should also have better error message ...
-// :-(
+checkDef("f(g) := g^x + y");
+checkDef("f(g) := g^-x + y");
+
+checkDef("sum := f(x, y, z)");
+checkDef("sum x := f(x, y, z)");
+
+checkDef("sum x := f((+), zero, x)");
+checkDef("sum x := f((+), 0, x)");
 
 checkDef("f(g) := g^x + y");
+checkDef("f(x) := x + 1");
+
+checkDef("Rat :> Nat");
+
+process.exit(1); // TODO continue with this
 
 // OLD
 // check("a -> expr");
@@ -320,14 +329,6 @@ checkDef("f(g) := g^x + y");
 // checkMatch("{k1: v1, k2: v2}");
 
 //--------------------------------
-checkDef("sum := f(x, y, z)");
-checkDef("sum x := f(x, y, z)");
-
-checkDef("sum x := f((+), zero, x)");
-checkDef("sum x := f((+), 0, x)");
-
-checkDef("f(g) := g^x + y");
-checkDef("f(x) := x + 1");
 
 // TODO decide on swizzle operator
 // check("a.b().c()");  //   --> c(b(a)) ... ?

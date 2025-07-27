@@ -55,34 +55,41 @@
 // The places to start a parse
 
 Start = Expression
-// Defs = def:Def+ { return Ast(location(), "Defs", def); } // will use whitespace / newlines to separate defs
+
+Definition = Def / DefCast
 
 AssignOp = ":="
+CastOp = ":>"
+
+DefCast "a cast from one Tag to another Tag"
+  = bigTag:Tag _ CastOp _ smallTag:Tag {
+    return aTagApp(location(), "DefCast", [bigTag, smallTag]);
+  }
 
 Def "a symbol definition"
   = sym:Sym _ op:AssignOp _ body:Expression {
-    return aTagApp(location(), "Tuple",
+    return aTagApp(location(), "Def",
       [sym, body]
       );
     }
   / sym1:Sym _ op:Op _ sym2:Sym _ assignOp:AssignOp _ body:Expression {
     // assign code to an infix operator
-    return aTagApp(location(), "Tuple",
+    return aTagApp(location(), "Def",
       [opMap[op], aTagApp(location(), "List", [sym1, sym2]), body]
       );
     }
   / sym:Sym _ syms:(Sym _)+ _ op:AssignOp _ body:Expression {
-    return aTagApp(location(), "Tuple",
+    return aTagApp(location(), "Def",
       [sym, aTagApp(location(), "List", syms.map(function(x) { return x[0]; })), body]
       );
     }
   / sym:Sym _ "(" _ ")" _ op:AssignOp _ body:Expression {
-    return aTagApp(location(), "Tuple",
+    return aTagApp(location(), "Def",
       [sym, aTagApp(location(), "List", []), body]
     );
   }
   / sym:Sym _ "(" _ args:SymList _ ")" _ op:AssignOp _ body:Expression {
-    return aTagApp(location(), "Tuple",
+    return aTagApp(location(), "Def",
       [sym, aTagApp(location(), "List", args), body]
     );
   }
@@ -102,7 +109,24 @@ Expression = uno:ExprLowest _ { return uno; }
   = head:Sym tail:(_ "," _ Sym)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
 DefList
-  = head:Def tail:(_ "," _ Def)* { return cons(head, tail.map(function(x) { return x[3]; })); }
+  = head:Def tail:(_ "," _ Def)* {
+    let ret = cons(head, tail.map(function(x) { return x[3]; }));
+    ret = ret.map(function(x) {
+      // These errors should never happen, but if they do, we want to know about them
+      //console.error("DefList item:", x.toString());
+      if (x.tag.tag !== "Def") {
+        console.error("x.tag: " + '|'+x.tag+'|');
+        console.error("x.tag.tag: " + '|'+x.tag.tag+'|');
+        console.error("DefList item is not a Def: " + x.toString());
+      }
+      if (x.args.length !== 2) {
+        console.error("DefList item Def does not have exactly two args: " + x.toString());
+      }
+      return aTagApp(x.location, "Tuple", [x.args[0], x.args[1]]);
+    });
+    //console.error("DefList:", ret.toString());
+    return ret;
+  }
 
 Bind "a Fun expression (anonymous function) or Let expression"
   = "(" _ ")" _ "=>" _ body:Expression { return aTagApp(location(), "Fun", [aTagApp(location(), "List", []), body]); }

@@ -1,4 +1,4 @@
-import { List, Map, Set } from "immutable";
+import { List, Map, PairSorting, Set } from "immutable";
 import type { GMPLib } from "gmp-wasm";
 
 import * as parserSugar from "../parser/_parser-sugar.js"
@@ -32,21 +32,36 @@ interface TestSuite {
     entries: Array<TestEntry>;
 }
 
+// a builder is really a module, TODO rename it to Module or something
 class Builder {
+    private castPairs: Set<List<string>> = Set();
+    addCast(tagBig: string, tagSmall: string) {
+        // This is a way to add a cast from one tag to another, e.g. from "Nat" into "Int"
+        // console.error(`Adding cast from ${tagBig} to ${tagSmall}`);
+        this.castPairs = this.castPairs.add(List([tagBig, tagSmall]));
+    }
+    hasCast(tagBig: string, tagSmall: string): boolean {
+        // console.error(`CastPairs: ${this.castPairs.size}`);
+        // console.error(`Checking cast to ${tagBig} :> ${tagSmall}`);
+        let ret: boolean = this.castPairs.has(List([tagBig, tagSmall]));
+        // console.error(`         Cast to ${tagBig} :> ${tagSmall}  --> ${ret}`);
+        return ret;
+    }
+
     constructor(gmpLib: GMPLib) {
         this.gmpLib = gmpLib;
         this.addMakers();
     }
 
-    static parseDefinitions(lines: Array<string>): Array<string> {
-        // Parse the lines into a list of definitions based on balanced delimiters and simple leading whitespace
+    static groupDefinitions(lines: Array<string>): Array<string> {
+        // Group the lines into a list of definitions based on balanced delimiters and simple leading whitespace
         //
         // Should follow most programmer's intuition about how a chunk of code is indented by most text editors
         // and how it is grouped by balanced delimiters, e.g. (), [], {}, etc.
         // This allows users to write a lot of blocks of code without needing to use semicolons, or
         // forcing programmers to use double newlines to separate definitions.
         //
-        // So just group lines based on these intuitive rules.
+        // Group lines based on these intuitive rules:
         // 1. New definitions start on a new line with no leading whitespace
         // 2. Definitions can be continued on the next line with leading whitespace
         // 3. If a line has no leading whitespace, it completes the definition, if it has balanced delimiters
@@ -173,8 +188,8 @@ class Builder {
         console.log(`Parsed ${ret.length} test suites from YAML`);
         return ret;
     }
-
     runTests(testSuites: Array<TestSuite>) {
+        console.error(`Found ${this.castPairs.size} cast pairs`);
         let n = 0;
         if (!testSuites || testSuites.length === 0) {
             console.warn("No test suites provided to Builder.runTests");
@@ -190,23 +205,130 @@ class Builder {
         console.log(`All ${n} tests completed.`);
     }
 
+    static fromDefinitions(gmpLib: GMPLib, definitions: Array<string>) {
+        let builder = new Builder(gmpLib);
+        console.error(`Building a module with ${definitions.length} definitions...`);
+        for (const def of definitions) {
+            builder.addOneDefinition(def);
+        }
+        return builder;
+    }
+
+    moduleEnv: Map<string, GrimVal> = Map<string, GrimVal>(); // Environment for variable bindings
+
+    private addOneDefinition(def: string) {
+        let sugar = def.trim();
+        console.log(`sugar:       ${sugar}`);
+        let ast: CanAst | null = this.sugarToAst(sugar, { startRule: "Definition" });
+        if (!ast) {
+            console.error("Failed to parse sugar:", sugar);
+            return;
+        }
+        let oneAstStr = ast.toString();
+        console.log(`desugared:   ${oneAstStr}`);
+        if (ast instanceof CanTaggedApp) {
+            let tagStr = ast.tag.tag;
+            if (tagStr === "DefCast") {
+                // Handle DefCast specifically
+                if (ast.args.length !== 2) {
+                    console.error(`DefCast requires exactly 2 arguments, got ${ast.args.length}`);
+                    return;
+                }
+                let bigTag: string | null = null;
+                let smallTag: string | null = null;
+                if (ast.args[0] instanceof CanTag) {
+                    // The first argument is a tag, e.g. "Int"
+                    bigTag = (ast.args[0] as CanTag).tag;
+                    console.log(`bigTag:      ${bigTag}`);
+                }
+                if (ast.args[0] instanceof CanTaggedApp && ast.args[0].tag.tag === "Tag"
+                    && ast.args[0].args.length === 1
+                    && ast.args[0].args[0] instanceof CanStr) {
+                    bigTag = (ast.args[0].args[0] as CanStr).str;
+                    console.log(`bigTag:      ${bigTag}`);
+                }
+                if (ast.args[1] instanceof CanTag) {
+                    // The second argument is a tag, e.g. "Nat"
+                    smallTag = (ast.args[1] as CanTag).tag;
+                    console.log(`smallTag:    ${smallTag}`);
+                }
+                if (ast.args[1] instanceof CanTaggedApp && ast.args[1].tag.tag === "Tag"
+                    && ast.args[1].args.length === 1
+                    && ast.args[1].args[0] instanceof CanStr) {
+                    smallTag = (ast.args[1].args[0] as CanStr).str;
+                    console.log(`smallTag:    ${smallTag}`);
+                }
+                if (!bigTag || !smallTag) {
+                    console.error("DefCast requires both a big tag and a small tag");
+                    return;
+                }
+                this.addCast(bigTag, smallTag);
+            }
+            if (tagStr === "Def") {
+                if (ast.args.length < 2 || ast.args.length > 3) {
+                    console.error(`Def requires 2 or 3 arguments, got ${ast.args.length}`);
+                    return;
+                }
+                let lhs = ast.args[0];
+                if (!(lhs instanceof CanTaggedApp) || lhs.tag.tag !== "Sym" || lhs.args.length !== 1
+                    || !(lhs.args[0] instanceof CanStr)) {
+                    console.error(`Def first argument must be a Sym, got ${lhs.constructor.name}`);
+                    return;
+                }
+                let lhsName = (lhs.args[0] as CanStr).str;
+                if (ast.args.length === 2) {
+                    // This is a simple definition, e.g. "y := x + 1"
+                    let rhs = ast.args[1];
+                    //console.error(`Defining ${lhsName} with expression as rhs: ${rhs.toString()}`);
+                    // build rhs into a GrimVal
+                    let val = this.fromAst(rhs);
+                    // store it in the module environment
+                    // note that the rhs is code and not evaluated yet
+                    this.moduleEnv = this.moduleEnv.set(lhsName, val);
+                }
+                else if (ast.args.length === 3) {
+                    // This is a function definition, e.g. "f(x) := x + 1"
+                    let params = ast.args[1];
+                    let body = ast.args[2];
+                    if (!(params instanceof CanTaggedApp) || params.tag.tag !== "List") {
+                        console.error(`Def second argument must be a List of parameters, got ${params.constructor.name}`);
+                        return;
+                    }
+                    //console.error(`Defining ${lhsName} with parameters: ${params.toString()} and body: ${body.toString()}`);
+                    // build function from params and body into a GrimFun
+                    let paramsList: Array<GrimVal> = params.args.map(arg => {
+                        if (arg instanceof CanTaggedApp && arg.tag.tag === "Sym" && arg.args.length === 1
+                            && arg.args[0] instanceof CanStr) {
+                            return new GrimSym((arg.args[0] as CanStr).str);
+                        }
+                        console.error(`Def parameters must be Sym, got ${arg.constructor.name}`);
+                        return new GrimError(["Def parameters must be Sym, got " + arg.constructor.name]);
+                    });
+                    let bodyVal = this.fromAst(body);
+                    let fun = new GrimFun(paramsList, bodyVal);
+                    this.moduleEnv = this.moduleEnv.set(lhsName, fun);
+                }
+            }
+        }
+        let keySummary: Array<string> = this.moduleEnv.keySeq().toArray();
+        console.error(`No. Casts: ${this.castPairs.size} -- moduleEnv size: ${this.moduleEnv.size} -- Defs: ${keySummary.join(", ")}`);
+        console.log("#");
+    }
+
+    testParseDefs(definitions: Array<string>) {
+        console.log(`Testing ${definitions.length} definitions...`);
+        for (const def of definitions) {
+            this.analyzeOne(def, false, "Definition"); // Analyze each definition
+        }
+        console.log(`${definitions.length} definitions parsed successfully.`);
+    }
+
     gmpLib: GMPLib; // Will be set after gmp.init(), by async caller
     private makerMap: Map<string, AstToVal> = Map<string, AstToVal>();
     didInit = false;
 
     addMaker(tag: string, maker: AstToVal) {
         this.makerMap = this.makerMap.set(tag, maker);
-    }
-
-    private castPairs: Set<List<string>> = Set();
-    addCast(tagBig: string, tagSmall: string) {
-        // This is a way to add a cast from one tag to another, e.g. from "Nat" into "Int"
-        this.castPairs = this.castPairs.add(List([tagBig, tagSmall]));
-    }
-
-    hasCast(tagBig: string, tagSmall: string): boolean {
-        let ret = this.castPairs.has(List([tagBig, tagSmall]));
-        return ret;
     }
 
     // is this needed?
@@ -325,8 +447,8 @@ class Builder {
         }
     }
 
-    analyzeOne(str: string, onlyErrors = false) {
-        let ast: CanAst = this.check(str, "Start", onlyErrors);
+    analyzeOne(str: string, onlyErrors = false, startRule: string | null = null) {
+        let ast: CanAst = this.check(str, startRule, onlyErrors);
         //console.log('Parsed AST JSON    :', JSON.stringify(ast, null, 2));
         //console.log('Parsed AST toString:', ast.toString());
         let val = this.fromAst(ast);
@@ -347,9 +469,9 @@ class Builder {
         //     console.log('Eval result        :', result.toString());
     }
 
-    private sugarToAst(sugar: string): CanAst | null {
+    private sugarToAst(sugar: string, options: { startRule: string }): CanAst | null {
         try {
-            var ret = parserSugar.parse(sugar, {startRule: "Start"});
+            var ret = parserSugar.parse(sugar, options);
             return ret;
         } catch (e) {
             console.error('Error parsing sugar:', e);
@@ -388,7 +510,7 @@ class Builder {
             return;
         }
         console.log(`sugar:       ${entry.sugar}`);
-        let ast: CanAst | null = this.sugarToAst(entry.sugar);
+        let ast: CanAst | null = this.sugarToAst(entry.sugar, { startRule: "Expression" });
         if (!ast) {
             console.error("Failed to parse sugar:", entry.sugar);
             return;
@@ -467,9 +589,14 @@ class Builder {
         this.addMaker("Fun", GrimFun.maker);
         this.addMaker("Let", GrimLet.maker);
 
-        this.addCast("Int", "Nat");
-        this.addCast("Rat", "Int");
-        this.addCast("Rat", "Nat");
+        // TODO note that casts are now added in boot.grim instead of in code here
+        // this.addCast("Int", "Nat");
+        // this.addCast("Rat", "Int");
+        // this.addCast("Rat", "Nat");
+        // users can add casts in their own code:
+        //   DefCast(Int, Nat)
+        // or
+        //   Int :> Nat
 
         this.addCallableTag(List(["Mul", "Nat", "Nat"]),
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));

@@ -9,13 +9,14 @@ if (!gmpLib) {
     throw new Error("GMP library failed to initialize");
 }
 console.log("got GMPLib with this many bindings:", Object.keys((gmpLib as any).binding).length);
+
+let bootGrim = readFileSync("src/core/boot.grim", "utf8");
+let bootDefinitions = Builder.groupDefinitions(bootGrim.split("\n")); // Parse the boot definitions
+let bootModule = Builder.fromDefinitions(gmpLib, bootDefinitions); // Test the definitions
+
 let mainTestsYaml = readFileSync("src/test/test-table.yaml", "utf8");
 let mainTestsJson = Builder.parseTestLines(mainTestsYaml) as Array<TestSuite>;
-let builder: Builder = new Builder(gmpLib); // Initialize the builder with gmp-wasm
-//builder.runTests(mainTestsJson);
-
-//let bootGrim = readFileSync("src/core/boot.grim", "utf8");
-//let bootDefinitions = Builder.parseDefinitions(bootGrim.split("\n")); // Parse the boot definitions
+bootModule.runTests(mainTestsJson);
 
 // for showing how these definitions are grouped into lines
 // for (let def of bootDefinitions) {
