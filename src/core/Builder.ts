@@ -38,6 +38,88 @@ class Builder {
         this.addMakers();
     }
 
+    static parseDefinitions(lines: Array<string>): Array<string> {
+        // Parse the lines into a list of definitions based on balanced delimiters and simple leading whitespace
+        //
+        // Should follow most programmer's intuition about how a chunk of code is indented by most text editors
+        // and how it is grouped by balanced delimiters, e.g. (), [], {}, etc.
+        // This allows users to write a lot of blocks of code without needing to use semicolons, or
+        // forcing programmers to use double newlines to separate definitions.
+        //
+        // So just group lines based on these intuitive rules.
+        // 1. New definitions start on a new line with no leading whitespace
+        // 2. Definitions can be continued on the next line with leading whitespace
+        // 3. If a line has no leading whitespace, it completes the definition, if it has balanced delimiters
+        // 4. Definitions must be balanced by delimiters by the time they end
+        // 5. Comments starting with // are ignored, and empty lines (or lines with only whitespace) are ignored
+        // 6. Lines with tabs are not allowed, as they are not consistent across editors
+        let ret: Array<string> = [];
+        let delimiterStack: Array<number> = [];
+        let oneDefinition: Array<string> = [];
+        lines.forEach((line) => {
+            if (line.startsWith("//") || line.length < 1) {
+                // Skip comments
+                return;
+            }
+            if (line.indexOf("\t") >= 0) {
+                throw new Error("Tab characters are not allowed in Grim. Deal with it.");
+            }
+            line = line.trimEnd();
+            let startedOutBalanced = delimiterStack.length === 0;
+            let leadingWhitespaceCount = (line.match(/^\s*/)?.[0] || "").length;
+            //console.log(`Processing line: '${line}' with leading whitespace count: ${leadingWhitespaceCount} and ended with delimiter stack: [${delimiterStack.join(", ")}]`);
+            // Check for opening and closing delimiters
+            for (var i = 0; i < line.length; i++) {
+                var char = line[i];
+                // track where opening delimiters are found
+                if (char === "(" || char === "{" || char === "[") {
+                    delimiterStack.push(leadingWhitespaceCount);
+                } else if (char === ")" || char === "}" || char === "]") {
+                    if (delimiterStack.length === 0) {
+                        throw new Error(`Unmatched closing delimiter: ${char}`);
+                    }
+                    delimiterStack.pop();
+                }
+            }
+            // If we have balanced delimiters, and no leading whitespace, add the line to the list
+            if (startedOutBalanced && delimiterStack.length === 0 && leadingWhitespaceCount === 0) {
+                //console.error(`Self-contained definition found: '${line}'`);
+                // make sure not to nix accumulated lines
+                if (oneDefinition.length > 0) {
+                    ret.push(oneDefinition.join("\n"));
+                    oneDefinition = []; // Reset for the next definition
+                }
+                ret.push(line); // Add the line as a complete definition
+            }
+            else if (delimiterStack.length > 0 && leadingWhitespaceCount > 0) {
+                //console.error(`Continuing definition with leading whitespace: '${line}'`);
+                // If we are still inside a definition, accumulate the line
+                oneDefinition.push(line);
+                //console.error(`Accumulated definition: '${oneDefinition.join("\n")}'`);
+            }
+            else if (delimiterStack.length === 0) {
+                //console.error(`Got to the end of a definition: '${line}', oneDefinition.length: ${oneDefinition.length}`);
+                if (oneDefinition.length > 0) {
+                    oneDefinition.push(line);
+                    ret.push(oneDefinition.join("\n"));
+                    oneDefinition = []; // Reset for the next definition
+                } else {
+                    //console.error(`Extra unexpected ending delimiters: '${line}'`);
+                }
+            }
+            else {
+                //console.error(`Unmatched delimiters or unexpected leading whitespace in line: '${line}'`);
+                // Otherwise, continue building the current definition
+                oneDefinition.push(line);
+            }
+        });
+        if (oneDefinition.length > 0) {
+            // If there's any remaining definition, add it
+            ret.push(oneDefinition.join("\n"));
+        }
+        return ret;
+    }
+
     static parseTestLines(yaml: string): Array<TestSuite> {
         // Parse the YAML string into a JavaScript object
         // Real YAML messes with my quotation marks, so we use a custom parser that preserves explicit quotes
@@ -91,6 +173,7 @@ class Builder {
         console.log(`Parsed ${ret.length} test suites from YAML`);
         return ret;
     }
+
     runTests(testSuites: Array<TestSuite>) {
         let n = 0;
         if (!testSuites || testSuites.length === 0) {
@@ -225,10 +308,10 @@ class Builder {
         start = start || "Start";
         try {
             var ret = parserSugar.parse(str, {startRule: start});
-            if (!onlyErrors) {
-                console.log('---');
-                console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
-            }
+            // if (!onlyErrors) {
+            //     console.log('---');
+            //     console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
+            // }
             return ret;
         } catch (e) {
             console.log('---');
@@ -242,23 +325,26 @@ class Builder {
         }
     }
 
-    analyzeOne(str: string) {
-        let ast: CanAst = this.check(str);
+    analyzeOne(str: string, onlyErrors = false) {
+        let ast: CanAst = this.check(str, "Start", onlyErrors);
         //console.log('Parsed AST JSON    :', JSON.stringify(ast, null, 2));
-        console.log('Parsed AST toString:', ast.toString());
-        // TODO work on this
+        //console.log('Parsed AST toString:', ast.toString());
         let val = this.fromAst(ast);
-        console.log('GrimVal from AST   :', val.toString());
-        let state = new EvalState(val, Map(), this);
-        let result: GrimVal | null = null;
-        try {
-            result = Eval.evaluate(state).expr;
-        } catch (e) {
-            console.error('Eval error          :', e);
+        //console.log('GrimVal from AST   :', val.toString());
+        let canon = val.toCanonicalString();
+        //console.log('Canonical string   :', canon);
+        if (!onlyErrors) {
+            console.log(canon);
         }
-        if (result) {
-            console.log('Eval result        :', result.toString());
-        }
+        //let state = new EvalState(val, Map(), this);
+        // let result: GrimVal | null = null;
+        // try {
+        //     result = Eval.evaluate(state).expr;
+        // } catch (e) {
+        //     console.error('Eval error          :', e);
+        // }
+        // if (result) {
+        //     console.log('Eval result        :', result.toString());
     }
 
     private sugarToAst(sugar: string): CanAst | null {

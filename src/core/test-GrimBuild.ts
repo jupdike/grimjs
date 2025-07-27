@@ -12,9 +12,30 @@ console.log("got GMPLib with this many bindings:", Object.keys((gmpLib as any).b
 let mainTestsYaml = readFileSync("src/test/test-table.yaml", "utf8");
 let mainTestsJson = Builder.parseTestLines(mainTestsYaml) as Array<TestSuite>;
 let builder: Builder = new Builder(gmpLib); // Initialize the builder with gmp-wasm
-builder.runTests(mainTestsJson);
+//builder.runTests(mainTestsJson);
+
+//let bootGrim = readFileSync("src/core/boot.grim", "utf8");
+//let bootDefinitions = Builder.parseDefinitions(bootGrim.split("\n")); // Parse the boot definitions
+
+// for showing how these definitions are grouped into lines
+// for (let def of bootDefinitions) {
+//     console.log("---");
+//     console.log(def);
+// }
+// for testing parsing on all these definitions grouped into lines
+// for (let def of bootDefinitions) {
+//     builder.analyzeOne(def, true); // Analyze each boot definition
+// }
+// console.log(`${bootDefinitions.length} definitions parsed successfully.`);
 
 /*
+// This is a comment
+Int :> Nat
+Rat :> Int
+Rat :> Nat
+
+f(x, y) := x + y
+
 // // fails, as expected -->
 // // builder.analyzeOne("x");  // because x is not defined
 // // ? analyzeOne('Option()');  // probably a bad idea
@@ -42,5 +63,4 @@ sugar:       (x, x) => x / 2
 
 sugar:       True ? One $ Two
 sugar:       False ? One $ Two
-
 */
