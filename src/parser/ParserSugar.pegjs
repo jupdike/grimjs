@@ -36,6 +36,11 @@
       "@": "LApply",
       "$": "RApply"
     };
+  let unaryOpMap = {
+      "+": "Pos",
+      "-": "Neg",
+      "~": "Quote"
+    };
     
   function leftBinaryAst(location, head, tail) {
     return tail.reduce(function(result, element) {
@@ -152,7 +157,7 @@ OpN4 "an infix operator" = ("==" / "=" / "!=" / "<" / "<=" / ">=" / ">")
 OpR5 "an infix operator" = ("++" / "::")  // concat and cons, following Haskell for concat, and Lean for cons
 OpL6 "an infix operator" = ("+" / "-")
 OpL7 "an infix operator" = ("*" / "/" / ".")
-OpU8 "a unary - or + operator" = ("-" / "+") // unary operators
+OpU8 "a unary - or + operator" = ("-" / "+" / "~") // unary operators, and Quote
 OpR9 "an infix operator" = ("^" / "**")
 
 ExprLowest = ExprL0
@@ -166,7 +171,7 @@ ExprN4 = head:ExprR5 tail:(_ OpN4 _ ExprR5)? { return optionalPairAst(location()
 ExprR5 = head:ExprL6 tail:(_ OpR5 _ ExprR5)? { return optionalPairAst(location(), head, tail); } // right-associative
 ExprL6 = head:ExprL7 tail:(_ OpL6 _ ExprL7)* { return leftBinaryAst(location(), head, tail); }
 ExprL7 = head:ExprU8 tail:(_ OpL7 _ ExprU8)* { return leftBinaryAst(location(), head, tail); }
-ExprU8 = _ head:OpU8 _ tail:ExprR9 { return aTagApp(location(), head === "-" ? "Neg" : "Pos", [tail]); } // unary operators: +x -x
+ExprU8 = _ head:OpU8 _ tail:ExprR9 { return aTagApp(location(), unaryOpMap[head], [tail]); } // unary operators: +x -x
   / ExprR9
 ExprR9 = head:Factor tail:(_ OpR9 _ ExprU8)? { return optionalPairAst(location(), head, tail); } // right-associative
 

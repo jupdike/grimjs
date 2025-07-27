@@ -549,7 +549,7 @@ desugared:   Div(Tag("Nat")@("321"), Tag("Int")@("654"))
 built:       Div@(Nat@("321"), Int@("654"))
 canonical:   Div(Nat("321"), Int("654"))
 evaluated:   107/218
-#
+# Ignore, Crash, Quote
 sugar:       Ignore(Crash())
 desugared:   Tag("Ignore")@(Tag("Crash")@())
 built:       Ignore@(Crash@())
@@ -561,4 +561,16 @@ desugared:   Tag("Quote")@(Tag("Crash")@())
 built:       Quote@(Crash@())
 canonical:   Quote(Crash())
 evaluated:   Crash@()
+#
+sugar:       ~Crash()
+desugared:   Quote(Tag("Crash")@())
+built:       Quote@(Crash@())
+canonical:   Quote(Crash())
+evaluated:   Crash@()
+#
+sugar:       ~(1 + Crash())
+desugared:   Quote(Add(Nat("1"), Tag("Crash")@()))
+built:       Quote@(Add@(1, Crash@()))
+canonical:   Quote(Add(Nat("1"), Crash()))
+evaluated:   Add@(1, Crash@())
 #

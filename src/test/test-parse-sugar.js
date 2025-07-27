@@ -284,6 +284,9 @@ check("( (x,y) => x + y )(4,5)");
 
 check("'I am the \u0251 and the \u03c9'");
 
+check('~Crash()');
+check('~(Crash())');
+
 // these are const/let statements
 checkDef("x := y");
 checkDef("x := y + z");
