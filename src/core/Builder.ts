@@ -282,6 +282,11 @@ class Builder {
                     //console.error(`Defining ${lhsName} with expression as rhs: ${rhs.toString()}`);
                     // build rhs into a GrimVal
                     let val = this.fromAst(rhs);
+                    if (val instanceof GrimFun) {
+                        //console.error(`Defining ${val.funcName} as an anonymous function, so rename it to ${lhsName}`);
+                        val.funcName = lhsName; // Set the function name for runtime inspection
+                        //console.error(`Renamed function to ${val.funcName}`);
+                    }
                     // Store it in the module environment.
                     // note that the rhs is code and not evaluated yet, because function definitions might
                     // call each other in any order
@@ -306,7 +311,7 @@ class Builder {
                         return new GrimError(["Def parameters must be Sym, got " + arg.constructor.name]);
                     });
                     let bodyVal = this.fromAst(body);
-                    let fun = new GrimFun(paramsList, bodyVal);
+                    let fun = new GrimFun(paramsList, bodyVal, lhsName);
                     this.moduleEnv = this.moduleEnv.set(lhsName, fun);
                 }
             }

@@ -80,15 +80,29 @@ class GrimApp extends GrimVal {
 }
 
 class GrimFun extends GrimVal {
+    funcName: string = 'Boring'; // for runtime-inspection purposes, not used in evaluation
+
     args: Array<GrimVal>;
     body: GrimVal;
     isAtom(): boolean {
         return true; // GrimFun is an atom in the sense that it is evaluates to itself
     }
-    constructor(args: Array<GrimVal>, body: GrimVal) {
+    constructor(args: Array<GrimVal>, body: GrimVal, funcName: string) {
         super();
         this.args = args;
         this.body = body;
+        if (funcName === undefined || funcName === null || funcName === '') {
+            let hash1 = new GrimList(args).hashCode();
+            let hash2 = body.hashCode();
+            let hash = (hash1 + hash2).toString(16); // convert to hex string
+            // use the hash as the function name if not provided
+            // this is useful for debugging and runtime inspection
+            // but not used in evaluation
+            this.funcName = 'fun_'+hash.substring(6); // default name if not provided
+        } else {
+            this.funcName = funcName;
+        }
+        //console.error(`GrimFun created with funcName: ${this.funcName}`);
     }
     
     toString(): string {
@@ -116,7 +130,7 @@ class GrimFun extends GrimVal {
                 console.warn("GrimFun.maker called with first arg not a GrimList, returning empty GrimVal");
                 return new GrimError(["GrimFun.maker called with first arg not a GrimList"]);
             }
-            return new GrimFun(args.asArray(), body);
+            return new GrimFun(args.asArray(), body, "");
         }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Fun") {
             if (ast.args.length !== 2) {
@@ -139,7 +153,7 @@ class GrimFun extends GrimVal {
                         return new GrimError([ `GrimFun.maker called with arg not a GrimSym: ${arg.toString()}`]);
                     }
                 }
-                return new GrimFun(arr, body);
+                return new GrimFun(arr, body, "");
             } else {
                 console.warn("GrimFun.maker called with first arg not a GrimList, returning empty GrimVal");
                 return new GrimVal();
