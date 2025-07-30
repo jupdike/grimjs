@@ -1,3 +1,29 @@
+// Built-in infix operators
+#infixl 9 !! Index
+#infixr 9 ^  Pow
+#infixr 9 ** Pow
+#infixl 7 *  Mul
+#infixl 7 /  Div
+#infixl 7 %  Mod
+#infixl 6 +  Add
+#infixl 6 -  Sub
+#infixr 5 :  Pair
+// concat and cons, following Haskell for concat, and Lean for cons
+#infixr 5 ++ Concat
+#infixr 5 :: Cons
+#infixn 4 == Eq
+#infixn 4 != NotEq
+#infixr 4 <  Lt
+#infixr 4 <= Lte
+#infixr 4 >  Gt
+#infixr 4 >= Gte
+#infixn 4 =  Equals
+#infixr 3 && And
+#infixr 2 || Or
+#infixl 1 ?  If2
+#infixl 0 @  LApply
+#infixr 0 $  RApply
+
 // Built-in casts so arithmetic works as expected
 // and so we don't have to make N x M callable entries for Div, for Mul, etc.
 Int :> Nat

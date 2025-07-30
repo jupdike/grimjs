@@ -12,36 +12,15 @@
     return [x].concat(xs);
   }
   
-  let opMap = {
-      "+": "Add",
-      "-": "Sub",
-      "*": "Mul",
-      "/": "Div",
-      "%": "Mod",
-      "**": "Pow",
-      "^": "Pow",
-      "=": "Equals",
-      "==": "Eq",
-      "!=": "NotEq",
-      "<": "Lt",
-      "<=": "Lte",
-      ">": "Gt",
-      ">=": "Gte",
-      "&&": "And",
-      "||": "Or",
-      "++": "Concat",
-      "::": "Cons",
-      "?": "If2",
-      "!!": "Index",
-      "@": "LApply",
-      "$": "RApply"
-    };
+  // added on each call to the parser, by per-parse initializer
+  let opMap = null;
+  //
   let unaryOpMap = {
       "+": "Pos",
       "-": "Neg",
       "~": "Quote"
     };
-    
+
   function leftBinaryAst(location, head, tail) {
     return tail.reduce(function(result, element) {
       return aTagApp(location, opMap[element[1]], [result, element[3]]);
@@ -55,6 +34,15 @@
     return aTagApp(location, opMap[tail[1]], [head, tail[3]]);
   }
 }}
+
+{
+  //console.log("Per-parse initializer called here!", options.test);
+  if (options.opMap) {
+    opMap = options.opMap;
+  } else {
+    throw new Error("opMap is not defined in options");
+  }
+}
 
 ////////////////////////////////////////
 // The places to start a parse
@@ -139,26 +127,53 @@ Bind "a Fun expression (anonymous function) or Let expression"
   / "(" _ args:DefList _ ")" _ "=>" _ body:Expression { return aTagApp(location(), "Let", [aTagApp(location(), "List", args), body]); }
   / "(" _ args:SymList _ ")" _ "=>" _ body:Expression { return aTagApp(location(), "Fun", [aTagApp(location(), "List", args), body]); }
 
-// TODO keep this up to date when new operators are added below (plus keep _ and @)
+
+Graphical "one or more graphical characters as an infix operator"
+  = [+!#$%&*./<=>?@^~_\u002d\u005c]+  // U+002D is hyphen, U+005C is backslash
+
+/*
+see https://github.com/haskell/alex/blob/master/examples/haskell.x
+$ascsymbol = [\!\#\$\%\&\*\+\.\/\<\=\>\?\@\\\^\|\-\~]
+$unisymbol = [] -- TODO
+$symbol    = [$ascsymbol $unisymbol] # [$special \_\:\"\']
+
+$large     = [A-Z \xc0-\xd6 \xd8-\xde]
+$small     = [a-z \xdf-\xf6 \xf8-\xff \_]
+$alpha     = [$small $large]
+*/
+
+// TODO: inject list of operators into the grammar
 Op "an infix operator"
-  = o:("_" / "@" /
-       "$" / "?" / "||" / "&&" / "==" / "=" / "!=" / "<" / "<=" / ">=" / ">" / "++" / "+" / "-" / "*" / "/" / "^" / ".")
-  { return aTag(location(), opMap[o]); }
+  //= o:("_" / "@" /
+  //     "$" / "?" / "||" / "&&" / "==" / "=" / "!=" / "<" / "<=" / ">=" / ">" / "++" / "+" / "-" / "*" / "/" / "^" / ".")
+  //{ return aTag(location(), opMap[o]); }
+  = o:Graphical {
+    if (o in opMap) {
+      return aTag(location(), opMap[o]);
+    }
+    throw new Error(`Unknown operator: ${o}`);
+  }
 
 // hmmm
 // TODO x ?         means   None ?? f(x)  ==> None     and Error(e) ?? f(x)  ==> Error(e)   else   f(x)
 // TODO x ?? y      means   None ?? y     ==> y        and Error(e) ?? y     ==> Error(e)   else   x
-OpL0 "an infix operator" = ("@")
-OpR0 "an infix operator" = ("$")
-OpL1 "an infix operator" = ("?")
-OpR2 "an infix operator" = ("||")
-OpR3 "an infix operator" = ("&&")
-OpN4 "an infix operator" = ("==" / "=" / "!=" / "<" / "<=" / ">=" / ">")
-OpR5 "an infix operator" = ("++" / "::")  // concat and cons, following Haskell for concat, and Lean for cons
-OpL6 "an infix operator" = ("+" / "-")
-OpL7 "an infix operator" = ("*" / "/" / ".")
+// left-associative, except for @ which is a special case
+OpL0 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 0, op); } { return op; }
+OpR0 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 0, op); } { return op; }
+OpL1 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 1, op); } { return op; }
+OpR2 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 2, op); } { return op; }
+OpR3 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 3, op); } { return op; }
+OpN4 "an infix operator" = op:Graphical &{ return options.isValidOp('n', 4, op); } { return op; }
+OpR5 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 5, op); } { return op; }
+OpL6 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 6, op); } { return op; }
+OpL7 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 7, op); } { return op; }
+OpR9 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 9, op); } { return op; }
 OpU8 "a unary - or + operator" = ("-" / "+" / "~") // unary operators, and Quote
-OpR9 "an infix operator" = ("^" / "**")
+
+// BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG
+// TODO allow other parts of the operator table (as in Haskell) to be defined in boot.grim
+//      especially other directions, left and right and non-associative at each precedence level
+// BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG 
 
 ExprLowest = ExprL0
 // NOPE ExprUn = _ head:OpU _ tail:ExprL0 { return aTagApp(location(), head === "-" ? "Neg" : "Pos", [tail]); } // unary operators: +x -x

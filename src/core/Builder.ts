@@ -1,7 +1,7 @@
 import { List, Map, PairSorting, Set } from "immutable";
 import type { GMPLib } from "gmp-wasm";
+import { GrimParser } from "../parser/GrimParser.js";
 
-import * as parserSugar from "../parser/_parser-sugar.js"
 import * as parserCanon from '../parser/_parser-canon.js';
 
 import { GrimVal } from "./GrimVal.js";
@@ -14,7 +14,6 @@ import { GrimError, GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
 import { Location, CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js";
 import { Eval, EvalState } from "./Eval.js";
-import { parser } from "pegjs";
 
 type AstToVal = (ast: CanAst | Array<GrimVal>, builder: Builder) => GrimVal;
 type FuncType = (args: Array<GrimVal>) => GrimVal;
@@ -48,7 +47,8 @@ class Builder {
         return ret;
     }
 
-    constructor(gmpLib: GMPLib) {
+    constructor(parser: GrimParser, gmpLib: GMPLib) {
+        this.parser = parser;
         this.gmpLib = gmpLib;
         this.addMakers();
     }
@@ -72,8 +72,8 @@ class Builder {
         let delimiterStack: Array<number> = [];
         let oneDefinition: Array<string> = [];
         lines.forEach((line) => {
-            if (line.startsWith("//") || line.length < 1) {
-                // Skip comments
+            if (line.startsWith("#") || line.startsWith("//") || line.length < 1) {
+                // Skip #xyz pre-parse commands, and comments
                 return;
             }
             if (line.indexOf("\t") >= 0) {
@@ -205,8 +205,8 @@ class Builder {
         console.log(`All ${n} tests completed.`);
     }
 
-    static fromDefinitions(gmpLib: GMPLib, definitions: Array<string>) {
-        let builder = new Builder(gmpLib);
+    static fromDefinitions(parser: GrimParser, gmpLib: GMPLib, definitions: Array<string>) {
+        let builder = new Builder(parser, gmpLib);
         console.error(`Building a module with ${definitions.length} definitions...`);
         for (const def of definitions) {
             builder.addOneDefinition(def);
@@ -329,9 +329,10 @@ class Builder {
         console.log(`${definitions.length} definitions parsed successfully.`);
     }
 
-    gmpLib: GMPLib; // Will be set after gmp.init(), by async caller
+    private parser: GrimParser;
+    private gmpLib: GMPLib; // Will be set after gmp.init(), by async caller
     private makerMap: Map<string, AstToVal> = Map<string, AstToVal>();
-    didInit = false;
+    private didInit = false;
 
     addMaker(tag: string, maker: AstToVal) {
         this.makerMap = this.makerMap.set(tag, maker);
@@ -435,7 +436,7 @@ class Builder {
     check(str: string, start: string | null = null, onlyErrors = false): CanAst {
         start = start || "Start";
         try {
-            var ret = parserSugar.parse(str, {startRule: start});
+            var ret = this.parser.parse(str, {startRule: start});
             // if (!onlyErrors) {
             //     console.log('---');
             //     console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
@@ -477,7 +478,7 @@ class Builder {
 
     private sugarToAst(sugar: string, options: { startRule: string }): CanAst | null {
         try {
-            var ret = parserSugar.parse(sugar, options);
+            var ret = this.parser.parse(sugar, options);
             return ret;
         } catch (e) {
             console.error('Error parsing sugar:', e);

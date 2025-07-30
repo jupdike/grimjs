@@ -3,6 +3,7 @@ import type { GMPLib } from "gmp-wasm";
 import { readFileSync } from "fs";
 import { Builder } from "./Builder.js"; // This loads all the makers
 import type { TestEntry, TestSuite } from "./Builder.js"; // Import types for test entries and suites
+import { GrimParser } from "../parser/GrimParser.js";
 
 let gmpLib: GMPLib = await gmp.init();
 if (!gmpLib) {
@@ -10,9 +11,11 @@ if (!gmpLib) {
 }
 console.log("got GMPLib with this many bindings:", Object.keys((gmpLib as any).binding).length);
 
-let bootGrim = readFileSync("src/core/boot.grim", "utf8");
+const bootDotGrimPath = "src/core/boot.grim"
+let parser = new GrimParser(bootDotGrimPath);
+let bootGrim = readFileSync(bootDotGrimPath, "utf8");
 let bootDefinitions = Builder.groupDefinitions(bootGrim.split("\n")); // Parse the boot definitions
-let bootModule = Builder.fromDefinitions(gmpLib, bootDefinitions); // Test the definitions
+let bootModule = Builder.fromDefinitions(parser, gmpLib, bootDefinitions); // Test the definitions
 
 let mainTestsYaml = readFileSync("src/test/test-table.yaml", "utf8");
 let mainTestsJson = Builder.parseTestLines(mainTestsYaml) as Array<TestSuite>;
