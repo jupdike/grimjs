@@ -330,7 +330,7 @@ class Builder {
     }
 
     private parser: GrimParser;
-    private gmpLib: GMPLib; // Will be set after gmp.init(), by async caller
+    readonly gmpLib: GMPLib; // Will be set after gmp.init(), by async caller
     private makerMap: Map<string, AstToVal> = Map<string, AstToVal>();
     private didInit = false;
 
