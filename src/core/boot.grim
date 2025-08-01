@@ -13,10 +13,10 @@
 #infixr 5 :: Cons
 #infixn 4 == Eq
 #infixn 4 != NotEq
-#infixr 4 <  Lt
-#infixr 4 <= Lte
-#infixr 4 >  Gt
-#infixr 4 >= Gte
+#infixn 4 <  Lt
+#infixn 4 <= Lte
+#infixn 4 >  Gt
+#infixn 4 >= Gte
 #infixn 4 =  Equals
 #infixr 3 && And
 #infixr 2 || Or
@@ -36,9 +36,11 @@ Dec :> Nat
 // Test some definitions of scalars and functions, in scope at the module level
 fortyOne := 41
 fortyTwo := add41(1)
-// since they are functions, they should be able to call eachother, no matter the order they are defined in
+// since they are functions, they should be able to call eachother,
+// no matter the order in which they are defined
 add41(x) := sum2(fortyOne, x)
-// functions in a module are 'lifted' to the top, meaning they are evaluated first, so scalar definitions can call them
+// functions in a module are 'lifted' to the top, meaning they are evaluated first,
+// so scalar definitions can call them
 sum2 := (x, y) => x + y
 
 sqrt(x) := x^0.5

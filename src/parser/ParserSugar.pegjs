@@ -98,7 +98,7 @@ Expressions = head:Expression tail:(_ Expression)* {
 
 Expression = uno:ExprLowest _ { return uno; }
 
- SymList
+SymList
   = head:Sym tail:(_ "," _ Sym)* { return cons(head, tail.map(function(x) { return x[3]; })); }
 
 DefList
@@ -129,24 +129,20 @@ Bind "a Fun expression (anonymous function) or Let expression"
 
 
 Graphical "one or more graphical characters as an infix operator"
-  = [+!#$%&*./<=>?@^~_\u002d\u005c]+  // U+002D is hyphen, U+005C is backslash
+// U+002D is hyphen, U+005C is backslash
+  = [=+!#$%&*./<>?@^~_\u002d\u005c]+ { return text(); }
 
 /*
 see https://github.com/haskell/alex/blob/master/examples/haskell.x
 $ascsymbol = [\!\#\$\%\&\*\+\.\/\<\=\>\?\@\\\^\|\-\~]
 $unisymbol = [] -- TODO
 $symbol    = [$ascsymbol $unisymbol] # [$special \_\:\"\']
-
 $large     = [A-Z \xc0-\xd6 \xd8-\xde]
 $small     = [a-z \xdf-\xf6 \xf8-\xff \_]
 $alpha     = [$small $large]
 */
 
-// TODO: inject list of operators into the grammar
 Op "an infix operator"
-  //= o:("_" / "@" /
-  //     "$" / "?" / "||" / "&&" / "==" / "=" / "!=" / "<" / "<=" / ">=" / ">" / "++" / "+" / "-" / "*" / "/" / "^" / ".")
-  //{ return aTag(location(), opMap[o]); }
   = o:Graphical {
     if (o in opMap) {
       return aTag(location(), opMap[o]);
@@ -164,6 +160,7 @@ OpL1 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 1, op);
 OpR2 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 2, op); } { return op; }
 OpR3 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 3, op); } { return op; }
 OpN4 "an infix operator" = op:Graphical &{ return options.isValidOp('n', 4, op); } { return op; }
+OpR4 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 4, op); } { return op; }
 OpR5 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 5, op); } { return op; }
 OpL6 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 6, op); } { return op; }
 OpL7 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 7, op); } { return op; }
@@ -182,6 +179,7 @@ ExprR0 = head:ExprL1 tail:(_ OpR0 _ ExprR0)? { return optionalPairAst(location()
 ExprL1 = head:ExprR2 tail:(_ OpL1 _ ExprR2)* { return leftBinaryAst(location(), head, tail); }
 ExprR2 = head:ExprR3 tail:(_ OpR2 _ ExprR2)? { return optionalPairAst(location(), head, tail); } // right-associative
 ExprR3 = head:ExprN4 tail:(_ OpR3 _ ExprR3)? { return optionalPairAst(location(), head, tail); } // right-associative
+//Expr4  = ExprN4 / ExprR4
 ExprN4 = head:ExprR5 tail:(_ OpN4 _ ExprR5)? { return optionalPairAst(location(), head, tail); } // non-associative (cannot chain)
 ExprR5 = head:ExprL6 tail:(_ OpR5 _ ExprR5)? { return optionalPairAst(location(), head, tail); } // right-associative
 ExprL6 = head:ExprL7 tail:(_ OpL6 _ ExprL7)* { return leftBinaryAst(location(), head, tail); }
