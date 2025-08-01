@@ -585,4 +585,76 @@ desugared:   Sym("sum2")@(Nat("21"), Nat("21"))
 built:       Sym("sum2")@(21, 21)
 canonical:   App(Sym("sum2"), Nat("21"), Nat("21"))
 evaluated:   42
+# Decimal Arithmetic
+sugar:       Dec("1.25") + Dec("0.25")
+desugared:   Add(Tag("Dec")@("1.25"), Tag("Dec")@("0.25"))
+built:       Add@(Dec@("1.25"), Dec@("0.25"))
+canonical:   Add(Dec("1.25"), Dec("0.25"))
+evaluated:   1.5
+#
+sugar:       1.25+0.25
+desugared:   Add(Dec("1.25"), Dec("0.25"))
+built:       Add@(1.25, 0.25)
+canonical:   Add(Dec("1.25"), Dec("0.25"))
+evaluated:   1.5
+#
+sugar:       4.0^0.5
+desugared:   Pow(Dec("4.0"), Dec("0.5"))
+built:       Pow@(4.0, 0.5)
+canonical:   Pow(Dec("4.0"), Dec("0.5"))
+evaluated:   2
+#
+sugar:       2.0^0.5
+desugared:   Pow(Dec("2.0"), Dec("0.5"))
+built:       Pow@(2.0, 0.5)
+canonical:   Pow(Dec("2.0"), Dec("0.5"))
+evaluated:   1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727
+#
+sugar:       sqrt(4.0)
+desugared:   Sym("sqrt")@(Dec("4.0"))
+built:       Sym("sqrt")@(4.0)
+canonical:   App(Sym("sqrt"), Dec("4.0"))
+evaluated:   2
+#
+sugar:       sqrt(2.0)
+desugared:   Sym("sqrt")@(Dec("2.0"))
+built:       Sym("sqrt")@(2.0)
+canonical:   App(Sym("sqrt"), Dec("2.0"))
+evaluated:   1.4142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727
+#
+sugar:       1.25 * 0.25
+desugared:   Mul(Dec("1.25"), Dec("0.25"))
+built:       Mul@(1.25, 0.25)
+canonical:   Mul(Dec("1.25"), Dec("0.25"))
+evaluated:   0.3125
+#
+sugar:       1.25 - 0.25
+desugared:   Sub(Dec("1.25"), Dec("0.25"))
+built:       Sub@(1.25, 0.25)
+canonical:   Sub(Dec("1.25"), Dec("0.25"))
+evaluated:   1
+#
+sugar:       1.25 / 0.25
+desugared:   Div(Dec("1.25"), Dec("0.25"))
+built:       Div@(1.25, 0.25)
+canonical:   Div(Dec("1.25"), Dec("0.25"))
+evaluated:   5
+#
+sugar:       125 / 25
+desugared:   Div(Nat("125"), Nat("25"))
+built:       Div@(125, 25)
+canonical:   Div(Nat("125"), Nat("25"))
+evaluated:   5
+#
+sugar:       Div(Dec("125"), Nat("25"))
+desugared:   Tag("Div")@(Tag("Dec")@("125"), Tag("Nat")@("25"))
+built:       Div@(Dec@("125"), Nat@("25"))
+canonical:   Div(Dec("125"), Nat("25"))
+evaluated:   5
+#
+sugar:       2.0^129 + 2.0^(-129.0)
+desugared:   Add(Pow(Dec("2.0"), Nat("129")), Pow(Dec("2.0"), Neg(Dec("129.0"))))
+built:       Add@(Pow@(2.0, 129), Pow@(2.0, Neg@(129.0)))
+canonical:   Add(Pow(Dec("2.0"), Nat("129")), Pow(Dec("2.0"), Neg(Dec("129.0"))))
+evaluated:   680564733841876926926749214863536422912.00000000000000000000000000000000000000146936793852785938496092
 #

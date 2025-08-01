@@ -29,6 +29,9 @@
 Int :> Nat
 Rat :> Int
 Rat :> Nat
+Dec :> Rat
+Dec :> Int
+Dec :> Nat
 
 // Test some definitions of scalars and functions, in scope at the module level
 fortyOne := 41
@@ -37,3 +40,5 @@ fortyTwo := add41(1)
 add41(x) := sum2(fortyOne, x)
 // functions in a module are 'lifted' to the top, meaning they are evaluated first, so scalar definitions can call them
 sum2 := (x, y) => x + y
+
+sqrt(x) := x^0.5

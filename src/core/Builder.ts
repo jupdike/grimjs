@@ -682,6 +682,30 @@ class Builder {
             return new GrimError(["Neg.Int requires Int argument"]);
         });
 
+        this.addCallableTag(List(["Pos", "Dec"]), (args: Array<GrimVal>) => {
+            if (args.length !== 1 || !(args[0] instanceof GrimDec)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Pos.Dec");
+                return new GrimError(["Pos.Dec requires exactly 1 Dec argument"]);
+            }
+            return args[0];
+        });
+        this.addCallableTag(List(["Neg", "Dec"]), (args: Array<GrimVal>) => {
+            if (args.length !== 1 || !(args[0] instanceof GrimDec)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Neg.Dec");
+                return new GrimError(["Neg.Dec requires exactly 1 Dec argument"]);
+            }
+            if (args[0] instanceof GrimDec) {
+                if (args[0].value.startsWith("-")) {
+                    // already negative, just return it
+                    return new GrimDec(args[0].value.substring(1)); // remove the leading '-'
+                }
+                else {
+                    return new GrimDec(-args[0].value);
+                }
+            }
+            return new GrimError(["Neg.Dec requires Dec argument"]);
+        });
+
         this.addCallableTag(List(["Div", "Int", "Int"]),
             GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
         this.addCallableTag(List(["Div", "Nat", "Nat"]),
@@ -692,6 +716,17 @@ class Builder {
             GrimRat.wrapBinaryOp(this, (a, b) => {
                 return a.mul(b);
             }));
+
+        this.addCallableTag(List(["Add", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOp(this, (a, b) => { return a.add(b); }));
+        this.addCallableTag(List(["Pow", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOp(this, (a, b) => { return a.pow(b); }));
+        this.addCallableTag(List(["Sub", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
+        this.addCallableTag(List(["Mul", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
+        this.addCallableTag(List(["Div", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
 
         // casting allows just these definitions
         //   Tag(x, x)

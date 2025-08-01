@@ -44,7 +44,7 @@ class GrimNat extends GrimVal {
         return "Nat";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
         if (Array.isArray(ast)) {
             // TODO could allow cast from other types?, to GrimNat
             // later
@@ -77,9 +77,7 @@ class GrimNat extends GrimVal {
         fn: (a: any, b: any) => string): GrimVal {
         if (left instanceof GrimNat && right instanceof GrimNat) {
             let ret: string = "";
-            const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
-            const options = { precisionBits: 400, roundingMode };
-            const ctx = gmpLib.getContext(options);
+            const ctx = gmpLib.getContext();
             let x: any = ctx.Integer(left.value);
             let y: any = ctx.Integer(right.value);
             ret = fn(x, y).toString();
@@ -136,7 +134,7 @@ class GrimInt extends GrimNat {
         return "Int";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
         if (Array.isArray(ast)) {
             // TODO could allow cast from other types?, to GrimNat
             // later
@@ -173,9 +171,7 @@ class GrimInt extends GrimNat {
         if ((left instanceof GrimInt  || left instanceof GrimNat) &&
             (right instanceof GrimInt || right instanceof GrimNat)) {
             let ret: string = "";
-            const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
-            const options = { precisionBits: 400, roundingMode };
-            const ctx = gmpLib.getContext(options);
+            const ctx = gmpLib.getContext();
             let x: any = ctx.Integer(left.value);
             let y: any = ctx.Integer(right.value);
             ret = fn(x, y).toString();
@@ -202,8 +198,12 @@ class GrimInt extends GrimNat {
 }
 
 class GrimRat extends GrimVal {
-    constructor(private numerator: GrimInt, private denominator: GrimInt) {
+    readonly numerator: GrimInt;
+    readonly denominator: GrimInt;
+    constructor(numerator: GrimInt, denominator: GrimInt) {
         super();
+        this.numerator = numerator;
+        this.denominator = denominator;
     }
 
     toString(): string {
@@ -225,7 +225,7 @@ class GrimRat extends GrimVal {
         return `Rat("${this.toString()}")`;
     }
 
-    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
         if (Array.isArray(ast)) {
             // If it's an array, we expect two elements: numerator and denominator
             if (ast.length !== 1) {
@@ -282,9 +282,7 @@ class GrimRat extends GrimVal {
         }
         if (left instanceof GrimRat && right instanceof GrimRat) {
             let ret: string = "";
-            const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
-            const options = { precisionBits: 400, roundingMode };
-            const ctx = gmpLib.getContext(options);
+            const ctx = gmpLib.getContext();
             let x: any = ctx.Rational(left.toString());
             let y: any = ctx.Rational(right.toString());
             let val: any = fn(x, y);
@@ -325,18 +323,24 @@ class GrimRat extends GrimVal {
 }
 
 class GrimDec extends GrimVal {
-    constructor(private value: number | string) {
+    readonly value: string;
+    constructor(value: number | string) {
         super();
         if (typeof value === "string") {
-            // problem should check with regex
+            // should check with regex
             this.value = value.trim();
-            // also should ensure that digits, a decimal point and/or exponent are present
-            if (!/^(\d+\.(\d+)?|\d*\.(\d+)?)([eE][+-]?\d+)?$/.test(this.value)) {
-                throw new Error(`Invalid string for GrimDec: ${value}. Expected a decimal number.`);
+            // the result of some decimal operations may be a natural number or integer
+            // so do not throw an error if it is a whole number
+            if (/^([+-])?\d+$/.test(this.value)) {
+                this.value = this.value;
+            }
+            // normally ensure that digits, a decimal point and/or exponent are present
+            else if (!/^([+-])?(\d+\.(\d*)|\d*\.\d+)([eE][+-]?\d+)?$/.test(this.value)) {
+                throw new Error(`Invalid string for GrimDec: |${value}|. Expected a decimal number.`);
             }
         }
         else if (typeof value === "number") {
-            this.value = value;
+            this.value = ""+value;
         }
         else {
             throw new Error(`Invalid type for GrimDec: ${typeof value}. Expected number or string.`);
@@ -360,7 +364,48 @@ class GrimDec extends GrimVal {
         return "Dec";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>): GrimVal {
+    static fromBinaryFunction(gmpLib: GMPLib, left: GrimVal, right: GrimVal,
+        fn: (a: any, b: any) => string): GrimVal {
+        if (left instanceof GrimDec && right instanceof GrimDec) {
+            let ret: string = "";
+            const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
+            const options = { precisionBits: 333, roundingMode };
+            const ctx = gmpLib.getContext(options);
+            let x: any = ctx.Float(left.value);
+            let y: any = ctx.Float(right.value);
+            ret = fn(x, y).toString();
+            setTimeout(() => ctx.destroy(), 50);
+            return new GrimDec(ret);
+        }
+        return new GrimError(["NOPE_CanDec"]);
+    }
+
+    static wrapBinaryOp(builder: Builder, fn: (a: any, b: any) => any): FuncType {
+        return (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Op.Type.Type");
+                return new GrimError(["Op.Type.Type requires exactly 2 arguments"]);
+            }
+            // Deal with upcasting from GrimRat, GrimInt, GrimNat
+            let args0 = args[0];
+            let args1 = args[1];
+            if (!(args0 instanceof GrimDec)) {
+                args0 = GrimDec.maker([args0], builder);
+            }
+            if (!(args1 instanceof GrimDec)) {
+                args1 = GrimDec.maker([args1], builder);
+            }
+            if (args0 instanceof GrimDec && args1 instanceof GrimDec) {
+                return GrimDec.fromBinaryFunction(builder.gmpLib, args0, args1, (a: any, b: any) => {
+                    return fn(a, b); // Use GMP's operation on two FloatTypes
+                });
+            }
+            console.error(`GrimDec.wrapBinaryOp called with args: ${args.map(a => a.toCanonicalString()).join(", ")}`);
+            return new GrimError(["Op.Type.Type requires Type arguments"]);
+        };
+    }
+
+    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
         if (Array.isArray(ast)) {
             // TODO could allow cast from other types?, to GrimDec
             // later
@@ -376,7 +421,17 @@ class GrimDec extends GrimVal {
             if (ast[0] instanceof GrimDec) {
                 return ast[0]; // Already a GrimDec, just return it
             }
-            if (ast[0] instanceof GrimNat) {
+            // turn a rational into a GrimDec
+            if (ast[0] instanceof GrimRat) {
+                // must divide the numerator by the denominator
+                let rat = ast[0] as GrimRat;
+                let num = rat.numerator.value;
+                let denom = rat.denominator.value;
+                let func = GrimDec.wrapBinaryOp(builder, (a, b) => { return a.div(b); });
+                return func([new GrimDec(num),
+                             new GrimDec(denom)]);
+            }
+            if (ast[0] instanceof GrimNat || ast[0] instanceof GrimInt) {
                 let s: string = ast[0].value.trim();
                 if (s.indexOf('.') === -1) {
                     s += '.0'; // Ensure it has a decimal point
