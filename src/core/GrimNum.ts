@@ -8,6 +8,11 @@ import { GrimStr } from './GrimStr.js';
 import { Builder } from './Builder.js';
 import type { FuncType } from './Builder.js';
 
+// for api for GMP's wrapped Float, see:
+//   https://github.com/Daninet/gmp-wasm/blob/master/src/float.ts
+// for api for GMP's wrapped Integer, see:
+//  https://github.com/Daninet/gmp-wasm/blob/master/src/integer.ts
+
 class GrimNat extends GrimVal {
     value: string;
     constructor(value: number | string) {
