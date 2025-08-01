@@ -657,4 +657,50 @@ desugared:   Add(Pow(Dec("2.0"), Nat("129")), Pow(Dec("2.0"), Neg(Dec("129.0")))
 built:       Add@(Pow@(2.0, 129), Pow@(2.0, Neg@(129.0)))
 canonical:   Add(Pow(Dec("2.0"), Nat("129")), Pow(Dec("2.0"), Neg(Dec("129.0"))))
 evaluated:   680564733841876926926749214863536422912.00000000000000000000000000000000000000146936793852785938496092
+# Equality & Comparison
+sugar:       2 == 2
+desugared:   Eq(Nat("2"), Nat("2"))
+built:       Eq@(2, 2)
+canonical:   Eq(Nat("2"), Nat("2"))
+evaluated:   True
+#
+sugar:       -2 == -2
+desugared:   Eq(Neg(Nat("2")), Neg(Nat("2")))
+built:       Eq@(Neg@(2), Neg@(2))
+canonical:   Eq(Neg(Nat("2")), Neg(Nat("2")))
+evaluated:   True
+#
+sugar:       -(-2) == 2
+desugared:   Eq(Neg(Neg(Nat("2"))), Nat("2"))
+built:       Eq@(Neg@(Neg@(2)), 2)
+canonical:   Eq(Neg(Neg(Nat("2"))), Nat("2"))
+evaluated:   True
+#
+sugar:       (1/2) == (2/4)
+desugared:   Eq(Div(Nat("1"), Nat("2")), Div(Nat("2"), Nat("4")))
+built:       Eq@(Div@(1, 2), Div@(2, 4))
+canonical:   Eq(Div(Nat("1"), Nat("2")), Div(Nat("2"), Nat("4")))
+evaluated:   True
+#
+sugar:       1.25 == 1.250
+desugared:   Eq(Dec("1.25"), Dec("1.250"))
+built:       Eq@(1.25, 1.250)
+canonical:   Eq(Dec("1.25"), Dec("1.250"))
+evaluated:   True
+#
+sugar:       1.0 == 1
+desugared:   Eq(Dec("1.0"), Nat("1"))
+built:       Eq@(1.0, 1)
+canonical:   Eq(Dec("1.0"), Nat("1"))
+evaluated:   True
+#
+sugar:       1.23456789 == 1.234567890
+desugared:   Eq(Dec("1.23456789"), Dec("1.234567890"))
+built:       Eq@(1.23456789, 1.234567890)
+canonical:   Eq(Dec("1.23456789"), Dec("1.234567890"))
+evaluated:   True
+#
+#sugar:       2 <= 3
+#
+#sugar:       3 >= 2
 #

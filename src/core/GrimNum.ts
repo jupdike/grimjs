@@ -356,6 +356,47 @@ class GrimDec extends GrimVal {
         return `Dec("${this.toString()}")`;
     }
 
+    equals(other: GrimVal): boolean {
+        if (this === other) {
+            return true; // Same reference
+        }
+        let a = this.value;
+        if (this.value.endsWith('.') || this.value.endsWith('.0')) {
+            return true; // Same type and value
+        }
+
+        // Check if the other value is a GrimDec and compare values
+        if (other instanceof GrimDec && this.value === other.value) {
+            return true;
+        }
+        // Check if the other value is a GrimInt and compare values
+        if (other instanceof GrimInt && this.value === other.value) {
+            return true;
+        }
+        // Check if the other value is a GrimNat and compare values
+        if (other instanceof GrimNat && this.value === other.value) {
+            return true;
+        }
+        // TODO deal with GrimRat, which is a fraction, in a sensible manner
+        //
+        if (other instanceof GrimDec && GrimDec.gmpLib) {
+            // try for a little more leeway, e.g. 1 == 1.0   and 1. == 1
+            const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
+            const options = { precisionBits: 333, roundingMode };
+            const ctx = GrimDec.gmpLib.getContext(options);
+            let x: any = ctx.Float(this.value);
+            let y: any = ctx.Float(other.value);
+            //console.error(`Comparing Decs: ${x.toString()} and ${y.toString()}`);
+            let ret = x.isEqual(y);
+            setTimeout(() => ctx.destroy(), 50);
+            if (ret) {
+                return true; // Same type and value
+            }
+        }
+
+        return false;
+    }
+
     isAtom(): boolean {
         return true;
     }
@@ -405,7 +446,13 @@ class GrimDec extends GrimVal {
         };
     }
 
+    static gmpLib: GMPLib | null = null;
+
     static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+        if (builder.gmpLib && !GrimDec.gmpLib) {
+            //console.error("setting gmpLib in GrimDec.maker");
+            GrimDec.gmpLib = builder.gmpLib;
+        }
         if (Array.isArray(ast)) {
             // TODO could allow cast from other types?, to GrimDec
             // later

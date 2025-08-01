@@ -728,6 +728,78 @@ class Builder {
         this.addCallableTag(List(["Div", "Dec", "Dec"]),
             GrimDec.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
 
+        // Equality checks
+        this.addCallableTag(List(["Eq", "Nat", "Nat"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimNat) || !(args[1] instanceof GrimNat)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Nat");
+                return new GrimError(["Eq.Nat requires exactly 2 Nat arguments"]);
+            }
+            if (args[0] instanceof GrimNat && args[1] instanceof GrimNat) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Nat.Nat requires Nat arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Int", "Int"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Int");
+                return new GrimError(["Eq.Int requires exactly 2 arguments"]);
+            }
+            let args0 = args[0];
+            let args1 = args[1];
+            if (args0 instanceof GrimNat) {
+                args0 = new GrimInt(args0.value); // Cast Nat to Int
+            }
+            if (args1 instanceof GrimNat) {
+                args1 = new GrimInt(args1.value); // Cast Nat to Int
+            }
+            if (args0 instanceof GrimInt && args1 instanceof GrimInt) {
+                return new GrimBool(args0.equals(args1));
+            }
+            return new GrimError(["Eq.Int.Int requires 2 Int arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Rat", "Rat"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Int");
+                return new GrimError(["Eq.Int requires exactly 2 arguments"]);
+            }
+            let args0 = args[0];
+            let args1 = args[1];
+            if (args0 instanceof GrimNat || args0 instanceof GrimInt) {
+                args0 = new GrimRat(new GrimInt(args0.value), new GrimInt(1)); // Cast Nat or Int to Rat
+            }
+            if (args1 instanceof GrimNat || args1 instanceof GrimInt) {
+                args1 = new GrimRat(new GrimInt(args1.value), new GrimInt(1)); // Cast Nat or Int to Rat
+            }
+            if (args0 instanceof GrimRat && args1 instanceof GrimRat) {
+                return new GrimBool(args0.equals(args1));
+            }
+            return new GrimError(["Eq.Rat.Rat requires 2 Rat arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Dec", "Dec"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Dec");
+                return new GrimError(["Eq.Dec requires exactly 2 arguments"]);
+            }
+            let args0 = args[0];
+            let args1 = args[1];
+            if (args0 instanceof GrimNat || args0 instanceof GrimInt) {
+                args0 = new GrimDec(args0.value); // Cast Nat or Int to Dec
+            }
+            else if (args0 instanceof GrimRat) {
+                args0 = GrimDec.maker([args0], this); // Cast Rat to Dec
+            }
+            if (args1 instanceof GrimNat || args1 instanceof GrimInt) {
+                args1 = new GrimDec(args1.value); // Cast Nat or Int to Dec
+            }
+            else if (args1 instanceof GrimRat) {
+                args1 = GrimDec.maker([args1], this); // Cast Rat to Dec
+            }
+            if (args0 instanceof GrimDec && args1 instanceof GrimDec) {
+                return new GrimBool(args0.equals(args1));
+            }
+            return new GrimError(["Eq.Dec.Dec requires 2 Dec arguments"]);
+        });
+
         // casting allows just these definitions
         //   Tag(x, x)
         //   Tag(y, y)
