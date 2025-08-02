@@ -654,6 +654,8 @@ class Builder {
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
         this.addCallableTag(List(["Add", "Nat", "Nat"]),
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.add(b); }));
+        this.addCallableTag(List(["Pow", "Nat", "Nat"]),
+            GrimNat.wrapBinaryOp(this, (a, b) => { return a.pow(b); }));
 
         this.addCallableTag(List(["Pos", "Nat"]), (args: Array<GrimVal>) => {
             if (args.length !== 1 || !(args[0] instanceof GrimNat)) {
@@ -681,6 +683,8 @@ class Builder {
             GrimInt.wrapBinaryOp(this, (a, b) => { return a.add(b); }));
         this.addCallableTag(List(["Sub", "Int", "Int"]),
             GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
+        this.addCallableTag(List(["Pow", "Int", "Int"]),
+            GrimInt.wrapBinaryOp(this, (a, b) => { return a.pow(b); }));
 
         this.addCallableTag(List(["Pos", "Int"]), (args: Array<GrimVal>) => {
             if (args.length !== 1 || !(args[0] instanceof GrimInt)) {
@@ -737,9 +741,11 @@ class Builder {
         this.addCallableTag(List(["Div", "Rat", "Rat"]),
             GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
         this.addCallableTag(List(["Mul", "Rat", "Rat"]),
-            GrimRat.wrapBinaryOp(this, (a, b) => {
-                return a.mul(b);
-            }));
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
+        // not built-in to Rational in GMP
+        // but int^rat does exist
+        //this.addCallableTag(List(["Pow", "Rat", "Rat"]),
+        //    GrimRat.wrapBinaryOp(this, (a, b) => { return a.pow(b); }));
 
         this.addCallableTag(List(["Add", "Dec", "Dec"]),
             GrimDec.wrapBinaryOp(this, (a, b) => { return a.add(b); }));

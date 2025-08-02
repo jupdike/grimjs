@@ -477,6 +477,18 @@ built:       Sub@(45, 46)
 canonical:   Sub(Nat("45"), Nat("46"))
 evaluated:   -1
 #
+sugar:       2^24
+desugared:   Pow(Nat("2"), Nat("24"))
+built:       Pow@(2, 24)
+canonical:   Pow(Nat("2"), Nat("24"))
+evaluated:   16777216
+#
+sugar:       (-2)**24
+desugared:   Pow(Neg(Nat("2")), Nat("24"))
+built:       Pow@(Neg@(2), 24)
+canonical:   Pow(Neg(Nat("2")), Nat("24"))
+evaluated:   16777216
+#
 sugar:       (x := 99) => 0 - x
 desugared:   Let(List(Tuple(Sym("x"), Nat("99"))), Sub(Nat("0"), Sym("x")))
 built:       Let(List((Sym("x"), 99)), Sub@(0, Sym("x")))
