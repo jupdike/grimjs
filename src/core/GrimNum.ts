@@ -367,19 +367,19 @@ class GrimDec extends GrimVal {
         }
         let a = this.value;
         if (this.value.endsWith('.') || this.value.endsWith('.0')) {
-            return true; // Same type and value
+            a = this.value.slice(0, -1); // Remove trailing . or .0 for comparison
         }
 
         // Check if the other value is a GrimDec and compare values
-        if (other instanceof GrimDec && this.value === other.value) {
+        if (other instanceof GrimDec && a === other.value) {
             return true;
         }
         // Check if the other value is a GrimInt and compare values
-        if (other instanceof GrimInt && this.value === other.value) {
+        if (other instanceof GrimInt && a === other.value) {
             return true;
         }
         // Check if the other value is a GrimNat and compare values
-        if (other instanceof GrimNat && this.value === other.value) {
+        if (other instanceof GrimNat && a === other.value) {
             return true;
         }
         // TODO deal with GrimRat, which is a fraction, in a sensible manner
@@ -389,6 +389,7 @@ class GrimDec extends GrimVal {
             const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
             const options = { precisionBits: 333, roundingMode };
             const ctx = GrimDec.gmpLib.getContext(options);
+            //console.error(`Comparing Decs: ${this.value} and ${other.value}`);
             let x: any = ctx.Float(this.value);
             let y: any = ctx.Float(other.value);
             //console.error(`Comparing Decs: ${x.toString()} and ${y.toString()}`);

@@ -196,6 +196,7 @@ class Builder {
             return;
         }
         for (const suite of testSuites) {
+            console.log('#-------------------------------------------------------------------------');
             console.log(`# ${suite.section}`);
             suite.entries.forEach((entry: TestEntry) => {
                 this.testOneEntry(entry);
@@ -406,6 +407,20 @@ class Builder {
         }
         this.callableTagMethodIsAvailable = this.callableTagMethodIsAvailable.add(tag.join('.'));
         this.callableTagMethodTupleToFuncMap = this.callableTagMethodTupleToFuncMap.set(tag, func);
+    }
+
+    addCallableTagEqNeqPair(tags: List<string>, func: FuncType) {
+        if (tags.get(0) != "Eq") {  // Ensure the first tag is "Eq"
+            throw new Error("GrimTag.addCallableTagEqNeqPair called with invalid tags (first tag must be 'Eq')");
+        }
+        this.addCallableTag(tags, func);
+        // Negate the result of Eq for Neq
+        let neqTags = tags.set(0, "Neq");
+        this.addCallableTag(neqTags, (args: Array<GrimVal>) => {
+            let bool = func(args) as GrimBool;
+            //console.error("Result of Eq for Neq:", bool.toString(), " -- negating");
+            return bool.not();
+        });
     }
 
     isCallable(val: GrimVal): boolean {
@@ -742,6 +757,8 @@ class Builder {
             GrimRat.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
         this.addCallableTag(List(["Mul", "Rat", "Rat"]),
             GrimRat.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
+        this.addCallableTag(List(["Add", "Rat", "Rat"]),
+            GrimRat.wrapBinaryOp(this, (a, b) => { return a.add(b); }));
         // not built-in to Rational in GMP
         // but int^rat does exist
         //this.addCallableTag(List(["Pow", "Rat", "Rat"]),
@@ -759,7 +776,7 @@ class Builder {
             GrimDec.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
 
         // Equality checks
-        this.addCallableTag(List(["Eq", "Bool", "Bool"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Bool", "Bool"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimBool) || !(args[1] instanceof GrimBool)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Bool");
                 return new GrimError(["Eq.Bool requires exactly 2 Bool arguments"]);
@@ -769,7 +786,7 @@ class Builder {
             }
             return new GrimError(["Eq.Bool.Bool requires Bool arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Nat", "Nat"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Nat", "Nat"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimNat) || !(args[1] instanceof GrimNat)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Nat");
                 return new GrimError(["Eq.Nat requires exactly 2 Nat arguments"]);
@@ -779,7 +796,7 @@ class Builder {
             }
             return new GrimError(["Eq.Nat.Nat requires Nat arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Int", "Int"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Int", "Int"]), (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Int");
                 return new GrimError(["Eq.Int requires exactly 2 arguments"]);
@@ -797,7 +814,7 @@ class Builder {
             }
             return new GrimError(["Eq.Int.Int requires 2 Int arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Rat", "Rat"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Rat", "Rat"]), (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Int");
                 return new GrimError(["Eq.Int requires exactly 2 arguments"]);
@@ -815,7 +832,7 @@ class Builder {
             }
             return new GrimError(["Eq.Rat.Rat requires 2 Rat arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Dec", "Dec"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Dec", "Dec"]), (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Dec");
                 return new GrimError(["Eq.Dec requires exactly 2 arguments"]);
@@ -839,7 +856,7 @@ class Builder {
             }
             return new GrimError(["Eq.Dec.Dec requires 2 Dec arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Str", "Str"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Str", "Str"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimStr) || !(args[1] instanceof GrimStr)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Str");
                 return new GrimError(["Eq.Str requires exactly 2 Str arguments"]);
@@ -849,7 +866,7 @@ class Builder {
             }
             return new GrimError(["Eq.Str.Str requires Str arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Option", "Option"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Option", "Option"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimOpt) || !(args[1] instanceof GrimOpt)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Opt");
                 return new GrimError(["Eq.Opt requires exactly 2 Opt arguments"]);
@@ -864,7 +881,7 @@ class Builder {
             }
             return new GrimError(["Eq.Opt.Opt requires Opt arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Tag", "Tag"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Tag", "Tag"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimTag) || !(args[1] instanceof GrimTag)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Tag");
                 return new GrimError(["Eq.Tag requires exactly 2 Tag arguments"]);
@@ -874,7 +891,7 @@ class Builder {
             }
             return new GrimError(["Eq.Tag.Tag requires Tag arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Var", "Var"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Var", "Var"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimVar) || !(args[1] instanceof GrimVar)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Var");
                 return new GrimError(["Eq.Var requires exactly 2 Var arguments"]);
@@ -884,7 +901,7 @@ class Builder {
             }
             return new GrimError(["Eq.Var.Var requires Var arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Sym", "Sym"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Sym", "Sym"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimSym) || !(args[1] instanceof GrimSym)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Sym");
                 return new GrimError(["Eq.Sym requires exactly 2 Sym arguments"]);
@@ -894,7 +911,7 @@ class Builder {
             }
             return new GrimError(["Eq.Sym.Sym requires Sym arguments"]);
         });
-        this.addCallableTag(List(["Eq", "List", "List"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "List", "List"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimList) || !(args[1] instanceof GrimList)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.List");
                 return new GrimError(["Eq.List requires exactly 2 List arguments"]);
@@ -904,7 +921,7 @@ class Builder {
             }
             return new GrimError(["Eq.List.List requires List arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Map", "Map"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Map", "Map"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimMap) || !(args[1] instanceof GrimMap)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Map");
                 return new GrimError(["Eq.Map requires exactly 2 Map arguments"]);
@@ -914,7 +931,7 @@ class Builder {
             }
             return new GrimError(["Eq.Map.Map requires Map arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Set", "Set"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Set", "Set"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimSet) || !(args[1] instanceof GrimSet)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Set");
                 return new GrimError(["Eq.Set requires exactly 2 Set arguments"]);
@@ -924,7 +941,7 @@ class Builder {
             }
             return new GrimError(["Eq.Set.Set requires Set arguments"]);
         });
-        this.addCallableTag(List(["Eq", "Tuple", "Tuple"]), (args: Array<GrimVal>) => {
+        this.addCallableTagEqNeqPair(List(["Eq", "Tuple", "Tuple"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimTuple) || !(args[1] instanceof GrimTuple)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Tuple");
                 return new GrimError(["Eq.Tuple requires exactly 2 Tuple arguments"]);

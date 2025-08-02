@@ -676,6 +676,12 @@ built:       Eq@(2, 2)
 canonical:   Eq(Nat("2"), Nat("2"))
 evaluated:   True
 #
+sugar:       2 != 3
+desugared:   Neq(Nat("2"), Nat("3"))
+built:       Neq@(2, 3)
+canonical:   Neq(Nat("2"), Nat("3"))
+evaluated:   True
+#
 sugar:       -2 == -2
 desugared:   Eq(Neg(Nat("2")), Neg(Nat("2")))
 built:       Eq@(Neg@(2), Neg@(2))
@@ -688,10 +694,22 @@ built:       Eq@(Neg@(Neg@(2)), 2)
 canonical:   Eq(Neg(Neg(Nat("2"))), Nat("2"))
 evaluated:   True
 #
+sugar:       (-2) != 2
+desugared:   Neq(Neg(Nat("2")), Nat("2"))
+built:       Neq@(Neg@(2), 2)
+canonical:   Neq(Neg(Nat("2")), Nat("2"))
+evaluated:   True
+#
 sugar:       (1/2) == (2/4)
 desugared:   Eq(Div(Nat("1"), Nat("2")), Div(Nat("2"), Nat("4")))
 built:       Eq@(Div@(1, 2), Div@(2, 4))
 canonical:   Eq(Div(Nat("1"), Nat("2")), Div(Nat("2"), Nat("4")))
+evaluated:   True
+#
+sugar:       (1/4)+(1/4) != 2/3
+desugared:   Neq(Add(Div(Nat("1"), Nat("4")), Div(Nat("1"), Nat("4"))), Div(Nat("2"), Nat("3")))
+built:       Neq@(Add@(Div@(1, 4), Div@(1, 4)), Div@(2, 3))
+canonical:   Neq(Add(Div(Nat("1"), Nat("4")), Div(Nat("1"), Nat("4"))), Div(Nat("2"), Nat("3")))
 evaluated:   True
 #
 sugar:       1.25 == 1.250
@@ -700,10 +718,22 @@ built:       Eq@(1.25, 1.250)
 canonical:   Eq(Dec("1.25"), Dec("1.250"))
 evaluated:   True
 #
+sugar:       1.0 != 1.01
+desugared:   Neq(Dec("1.0"), Dec("1.01"))
+built:       Neq@(1.0, 1.01)
+canonical:   Neq(Dec("1.0"), Dec("1.01"))
+evaluated:   True
+#
 sugar:       1.0 == 1
 desugared:   Eq(Dec("1.0"), Nat("1"))
 built:       Eq@(1.0, 1)
 canonical:   Eq(Dec("1.0"), Nat("1"))
+evaluated:   True
+#
+sugar:       2.0 != 1
+desugared:   Neq(Dec("2.0"), Nat("1"))
+built:       Neq@(2.0, 1)
+canonical:   Neq(Dec("2.0"), Nat("1"))
 evaluated:   True
 #
 sugar:       1.23456789 == 1.234567890
@@ -712,17 +742,41 @@ built:       Eq@(1.23456789, 1.234567890)
 canonical:   Eq(Dec("1.23456789"), Dec("1.234567890"))
 evaluated:   True
 #
+sugar:       9.876543210 != 9.8765432
+desugared:   Neq(Dec("9.876543210"), Dec("9.8765432"))
+built:       Neq@(9.876543210, 9.8765432)
+canonical:   Neq(Dec("9.876543210"), Dec("9.8765432"))
+evaluated:   True
+#
 sugar:       'this "is" a test' == "this \"is\" a test"
 desugared:   Eq('this "is" a test', 'this "is" a test')
 built:       Eq@('this "is" a test', 'this "is" a test')
 canonical:   Eq('this "is" a test', 'this "is" a test')
 evaluated:   True
 #
-sugar:       True == False
-desugared:   Eq(Tag("True"), Tag("False"))
-built:       Eq@(True, False)
-canonical:   Eq(True, False)
-evaluated:   False
+sugar:       'this "is" a test' != "this 'is' a test"
+desugared:   Neq('this "is" a test', "this 'is' a test")
+built:       Neq@('this "is" a test', "this 'is' a test")
+canonical:   Neq('this "is" a test', "this 'is' a test")
+evaluated:   True
+#
+sugar:       True == True
+desugared:   Eq(Tag("True"), Tag("True"))
+built:       Eq@(True, True)
+canonical:   Eq(True, True)
+evaluated:   True
+#
+sugar:       False == False
+desugared:   Eq(Tag("False"), Tag("False"))
+built:       Eq@(False, False)
+canonical:   Eq(False, False)
+evaluated:   True
+#
+sugar:       True != False
+desugared:   Neq(Tag("True"), Tag("False"))
+built:       Neq@(True, False)
+canonical:   Neq(True, False)
+evaluated:   True
 #
 sugar:       Some("value") == Some("value")
 desugared:   Eq(Tag("Some")@("value"), Tag("Some")@("value"))
@@ -730,23 +784,29 @@ built:       Eq@(Some@("value"), Some@("value"))
 canonical:   Eq(Some("value"), Some("value"))
 evaluated:   True
 #
-sugar:       Some("value") == Some("other")
-desugared:   Eq(Tag("Some")@("value"), Tag("Some")@("other"))
-built:       Eq@(Some@("value"), Some@("other"))
-canonical:   Eq(Some("value"), Some("other"))
-evaluated:   False
+sugar:       Some("value") != Some("other")
+desugared:   Neq(Tag("Some")@("value"), Tag("Some")@("other"))
+built:       Neq@(Some@("value"), Some@("other"))
+canonical:   Neq(Some("value"), Some("other"))
+evaluated:   True
 #
-sugar:       Some("value") == None
-desugared:   Eq(Tag("Some")@("value"), Tag("None"))
-built:       Eq@(Some@("value"), None)
-canonical:   Eq(Some("value"), None)
-evaluated:   False
+sugar:       Some("value") != None
+desugared:   Neq(Tag("Some")@("value"), Tag("None"))
+built:       Neq@(Some@("value"), None)
+canonical:   Neq(Some("value"), None)
+evaluated:   True
 #
-sugar:       Anything == Nothing
-desugared:   Eq(Tag("Anything"), Tag("Nothing"))
-built:       Eq@(Anything, Nothing)
-canonical:   Eq(Anything, Nothing)
-evaluated:   False
+sugar:       Anything != Nothing
+desugared:   Neq(Tag("Anything"), Tag("Nothing"))
+built:       Neq@(Anything, Nothing)
+canonical:   Neq(Anything, Nothing)
+evaluated:   True
+#
+sugar:       MyNewTag == MyNewTag
+desugared:   Eq(Tag("MyNewTag"), Tag("MyNewTag"))
+built:       Eq@(MyNewTag, MyNewTag)
+canonical:   Eq(MyNewTag, MyNewTag)
+evaluated:   True
 #
 sugar:       Var("x") == Var("x")
 desugared:   Eq(Tag("Var")@("x"), Tag("Var")@("x"))
@@ -754,16 +814,22 @@ built:       Eq@(Var@("x"), Var@("x"))
 canonical:   Eq(Var("x"), Var("x"))
 evaluated:   True
 #
-sugar:       Var("x") == Var("y")
-desugared:   Eq(Tag("Var")@("x"), Tag("Var")@("y"))
-built:       Eq@(Var@("x"), Var@("y"))
-canonical:   Eq(Var("x"), Var("y"))
-evaluated:   False
+sugar:       Var("x") != Var("y")
+desugared:   Neq(Tag("Var")@("x"), Tag("Var")@("y"))
+built:       Neq@(Var@("x"), Var@("y"))
+canonical:   Neq(Var("x"), Var("y"))
+evaluated:   True
 #
 sugar:       [1, 2, 3] == [1, 2, 3]
 desugared:   Eq(List(Nat("1"), Nat("2"), Nat("3")), List(Nat("1"), Nat("2"), Nat("3")))
 built:       Eq@([1, 2, 3], [1, 2, 3])
 canonical:   Eq(List(Nat("1"), Nat("2"), Nat("3")), List(Nat("1"), Nat("2"), Nat("3")))
+evaluated:   True
+#
+sugar:       [1, 2, 3] != [1, 2, 4]
+desugared:   Neq(List(Nat("1"), Nat("2"), Nat("3")), List(Nat("1"), Nat("2"), Nat("4")))
+built:       Neq@([1, 2, 3], [1, 2, 4])
+canonical:   Neq(List(Nat("1"), Nat("2"), Nat("3")), List(Nat("1"), Nat("2"), Nat("4")))
 evaluated:   True
 #
 sugar:       (1, 2, 3) == (1, 2, 3)
@@ -772,16 +838,34 @@ built:       Eq@((1, 2, 3), (1, 2, 3))
 canonical:   Eq(Tuple(Nat("1"), Nat("2"), Nat("3")), Tuple(Nat("1"), Nat("2"), Nat("3")))
 evaluated:   True
 #
+sugar:       (1, 2, 3) != (1, 2, 4)
+desugared:   Neq(Tuple(Nat("1"), Nat("2"), Nat("3")), Tuple(Nat("1"), Nat("2"), Nat("4")))
+built:       Neq@((1, 2, 3), (1, 2, 4))
+canonical:   Neq(Tuple(Nat("1"), Nat("2"), Nat("3")), Tuple(Nat("1"), Nat("2"), Nat("4")))
+evaluated:   True
+#
 sugar:       {"key": "value"} == {"key": "value"}
 desugared:   Eq(Map(Tuple("key", "value")), Map(Tuple("key", "value")))
 built:       Eq@({"key": "value"}, {"key": "value"})
 canonical:   Eq(Map(Tuple("key", "value")), Map(Tuple("key", "value")))
 evaluated:   True
 #
+sugar:       {"key": "value"} != {"key": "other"}
+desugared:   Neq(Map(Tuple("key", "value")), Map(Tuple("key", "other")))
+built:       Neq@({"key": "value"}, {"key": "other"})
+canonical:   Neq(Map(Tuple("key", "value")), Map(Tuple("key", "other")))
+evaluated:   True
+#
 sugar:       Set("a", "b") == Set("a", "b", "a", "b")
 desugared:   Eq(Tag("Set")@("a", "b"), Tag("Set")@("a", "b", "a", "b"))
 built:       Eq@(Set@("a", "b"), Set@("a", "b", "a", "b"))
 canonical:   Eq(Set("a", "b"), Set("a", "b", "a", "b"))
+evaluated:   True
+#
+sugar:       Set("a", "b") != Set("a", "c")
+desugared:   Neq(Tag("Set")@("a", "b"), Tag("Set")@("a", "c"))
+built:       Neq@(Set@("a", "b"), Set@("a", "c"))
+canonical:   Neq(Set("a", "b"), Set("a", "c"))
 evaluated:   True
 #
 #sugar:       2 <= 3

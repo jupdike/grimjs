@@ -27,6 +27,10 @@ class GrimBool extends GrimVal {
         return 'Bool';
     }
 
+    not(): GrimBool {
+        return this.value ? GrimBool.False : GrimBool.True;
+    }
+
     equals(other: GrimVal): boolean {
         if (other instanceof GrimBool) {
             return this.value === other.value;
