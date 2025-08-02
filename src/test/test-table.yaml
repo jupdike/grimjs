@@ -867,6 +867,35 @@ desugared:   Neq(Tag("Set")@("a", "b"), Tag("Set")@("a", "c"))
 built:       Neq@(Set@("a", "b"), Set@("a", "c"))
 canonical:   Neq(Set("a", "b"), Set("a", "c"))
 evaluated:   True
+# Conditionals
+sugar:       If3(True, 41 + 1, Crash())
+desugared:   Tag("If3")@(Tag("True"), Add(Nat("41"), Nat("1")), Tag("Crash")@())
+built:       If3@(True, Add@(41, 1), Crash@())
+canonical:   If3(True, Add(Nat("41"), Nat("1")), Crash())
+evaluated:   42
+#
+sugar:       If3(False, Crash(), 41 + 1)
+desugared:   Tag("If3")@(Tag("False"), Tag("Crash")@(), Add(Nat("41"), Nat("1")))
+built:       If3@(False, Crash@(), Add@(41, 1))
+canonical:   If3(False, Crash(), Add(Nat("41"), Nat("1")))
+evaluated:   42
+#
+sugar:       fact(5)
+desugared:   Sym("fact")@(Nat("5"))
+built:       Sym("fact")@(5)
+canonical:   App(Sym("fact"), Nat("5"))
+evaluated:   120
+#
+sugar:       fib(7)
+
+desugared:   Sym("fib")@(Nat("7"))
+Desugared AST does not match expected: Sym("fib")@(Nat("7")) !== 
+built:       Sym("fib")@(7)
+Built GrimVal does not match expected: Sym("fib")@(7) !== 
+canonical:   App(Sym("fib"), Nat("7"))
+Parsed canonical string does not match expected: App(Sym("fib"), Nat("7")) !== 
+Canonical string does not match expected: App(Sym("fib"), Nat("7")) !== 
+evaluated:   13
 #
 #sugar:       2 <= 3
 #
