@@ -888,6 +888,46 @@ class Builder {
             }
             return new GrimError(["Eq.Sym.Sym requires Sym arguments"]);
         });
+        this.addCallableTag(List(["Eq", "List", "List"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimList) || !(args[1] instanceof GrimList)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.List");
+                return new GrimError(["Eq.List requires exactly 2 List arguments"]);
+            }
+            if (args[0] instanceof GrimList && args[1] instanceof GrimList) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.List.List requires List arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Map", "Map"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimMap) || !(args[1] instanceof GrimMap)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Map");
+                return new GrimError(["Eq.Map requires exactly 2 Map arguments"]);
+            }
+            if (args[0] instanceof GrimMap && args[1] instanceof GrimMap) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Map.Map requires Map arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Set", "Set"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimSet) || !(args[1] instanceof GrimSet)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Set");
+                return new GrimError(["Eq.Set requires exactly 2 Set arguments"]);
+            }
+            if (args[0] instanceof GrimSet && args[1] instanceof GrimSet) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Set.Set requires Set arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Tuple", "Tuple"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimTuple) || !(args[1] instanceof GrimTuple)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Tuple");
+                return new GrimError(["Eq.Tuple requires exactly 2 Tuple arguments"]);
+            }
+            if (args[0] instanceof GrimTuple && args[1] instanceof GrimTuple) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Tuple.Tuple requires Tuple arguments"]);
+        });
     }
 }
 

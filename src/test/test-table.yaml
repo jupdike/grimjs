@@ -748,6 +748,30 @@ built:       Eq@(Var@("x"), Var@("y"))
 canonical:   Eq(Var("x"), Var("y"))
 evaluated:   False
 #
+sugar:       [1, 2, 3] == [1, 2, 3]
+desugared:   Eq(List(Nat("1"), Nat("2"), Nat("3")), List(Nat("1"), Nat("2"), Nat("3")))
+built:       Eq@([1, 2, 3], [1, 2, 3])
+canonical:   Eq(List(Nat("1"), Nat("2"), Nat("3")), List(Nat("1"), Nat("2"), Nat("3")))
+evaluated:   True
+#
+sugar:       (1, 2, 3) == (1, 2, 3)
+desugared:   Eq(Tuple(Nat("1"), Nat("2"), Nat("3")), Tuple(Nat("1"), Nat("2"), Nat("3")))
+built:       Eq@((1, 2, 3), (1, 2, 3))
+canonical:   Eq(Tuple(Nat("1"), Nat("2"), Nat("3")), Tuple(Nat("1"), Nat("2"), Nat("3")))
+evaluated:   True
+#
+sugar:       {"key": "value"} == {"key": "value"}
+desugared:   Eq(Map(Tuple("key", "value")), Map(Tuple("key", "value")))
+built:       Eq@({"key": "value"}, {"key": "value"})
+canonical:   Eq(Map(Tuple("key", "value")), Map(Tuple("key", "value")))
+evaluated:   True
+#
+sugar:       Set("a", "b") == Set("a", "b", "a", "b")
+desugared:   Eq(Tag("Set")@("a", "b"), Tag("Set")@("a", "b", "a", "b"))
+built:       Eq@(Set@("a", "b"), Set@("a", "b", "a", "b"))
+canonical:   Eq(Set("a", "b"), Set("a", "b", "a", "b"))
+evaluated:   True
+#
 #sugar:       2 <= 3
 #
 #sugar:       3 >= 2
