@@ -625,6 +625,30 @@ class Builder {
         //   DefCast(Int, Nat)
         // or
         //   Int :> Nat
+        // ---
+        // casting allows just these definitions
+        //   Tag(x, x)
+        //   Tag(y, y)
+        //   Tag(z, z)
+        // plus
+        //   y :> x
+        //   z :> y
+        //   z :> x
+        // to be used in a function like this:
+        // to automatically cast from
+        // Tag(x, y)
+        // or
+        // Tag(y, x)
+        // or
+        // Tag(z, x)
+        // or
+        // Tag(z, y)
+        // TO...
+        // Tag(y, y)
+        // or
+        // Tag(z, z)
+        // as long as Z(y) and Z(x) are defined
+        // This all eliminates a lot of boilerplate M x N code
 
         this.addCallableTag(List(["Mul", "Nat", "Nat"]),
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.mul(b); }));
@@ -729,6 +753,16 @@ class Builder {
             GrimDec.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
 
         // Equality checks
+        this.addCallableTag(List(["Eq", "Bool", "Bool"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimBool) || !(args[1] instanceof GrimBool)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Bool");
+                return new GrimError(["Eq.Bool requires exactly 2 Bool arguments"]);
+            }
+            if (args[0] instanceof GrimBool && args[1] instanceof GrimBool) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Bool.Bool requires Bool arguments"]);
+        });
         this.addCallableTag(List(["Eq", "Nat", "Nat"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimNat) || !(args[1] instanceof GrimNat)) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Eq.Nat");
@@ -799,30 +833,61 @@ class Builder {
             }
             return new GrimError(["Eq.Dec.Dec requires 2 Dec arguments"]);
         });
-
-        // casting allows just these definitions
-        //   Tag(x, x)
-        //   Tag(y, y)
-        //   Tag(z, z)
-        // plus
-        //   y :> x
-        //   z :> y
-        //   z :> x
-        // to be used in a function like this:
-        // to automatically cast from
-        // Tag(x, y)
-        // or
-        // Tag(y, x)
-        // or
-        // Tag(z, x)
-        // or
-        // Tag(z, y)
-        // TO...
-        // Tag(y, y)
-        // or
-        // Tag(z, z)
-        // as long as Z(y) and Z(x) are defined
-        // This all eliminates a lot of boilerplate M x N code
+        this.addCallableTag(List(["Eq", "Str", "Str"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimStr) || !(args[1] instanceof GrimStr)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Str");
+                return new GrimError(["Eq.Str requires exactly 2 Str arguments"]);
+            }
+            if (args[0] instanceof GrimStr && args[1] instanceof GrimStr) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Str.Str requires Str arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Option", "Option"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimOpt) || !(args[1] instanceof GrimOpt)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Opt");
+                return new GrimError(["Eq.Opt requires exactly 2 Opt arguments"]);
+            }
+            if (args[0] instanceof GrimOpt && args[1] instanceof GrimOpt) {
+                if (args[0].isNone() && args[1].isNone()) {
+                    return new GrimBool(true); // Both are None
+                } else if (args[0].value != null && args[1].value != null) {
+                    return new GrimBool(args[0].value.equals(args[1].value));
+                }
+                return new GrimBool(false); // One is Some, the other is None
+            }
+            return new GrimError(["Eq.Opt.Opt requires Opt arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Tag", "Tag"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimTag) || !(args[1] instanceof GrimTag)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Tag");
+                return new GrimError(["Eq.Tag requires exactly 2 Tag arguments"]);
+            }
+            if (args[0] instanceof GrimTag && args[1] instanceof GrimTag) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Tag.Tag requires Tag arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Var", "Var"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimVar) || !(args[1] instanceof GrimVar)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Var");
+                return new GrimError(["Eq.Var requires exactly 2 Var arguments"]);
+            }
+            if (args[0] instanceof GrimVar && args[1] instanceof GrimVar) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Var.Var requires Var arguments"]);
+        });
+        this.addCallableTag(List(["Eq", "Sym", "Sym"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimSym) || !(args[1] instanceof GrimSym)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Eq.Sym");
+                return new GrimError(["Eq.Sym requires exactly 2 Sym arguments"]);
+            }
+            if (args[0] instanceof GrimSym && args[1] instanceof GrimSym) {
+                return new GrimBool(args[0].equals(args[1]));
+            }
+            return new GrimError(["Eq.Sym.Sym requires Sym arguments"]);
+        });
     }
 }
 

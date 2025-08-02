@@ -4,7 +4,7 @@ import { GrimStr } from "./GrimStr.js";
 import { Builder } from "./Builder.js";
 
 class GrimOpt extends GrimVal {
-    private value: GrimVal | null;
+    readonly value: GrimVal | null;
 
     static None: GrimOpt = new GrimOpt(null);
 
@@ -12,7 +12,7 @@ class GrimOpt extends GrimVal {
         return new GrimOpt(value);
     }
 
-    private constructor(value: GrimVal | null) {
+    constructor(value: GrimVal | null) {
         super();
         this.value = value;
     }
@@ -26,6 +26,14 @@ class GrimOpt extends GrimVal {
     }
 
     isAtom(): boolean {
+        return this.value === null;
+    }
+
+    isSome(): boolean {
+        return this.value !== null;
+    }
+
+    isNone(): boolean {
         return this.value === null;
     }
 

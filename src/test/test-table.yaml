@@ -700,6 +700,54 @@ built:       Eq@(1.23456789, 1.234567890)
 canonical:   Eq(Dec("1.23456789"), Dec("1.234567890"))
 evaluated:   True
 #
+sugar:       'this "is" a test' == "this \"is\" a test"
+desugared:   Eq('this "is" a test', 'this "is" a test')
+built:       Eq@('this "is" a test', 'this "is" a test')
+canonical:   Eq('this "is" a test', 'this "is" a test')
+evaluated:   True
+#
+sugar:       True == False
+desugared:   Eq(Tag("True"), Tag("False"))
+built:       Eq@(True, False)
+canonical:   Eq(True, False)
+evaluated:   False
+#
+sugar:       Some("value") == Some("value")
+desugared:   Eq(Tag("Some")@("value"), Tag("Some")@("value"))
+built:       Eq@(Some@("value"), Some@("value"))
+canonical:   Eq(Some("value"), Some("value"))
+evaluated:   True
+#
+sugar:       Some("value") == Some("other")
+desugared:   Eq(Tag("Some")@("value"), Tag("Some")@("other"))
+built:       Eq@(Some@("value"), Some@("other"))
+canonical:   Eq(Some("value"), Some("other"))
+evaluated:   False
+#
+sugar:       Some("value") == None
+desugared:   Eq(Tag("Some")@("value"), Tag("None"))
+built:       Eq@(Some@("value"), None)
+canonical:   Eq(Some("value"), None)
+evaluated:   False
+#
+sugar:       Anything == Nothing
+desugared:   Eq(Tag("Anything"), Tag("Nothing"))
+built:       Eq@(Anything, Nothing)
+canonical:   Eq(Anything, Nothing)
+evaluated:   False
+#
+sugar:       Var("x") == Var("x")
+desugared:   Eq(Tag("Var")@("x"), Tag("Var")@("x"))
+built:       Eq@(Var@("x"), Var@("x"))
+canonical:   Eq(Var("x"), Var("x"))
+evaluated:   True
+#
+sugar:       Var("x") == Var("y")
+desugared:   Eq(Tag("Var")@("x"), Tag("Var")@("y"))
+built:       Eq@(Var@("x"), Var@("y"))
+canonical:   Eq(Var("x"), Var("y"))
+evaluated:   False
+#
 #sugar:       2 <= 3
 #
 #sugar:       3 >= 2

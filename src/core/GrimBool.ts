@@ -23,12 +23,19 @@ class GrimBool extends GrimVal {
         return this.value ? 'True' : 'False';
     }
 
+    head(): string {
+        return 'Bool';
+    }
+
+    equals(other: GrimVal): boolean {
+        if (other instanceof GrimBool) {
+            return this.value === other.value;
+        }
+        return false;
+    }
+
     isTrue() : boolean { return this.value;  }
     isFalse(): boolean { return !this.value; }
-
-    static Eq(a: GrimBool, b: GrimBool): GrimBool {
-        return new GrimBool(a.isTrue() === b.isTrue());
-    }
 
     static maker(ast: CanAst | Array<GrimVal>): GrimVal {
         if (Array.isArray(ast)) {

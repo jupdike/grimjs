@@ -122,7 +122,7 @@ class Eval {
                     tuple = tuple.push(type);
                 });
                 // Check if we have a callable tag method for this tuple
-                //console.log("looking for callable tag method for tuple:", tuple.toString());
+                //console.error("looking for callable tag method for tuple:", tuple.toString());
                 if (builder.callableTagMethodTupleToFuncMap.has(tuple)) {
                     // If we have a callable tag method for this tuple, use it
                     e2 = builder.callableTagMethodTupleToFuncMap.get(tuple)!(argsEvaluated);
@@ -132,7 +132,7 @@ class Eval {
                 // e.g. Nat to Int, Int to Rat, etc.
                 // This is a way to handle cases like Nat(123) + Int(456)
                 if (tuple.size >= 3) {
-                    //console.log("No callable tag method found for tuple:", tuple.toString());
+                    //console.error("No callable tag method found for tuple:", tuple.toString());
                     // Try to find a cast for this pair of tags, in either direction, then
                     // use SmallerTag to BiggerTag, e.g. Nat to Int, Int to Rat, etc.
                     let smallTag: string = "";
