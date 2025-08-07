@@ -791,6 +791,14 @@ class Builder {
         // but int^rat does exist
         //this.addCallableTag(List(["Pow", "Rat", "Rat"]),
         //    GrimRat.wrapBinaryOp(this, (a, b) => { return a.pow(b); }));
+        this.addCallableTag(List(["Lt", "Rat", "Rat"]),
+            GrimRat.wrapBinaryOpBool(this, (a, b) => { return a.lessThan(b); }));
+        this.addCallableTag(List(["LtEq", "Rat", "Rat"]),
+            GrimRat.wrapBinaryOpBool(this, (a, b) => { return a.lessOrEqual(b); }));
+        this.addCallableTag(List(["Gt", "Rat", "Rat"]),
+            GrimRat.wrapBinaryOpBool(this, (a, b) => { return a.greaterThan(b); }));
+        this.addCallableTag(List(["GtEq", "Rat", "Rat"]),
+            GrimRat.wrapBinaryOpBool(this, (a, b) => { return a.greaterOrEqual(b); }));
 
         this.addCallableTag(List(["Add", "Dec", "Dec"]),
             GrimDec.wrapBinaryOp(this, (a, b) => { return a.add(b); }));

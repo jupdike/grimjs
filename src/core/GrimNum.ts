@@ -234,10 +234,10 @@ class GrimInt extends GrimNat {
             let args0 = args[0];
             let args1 = args[1];
             // allow GrimNat to be passed in as well
-            if (args0 instanceof GrimNat && !(args0 instanceof GrimInt)) {
+            if (args0 instanceof GrimNat) {
                 args0 = new GrimInt(args0.value);
             }
-            if (args1 instanceof GrimNat && !(args1 instanceof GrimInt)) {
+            if (args1 instanceof GrimNat) {
                 args1 = new GrimInt(args1.value);
             }
             if (args0 instanceof GrimInt && args1 instanceof GrimInt) {
@@ -379,6 +379,37 @@ class GrimRat extends GrimVal {
                 });
             }
             return new GrimError(["dos -- Rat -- Op.Type.Type requires Type arguments"]);
+        };
+    }
+
+    static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
+        return (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.error("GrimTag.addCallableTag called with invalid args for Op.Int.Int");
+                return new GrimError(["Op.Int.Int requires exactly 2 arguments"]);
+            }
+            let args0 = args[0];
+            let args1 = args[1];
+            if (!(args0 instanceof GrimRat)) {
+                args0 = GrimRat.fromString(args0.toString());
+            }
+            if (!(args1 instanceof GrimRat)) {
+                args1 = GrimRat.fromString(args1.toString());
+            }
+            if (args0 instanceof GrimRat && args1 instanceof GrimRat) {
+                const gmpLib = builder.gmpLib;
+                if (!gmpLib) {
+                    console.error("GrimRat.wrapBinaryOpBool called but builder.gmpLib is null");
+                    return new GrimError(["GMP library not initialized"]);
+                }
+                const ctx = gmpLib.getContext();
+                let x: any = ctx.Rational(args0.toString());
+                let y: any = ctx.Rational(args1.toString());
+                let result: boolean = fn(x, y);
+                setTimeout(() => ctx.destroy(), 50);
+                return GrimBool.fromBool(result);
+            }
+            return new GrimError(["Op.Rat.Rat requires Rat arguments"]);
         };
     }
 }
