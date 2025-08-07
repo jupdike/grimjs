@@ -477,6 +477,18 @@ built:       Sub@(45, 46)
 canonical:   Sub(Nat("45"), Nat("46"))
 evaluated:   -1
 #
+sugar:       100 % 4
+desugared:   Mod(Nat("100"), Nat("4"))
+built:       Mod@(100, 4)
+canonical:   Mod(Nat("100"), Nat("4"))
+evaluated:   0
+#
+sugar:       100 % 3
+desugared:   Mod(Nat("100"), Nat("3"))
+built:       Mod@(100, 3)
+canonical:   Mod(Nat("100"), Nat("3"))
+evaluated:   1
+#
 sugar:       (1 + 2) * (3 + 4)
 desugared:   Mul(Add(Nat("1"), Nat("2")), Add(Nat("3"), Nat("4")))
 built:       Mul@(Add@(1, 2), Add@(3, 4))

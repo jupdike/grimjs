@@ -1,5 +1,5 @@
 import { List, Map, PairSorting, Set } from "immutable";
-import type { GMPLib } from "gmp-wasm";
+import { DivMode, type GMPLib } from "gmp-wasm";
 import { GrimParser } from "../parser/GrimParser.js";
 
 import * as parserCanon from '../parser/_parser-canon.js';
@@ -671,6 +671,12 @@ class Builder {
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.add(b); }));
         this.addCallableTag(List(["Pow", "Nat", "Nat"]),
             GrimNat.wrapBinaryOp(this, (a, b) => { return a.pow(b); }));
+        this.addCallableTag(List(["Mod", "Nat", "Nat"]),
+            GrimNat.wrapBinaryOp(this, (a, b) => {
+                let c = a.div(b, DivMode.FLOOR);
+                let r = a.sub(c.mul(b));
+                return r;
+            }));
 
         this.addCallableTag(List(["Pos", "Nat"]), (args: Array<GrimVal>) => {
             if (args.length !== 1 || !(args[0] instanceof GrimNat)) {
@@ -700,6 +706,12 @@ class Builder {
             GrimInt.wrapBinaryOp(this, (a, b) => { return a.sub(b); }));
         this.addCallableTag(List(["Pow", "Int", "Int"]),
             GrimInt.wrapBinaryOp(this, (a, b) => { return a.pow(b); }));
+        this.addCallableTag(List(["Mod", "Int", "Int"]),
+            GrimInt.wrapBinaryOp(this, (a, b) => {
+                let c = a.div(b, DivMode.FLOOR);
+                let r = a.sub(c.mul(b));
+                return r;
+            }));
 
         this.addCallableTag(List(["Pos", "Int"]), (args: Array<GrimVal>) => {
             if (args.length !== 1 || !(args[0] instanceof GrimInt)) {
