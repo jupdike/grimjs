@@ -893,7 +893,6 @@ canonical:   App(Sym("fact"), Nat("5"))
 evaluated:   120
 #
 sugar:       fib(7)
-
 desugared:   Sym("fib")@(Nat("7"))
 built:       Sym("fib")@(7)
 canonical:   App(Sym("fib"), Nat("7"))
