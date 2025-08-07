@@ -677,6 +677,14 @@ class Builder {
                 let r = a.sub(c.mul(b));
                 return r;
             }));
+        this.addCallableTag(List(["Lt", "Nat", "Nat"]),
+            GrimNat.wrapBinaryOpBool(this, (a, b) => { return a.lessThan(b); }));
+        this.addCallableTag(List(["LtEq", "Nat", "Nat"]),
+            GrimNat.wrapBinaryOpBool(this, (a, b) => { return a.lessOrEqual(b); }));
+        this.addCallableTag(List(["Gt", "Nat", "Nat"]),
+            GrimNat.wrapBinaryOpBool(this, (a, b) => { return a.greaterThan(b); }));
+        this.addCallableTag(List(["GtEq", "Nat", "Nat"]),
+            GrimNat.wrapBinaryOpBool(this, (a, b) => { return a.greaterOrEqual(b); }));
 
         this.addCallableTag(List(["Pos", "Nat"]), (args: Array<GrimVal>) => {
             if (args.length !== 1 || !(args[0] instanceof GrimNat)) {
@@ -712,6 +720,14 @@ class Builder {
                 let r = a.sub(c.mul(b));
                 return r;
             }));
+        this.addCallableTag(List(["Lt", "Int", "Int"]),
+            GrimInt.wrapBinaryOpBool(this, (a, b) => { return a.lessThan(b); }));
+        this.addCallableTag(List(["LtEq", "Int", "Int"]),
+            GrimInt.wrapBinaryOpBool(this, (a, b) => { return a.lessOrEqual(b); }));
+        this.addCallableTag(List(["Gt", "Int", "Int"]),
+            GrimInt.wrapBinaryOpBool(this, (a, b) => { return a.greaterThan(b); }));
+        this.addCallableTag(List(["GtEq", "Int", "Int"]),
+            GrimInt.wrapBinaryOpBool(this, (a, b) => { return a.greaterOrEqual(b); }));
 
         this.addCallableTag(List(["Pos", "Int"]), (args: Array<GrimVal>) => {
             if (args.length !== 1 || !(args[0] instanceof GrimInt)) {

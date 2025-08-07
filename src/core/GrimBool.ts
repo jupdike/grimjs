@@ -41,6 +41,10 @@ class GrimBool extends GrimVal {
     isTrue() : boolean { return this.value;  }
     isFalse(): boolean { return !this.value; }
 
+    static fromBool(value: boolean): GrimBool {
+        return value ? GrimBool.True : GrimBool.False;
+    }
+
     static maker(ast: CanAst | Array<GrimVal>): GrimVal {
         if (Array.isArray(ast)) {
             if (ast.length !== 1 || !(ast[0] instanceof GrimBool || ast[0] instanceof GrimStr)) {

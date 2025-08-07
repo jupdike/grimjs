@@ -910,9 +910,53 @@ built:       Sym("fib")@(7)
 canonical:   App(Sym("fib"), Nat("7"))
 evaluated:   13
 #
+sugar:       2 <= 3
+desugared:   LtEq(Nat("2"), Nat("3"))
+built:       LtEq@(2, 3)
+canonical:   LtEq(Nat("2"), Nat("3"))
+evaluated:   True
+#
+sugar:       2 >= 2
+desugared:   GtEq(Nat("2"), Nat("2"))
+built:       GtEq@(2, 2)
+canonical:   GtEq(Nat("2"), Nat("2"))
+evaluated:   True
+#
+sugar:       3 > 2
+desugared:   Gt(Nat("3"), Nat("2"))
+built:       Gt@(3, 2)
+canonical:   Gt(Nat("3"), Nat("2"))
+evaluated:   True
+#
+sugar:       2 < 3
+desugared:   Lt(Nat("2"), Nat("3"))
+built:       Lt@(2, 3)
+canonical:   Lt(Nat("2"), Nat("3"))
+evaluated:   True
+#
+sugar:       -2 < -1
+desugared:   Lt(Neg(Nat("2")), Neg(Nat("1")))
+built:       Lt@(Neg@(2), Neg@(1))
+canonical:   Lt(Neg(Nat("2")), Neg(Nat("1")))
+evaluated:   True
+#
+sugar:       -98765432123456789 <= -98765432123456788
+desugared:   LtEq(Neg(Nat("98765432123456789")), Neg(Nat("98765432123456788")))
+built:       LtEq@(Neg@(98765432123456789), Neg@(98765432123456788))
+canonical:   LtEq(Neg(Nat("98765432123456789")), Neg(Nat("98765432123456788")))
+evaluated:   True
+#
+sugar:       -12345 > -1234567890123456789012345678901234567890
+desugared:   Gt(Neg(Nat("12345")), Neg(Nat("1234567890123456789012345678901234567890")))
+built:       Gt@(Neg@(12345), Neg@(1234567890123456789012345678901234567890))
+canonical:   Gt(Neg(Nat("12345")), Neg(Nat("1234567890123456789012345678901234567890")))
+evaluated:   True
+#
+sugar:       -3 >= -4
+desugared:   GtEq(Neg(Nat("3")), Neg(Nat("4")))
+built:       GtEq@(Neg@(3), Neg@(4))
+canonical:   GtEq(Neg(Nat("3")), Neg(Nat("4")))
+evaluated:   True
+#
 #sugar:       (n := 0) => n == 0 || n == 1
-#
-#sugar:       2 <= 3
-#
-#sugar:       3 >= 2
 #

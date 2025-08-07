@@ -7,6 +7,7 @@ import { GrimError } from "./GrimOpt.js";
 import { GrimStr } from './GrimStr.js';
 import { Builder } from './Builder.js';
 import type { FuncType } from './Builder.js';
+import { GrimBool } from './GrimBool.js';
 
 // for api for GMP's wrapped Float, see:
 //   https://github.com/Daninet/gmp-wasm/blob/master/src/float.ts
@@ -106,6 +107,29 @@ class GrimNat extends GrimVal {
             return new GrimError(["Op.Type.Type requires Type arguments"]);
         };
     }
+
+    static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
+        return (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Op.Type.Type");
+                return new GrimError(["Op.Type.Type requires exactly 2 arguments"]);
+            }
+            if (args[0] instanceof GrimNat && args[1] instanceof GrimNat) {
+                const gmpLib = builder.gmpLib;
+                if (!gmpLib) {
+                    console.error("GrimNat.wrapBinaryOpBool called but builder.gmpLib is null");
+                    return new GrimError(["GMP library not initialized"]);
+                }
+                const ctx = gmpLib.getContext();
+                let x: any = ctx.Integer(args[0].value);
+                let y: any = ctx.Integer(args[1].value);
+                let result: boolean = fn(x, y);
+                setTimeout(() => ctx.destroy(), 50);
+                return GrimBool.fromBool(result);
+            }
+            return new GrimError(["Op.Type.Type requires Type arguments"]);
+        };
+    }
 }
 
 class GrimInt extends GrimNat {
@@ -196,6 +220,29 @@ class GrimInt extends GrimNat {
                 return GrimInt.fromBinaryFunction(builder.gmpLib, args[0], args[1], (a: any, b: any) => {
                     return fn(a, b); // Use GMP's operation on two IntegerTypes
                 });
+            }
+            return new GrimError(["Op.Type.Type requires Type arguments"]);
+        };
+    }
+
+    static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
+        return (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Op.Type.Type");
+                return new GrimError(["Op.Type.Type requires exactly 2 arguments"]);
+            }
+            if (args[0] instanceof GrimInt && args[1] instanceof GrimInt) {
+                const gmpLib = builder.gmpLib;
+                if (!gmpLib) {
+                    console.error("GrimInt.wrapBinaryOpBool called but builder.gmpLib is null");
+                    return new GrimError(["GMP library not initialized"]);
+                }
+                const ctx = gmpLib.getContext();
+                let x: any = ctx.Integer(args[0].value);
+                let y: any = ctx.Integer(args[1].value);
+                let result: boolean = fn(x, y);
+                setTimeout(() => ctx.destroy(), 50);
+                return GrimBool.fromBool(result);
             }
             return new GrimError(["Op.Type.Type requires Type arguments"]);
         };
