@@ -111,8 +111,8 @@ class GrimNat extends GrimVal {
     static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
-                console.warn("GrimTag.addCallableTag called with invalid args for Op.Type.Type");
-                return new GrimError(["Op.Type.Type requires exactly 2 arguments"]);
+                console.warn("GrimTag.addCallableTag called with invalid args for Op.Nat.Nat");
+                return new GrimError(["Op.Nat.Nat requires exactly 2 arguments"]);
             }
             if (args[0] instanceof GrimNat && args[1] instanceof GrimNat) {
                 const gmpLib = builder.gmpLib;
@@ -127,7 +127,7 @@ class GrimNat extends GrimVal {
                 setTimeout(() => ctx.destroy(), 50);
                 return GrimBool.fromBool(result);
             }
-            return new GrimError(["Op.Type.Type requires Type arguments"]);
+            return new GrimError(["Op.Nat.Nat requires Nat arguments"]);
         };
     }
 }
@@ -228,23 +228,32 @@ class GrimInt extends GrimNat {
     static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
-                console.warn("GrimTag.addCallableTag called with invalid args for Op.Type.Type");
-                return new GrimError(["Op.Type.Type requires exactly 2 arguments"]);
+                console.error("GrimTag.addCallableTag called with invalid args for Op.Int.Int");
+                return new GrimError(["Op.Int.Int requires exactly 2 arguments"]);
             }
-            if (args[0] instanceof GrimInt && args[1] instanceof GrimInt) {
+            let args0 = args[0];
+            let args1 = args[1];
+            // allow GrimNat to be passed in as well
+            if (args0 instanceof GrimNat && !(args0 instanceof GrimInt)) {
+                args0 = new GrimInt(args0.value);
+            }
+            if (args1 instanceof GrimNat && !(args1 instanceof GrimInt)) {
+                args1 = new GrimInt(args1.value);
+            }
+            if (args0 instanceof GrimInt && args1 instanceof GrimInt) {
                 const gmpLib = builder.gmpLib;
                 if (!gmpLib) {
                     console.error("GrimInt.wrapBinaryOpBool called but builder.gmpLib is null");
                     return new GrimError(["GMP library not initialized"]);
                 }
                 const ctx = gmpLib.getContext();
-                let x: any = ctx.Integer(args[0].value);
-                let y: any = ctx.Integer(args[1].value);
+                let x: any = ctx.Integer(args0.value);
+                let y: any = ctx.Integer(args1.value);
                 let result: boolean = fn(x, y);
                 setTimeout(() => ctx.destroy(), 50);
                 return GrimBool.fromBool(result);
             }
-            return new GrimError(["Op.Type.Type requires Type arguments"]);
+            return new GrimError(["Op.Int.Int requires Int arguments"]);
         };
     }
 }

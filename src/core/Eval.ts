@@ -172,7 +172,7 @@ class Eval {
                             }
                         });
                     });
-                    // console.log("hasCast?", bigTag, ":>", smallTag);
+                    //console.error("hasCast?", bigTag, ":>", smallTag);
                     let newTuple: List<string> | null = null;
                     newTuple = tuple.map((x, index) => {
                         if (index === 0) {
@@ -183,7 +183,7 @@ class Eval {
                         }
                         return x;
                     });
-                    // console.log("newTuple:", newTuple.toString());
+                    //console.error("newTuple:", newTuple.toString());
                     if (newTuple) {
                         if (builder.callableTagMethodTupleToFuncMap.has(newTuple)) {
                             // If we have a callable tag method for this tuple, use it

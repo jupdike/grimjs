@@ -958,5 +958,11 @@ built:       GtEq@(Neg@(3), Neg@(4))
 canonical:   GtEq(Neg(Nat("3")), Neg(Nat("4")))
 evaluated:   True
 #
+sugar:       (7 - 5) > 1
+desugared:   Gt(Sub(Nat("7"), Nat("5")), Nat("1"))
+built:       Gt@(Sub@(7, 5), 1)
+canonical:   Gt(Sub(Nat("7"), Nat("5")), Nat("1"))
+evaluated:   True
+#
 #sugar:       (n := 0) => n == 0 || n == 1
 #
