@@ -130,7 +130,7 @@ Bind "a Fun expression (anonymous function) or Let expression"
 
 Graphical "one or more graphical characters as an infix operator"
 // U+002D is hyphen, U+005C is backslash
-  = [=+!#$%&*./<>?@^~_\u002d\u005c]+ { return text(); }
+  = [=+!#$%&*.|/<>?@^~_\u002d\u005c]+ { return text(); }
 
 /*
 see https://github.com/haskell/alex/blob/master/examples/haskell.x
