@@ -49,5 +49,5 @@ sqrt(x) := x^0.5
 fact(n) := If3(n == 1, 1, n * fact(n - 1))
 
 //fib(n) := if n <= 1 then n else fib(n - 2) + fib(n - 1)
-// TODO parsing but for If3((n == 0) || (n == 1), n, fib(n - 2) + fib(n - 1))
+// TODO once Or works: If3((n == 0) || (n == 1), n, fib(n - 2) + fib(n - 1))
 fib(n) := If3(n == 0, n, If3(n == 1, 1, fib(n - 2) + fib(n - 1)))

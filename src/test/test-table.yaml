@@ -477,6 +477,12 @@ built:       Sub@(45, 46)
 canonical:   Sub(Nat("45"), Nat("46"))
 evaluated:   -1
 #
+sugar:       (1 + 2) * (3 + 4)
+desugared:   Mul(Add(Nat("1"), Nat("2")), Add(Nat("3"), Nat("4")))
+built:       Mul@(Add@(1, 2), Add@(3, 4))
+canonical:   Mul(Add(Nat("1"), Nat("2")), Add(Nat("3"), Nat("4")))
+evaluated:   21
+#
 sugar:       2^24
 desugared:   Pow(Nat("2"), Nat("24"))
 built:       Pow@(2, 24)
@@ -889,13 +895,11 @@ evaluated:   120
 sugar:       fib(7)
 
 desugared:   Sym("fib")@(Nat("7"))
-Desugared AST does not match expected: Sym("fib")@(Nat("7")) !== 
 built:       Sym("fib")@(7)
-Built GrimVal does not match expected: Sym("fib")@(7) !== 
 canonical:   App(Sym("fib"), Nat("7"))
-Parsed canonical string does not match expected: App(Sym("fib"), Nat("7")) !== 
-Canonical string does not match expected: App(Sym("fib"), Nat("7")) !== 
 evaluated:   13
+#
+#sugar:       (n := 0) => n == 0 || n == 1
 #
 #sugar:       2 <= 3
 #
