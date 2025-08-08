@@ -820,6 +820,39 @@ class Builder {
         this.addCallableTag(List(["GtEq", "Dec", "Dec"]),
             GrimDec.wrapBinaryOpBool(this, (a, b) => { return a.greaterOrEqual(b); }));
 
+        this.addCallableTag(List(["Lt", "Str", "Str"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimStr) || !(args[1] instanceof GrimStr)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Lt.Str");
+                return new GrimError(["Lt.Str.Str requires exactly 2 Str arguments"]);
+            }
+            let cmp = args[0].value.localeCompare(args[1].value);
+            return new GrimBool(cmp < 0);
+        });
+        this.addCallableTag(List(["LtEq", "Str", "Str"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimStr) || !(args[1] instanceof GrimStr)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for LtEq.Str");
+                return new GrimError(["LtEq.Str.Str requires exactly 2 Str arguments"]);
+            }
+            let cmp = args[0].value.localeCompare(args[1].value);
+            return new GrimBool(cmp <= 0);
+        });
+        this.addCallableTag(List(["Gt", "Str", "Str"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimStr) || !(args[1] instanceof GrimStr)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for Gt.Str");
+                return new GrimError(["Gt.Str.Str requires exactly 2 Str arguments"]);
+            }
+            let cmp = args[0].value.localeCompare(args[1].value);
+            return new GrimBool(cmp > 0);
+        });
+        this.addCallableTag(List(["GtEq", "Str", "Str"]), (args: Array<GrimVal>) => {
+            if (args.length !== 2 || !(args[0] instanceof GrimStr) || !(args[1] instanceof GrimStr)) {
+                console.warn("GrimTag.addCallableTag called with invalid args for GtEq.Str");
+                return new GrimError(["GtEq.Str.Str requires exactly 2 Str arguments"]);
+            }
+            let cmp = args[0].value.localeCompare(args[1].value);
+            return new GrimBool(cmp >= 0);
+        });
+
         // Equality checks
         this.addCallableTagEqNeqPair(List(["Eq", "Bool", "Bool"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimBool) || !(args[1] instanceof GrimBool)) {

@@ -1000,5 +1000,29 @@ built:       Gt@(1.234567890123456789012345678901234567890123456789012345678901,
 canonical:   Gt(Dec("1.234567890123456789012345678901234567890123456789012345678901"), Dec("1.23456789012345678901234567890123456789012345678901234567890"))
 evaluated:   True
 #
+sugar:       "cat" < "dog"
+desugared:   Lt("cat", "dog")
+built:       Lt@("cat", "dog")
+canonical:   Lt("cat", "dog")
+evaluated:   True
+#
+sugar:       "doggerel" >= "dog"
+desugared:   GtEq("doggerel", "dog")
+built:       GtEq@("doggerel", "dog")
+canonical:   GtEq("doggerel", "dog")
+evaluated:   True
+#
+sugar:       "cat" <= "catastrophe"
+desugared:   LtEq("cat", "catastrophe")
+built:       LtEq@("cat", "catastrophe")
+canonical:   LtEq("cat", "catastrophe")
+evaluated:   True
+#
+sugar:       "darkness" > "dark"
+desugared:   Gt("darkness", "dark")
+built:       Gt@("darkness", "dark")
+canonical:   Gt("darkness", "dark")
+evaluated:   True
+#
 #sugar:       (n := 0) => n == 0 || n == 1
 #
