@@ -910,6 +910,12 @@ built:       Sym("fib")@(7)
 canonical:   App(Sym("fib"), Nat("7"))
 evaluated:   13
 #
+sugar:       if True then 1 else 0
+desugared:   If3(Tag("True"), Nat("1"), Nat("0"))
+built:       If3@(True, 1, 0)
+canonical:   If3(True, Nat("1"), Nat("0"))
+evaluated:   1
+# Inequality Comparisons
 sugar:       2 <= 3
 desugared:   LtEq(Nat("2"), Nat("3"))
 built:       LtEq@(2, 3)

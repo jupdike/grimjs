@@ -142,6 +142,17 @@ $small     = [a-z \xdf-\xf6 \xf8-\xff \_]
 $alpha     = [$small $large]
 */
 
+If "if keyword"
+  = "if"
+Then "then keyword"
+  = "then"
+Else "else keyword"
+  = "else"
+
+If3 "a ternary if expression" = If _ t:Expression _ Then _ a:Expression _ Else _ b:Expression {
+  return aTagApp(location(), "If3", [t, a, b]);
+}
+
 Op "an infix operator"
   = o:Graphical {
     if (o in opMap) {
@@ -228,6 +239,7 @@ Molecule "a list, map, atom"
   = List
   / Tuple
   / Map
+  / If3
   / Atom
 
 ObjKey "an object key"
@@ -239,7 +251,7 @@ ObjPair "a colon-separated key-value pair"
 
 // here just so we can do check() on this in test.js
 Ex "an expression"
- = Atom
+  = Atom
 
 Atom "atom"
   = Dec
