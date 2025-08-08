@@ -811,6 +811,15 @@ class Builder {
         this.addCallableTag(List(["Div", "Dec", "Dec"]),
             GrimDec.wrapBinaryOp(this, (a, b) => { return a.div(b); }));
 
+        this.addCallableTag(List(["Lt", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOpBool(this, (a, b) => { return a.lessThan(b); }));
+        this.addCallableTag(List(["LtEq", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOpBool(this, (a, b) => { return a.lessOrEqual(b); }));
+        this.addCallableTag(List(["Gt", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOpBool(this, (a, b) => { return a.greaterThan(b); }));
+        this.addCallableTag(List(["GtEq", "Dec", "Dec"]),
+            GrimDec.wrapBinaryOpBool(this, (a, b) => { return a.greaterOrEqual(b); }));
+
         // Equality checks
         this.addCallableTagEqNeqPair(List(["Eq", "Bool", "Bool"]), (args: Array<GrimVal>) => {
             if (args.length !== 2 || !(args[0] instanceof GrimBool) || !(args[1] instanceof GrimBool)) {

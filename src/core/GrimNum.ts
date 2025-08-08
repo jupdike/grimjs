@@ -356,7 +356,7 @@ class GrimRat extends GrimVal {
             setTimeout(() => ctx.destroy(), 50);
             return final;
         }
-        return new GrimError(["NOPE_CanInt"]);
+        return new GrimError(["NOPE_CanRat"]);
     }
 
     static wrapBinaryOp(builder: Builder, fn: (a: any, b: any) => any): FuncType {
@@ -385,8 +385,8 @@ class GrimRat extends GrimVal {
     static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
-                console.error("GrimTag.addCallableTag called with invalid args for Op.Int.Int");
-                return new GrimError(["Op.Int.Int requires exactly 2 arguments"]);
+                console.error("GrimTag.addCallableTag called with invalid args for Op.Rat.Rat");
+                return new GrimError(["Op.Rat.Rat requires exactly 2 arguments"]);
             }
             let args0 = args[0];
             let args1 = args[1];
@@ -440,7 +440,7 @@ class GrimDec extends GrimVal {
     }
 
     toString(): string {
-        return this.value.toString();
+        return this.value;
     }
 
     toCanonicalString(): string {
@@ -593,6 +593,39 @@ class GrimDec extends GrimVal {
         }
         console.warn(`GrimDec.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimError(["NOPE_CanDec"]);
+    }
+
+    static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
+        return (args: Array<GrimVal>) => {
+            if (args.length !== 2) {
+                console.error("GrimTag.addCallableTag called with invalid args for Op.Dec.Dec");
+                return new GrimError(["Op.Dec.Dec requires exactly 2 arguments"]);
+            }
+            let args0 = args[0];
+            let args1 = args[1];
+            if (!(args0 instanceof GrimDec)) {
+                args0 = GrimDec.maker([args0], builder);
+            }
+            if (!(args1 instanceof GrimDec)) {
+                args1 = GrimDec.maker([args1], builder);
+            }
+            if (args0 instanceof GrimDec && args1 instanceof GrimDec) {
+                const gmpLib = builder.gmpLib;
+                if (!gmpLib) {
+                    console.error("GrimDec.wrapBinaryOpBool called but builder.gmpLib is null");
+                    return new GrimError(["GMP library not initialized"]);
+                }
+                const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;
+                const options = { precisionBits: 333, roundingMode };
+                const ctx = gmpLib.getContext(options);
+                let x: any = ctx.Float(args0.value);
+                let y: any = ctx.Float(args1.value);
+                let result: boolean = fn(x, y);
+                setTimeout(() => ctx.destroy(), 50);
+                return GrimBool.fromBool(result);
+            }
+            return new GrimError(["Op.Dec.Dec requires Dec arguments"]);
+        };
     }
 }
 
