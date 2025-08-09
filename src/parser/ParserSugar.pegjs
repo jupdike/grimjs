@@ -49,7 +49,7 @@
 
 Start = Expression
 
-Definition = Def / DefCast
+Definition = Def / DefCast / DefMacroMatchRule
 
 AssignOp = ":="
 CastOp = ":>"
@@ -57,6 +57,11 @@ CastOp = ":>"
 DefCast "a cast from one Tag to another Tag"
   = bigTag:Tag _ CastOp _ smallTag:Tag {
     return aTagApp(location(), "DefCast", [bigTag, smallTag]);
+  }
+
+DefMacroMatchRule "a macro match rule"
+  = tag:Tag "(" argsList: MatchArgs ")" _ ":=>" _ body:Expression {
+    return aTagApp(location(), "DefMacroMatchRule", [tag, aTagApp(location(), "List", argsList), body]);
   }
 
 Def "a symbol definition"
@@ -121,12 +126,25 @@ DefList
     return ret;
   }
 
-Bind "a Fun expression (anonymous function) or Let expression"
+MatchSym "a symbol in a pattern match or underscore"
+  = "_" { return aTag(location(), "Dummy"); }
+  / sym:Sym { return sym; }
+
+MatchArgs "arguments to a pattern match"
+  = head:MatchLhs tail:(_ "," _ MatchLhs)* { return cons(head, tail.map(function(x) { return x[3]; })); }
+  / _ { return aTagApp(location(), "List", []); } // empty args
+
+MatchLhs "left-hand side of pattern matching"
+  = tag:Tag _ "(" args:MatchArgs ")" { return aTagApp(location(), tag, args); }
+  / tag:Tag { return aTag(location(), tag); }
+  / sym:MatchSym { return sym; }
+
+Bind "a Fun expression (anonymous function) or Let expression or Pattern matching"
+//  = lhs:MatchLhs _ "->" _ body:Expression { return aTagApp(location(), "Pattern", [lhs, body]); }
   = "(" _ ")" _ "=>" _ body:Expression { return aTagApp(location(), "Fun", [aTagApp(location(), "List", []), body]); }
   / sym:Sym _ "=>" _ body:Expression { return aTagApp(location(), "Fun", [aTagApp(location(), "List", [sym]), body]); }
   / "(" _ args:DefList _ ")" _ "=>" _ body:Expression { return aTagApp(location(), "Let", [aTagApp(location(), "List", args), body]); }
   / "(" _ args:SymList _ ")" _ "=>" _ body:Expression { return aTagApp(location(), "Fun", [aTagApp(location(), "List", args), body]); }
-
 
 Graphical "one or more graphical characters as an infix operator"
 // U+002D is hyphen, U+005C is backslash
@@ -217,8 +235,8 @@ FuncApply
 
 Factor "a function application, a parenthesized expression, a function, or a list, tuple, map or atom"
   = FuncApply
-  / "(" _ o:Op _ ")" { return o; }
   / Bind
+  / "(" _ o:Op _ ")" { return o; }
   / "(" _ e:Expression _ ")" { return e; }
   / Molecule
 

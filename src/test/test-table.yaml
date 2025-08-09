@@ -1030,5 +1030,11 @@ built:       Gt@("darkness", "dark")
 canonical:   Gt("darkness", "dark")
 evaluated:   True
 #
+#sugar:       a -> 2 + 3
+#evaluated:   noeval
+#
+#sugar:       Quote(x) -> 2 + 3
+#evaluated:   noeval
+#
 #sugar:       (n := 0) => n == 0 || n == 1
 #
