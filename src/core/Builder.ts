@@ -2,8 +2,6 @@ import { List, Map, PairSorting, Set } from "immutable";
 import { DivMode, type GMPLib } from "gmp-wasm";
 import { GrimParser } from "../parser/GrimParser.js";
 
-import * as parserCanon from '../parser/_parser-canon.js';
-
 import { GrimVal } from "./GrimVal.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimApp, GrimFun, GrimLet } from "./GrimFun.js";
@@ -17,19 +15,6 @@ import { Eval, EvalState } from "./Eval.js";
 
 type AstToVal = (ast: CanAst | Array<GrimVal>, builder: Builder) => GrimVal;
 type FuncType = (args: Array<GrimVal>) => GrimVal;
-
-interface TestEntry {
-    sugar: string;
-    desugared: string;
-    built: string;
-    canonical: string;
-    evaluated: string;
-}
-
-interface TestSuite {
-    section: string;
-    entries: Array<TestEntry>;
-}
 
 // a builder is really a module, TODO rename it to Module or something
 class Builder {
@@ -53,159 +38,6 @@ class Builder {
         this.addMakers();
     }
 
-    static groupDefinitions(lines: Array<string>): Array<string> {
-        // Group the lines into a list of definitions based on balanced delimiters and simple leading whitespace
-        //
-        // Should follow most programmer's intuition about how a chunk of code is indented by most text editors
-        // and how it is grouped by balanced delimiters, e.g. (), [], {}, etc.
-        // This allows users to write a lot of blocks of code without needing to use semicolons, or
-        // forcing programmers to use double newlines to separate definitions.
-        //
-        // Group lines based on these intuitive rules:
-        // 1. New definitions start on a new line with no leading whitespace
-        // 2. Definitions can be continued on the next line with leading whitespace
-        // 3. If a line has no leading whitespace, it completes the definition, if it has balanced delimiters
-        // 4. Definitions must be balanced by delimiters by the time they end
-        // 5. Comments starting with // are ignored, and empty lines (or lines with only whitespace) are ignored
-        // 6. Lines with tabs are not allowed, as they are not consistent across editors
-        let ret: Array<string> = [];
-        let delimiterStack: Array<number> = [];
-        let oneDefinition: Array<string> = [];
-        lines.forEach((line) => {
-            if (line.startsWith("#") || line.startsWith("//") || line.length < 1) {
-                // Skip #xyz pre-parse commands, and comments
-                return;
-            }
-            if (line.indexOf("\t") >= 0) {
-                throw new Error("Tab characters are not allowed in Grim. Deal with it.");
-            }
-            line = line.trimEnd();
-            let startedOutBalanced = delimiterStack.length === 0;
-            let leadingWhitespaceCount = (line.match(/^\s*/)?.[0] || "").length;
-            //console.log(`Processing line: '${line}' with leading whitespace count: ${leadingWhitespaceCount} and ended with delimiter stack: [${delimiterStack.join(", ")}]`);
-            // Check for opening and closing delimiters
-            for (var i = 0; i < line.length; i++) {
-                var char = line[i];
-                // track where opening delimiters are found
-                if (char === "(" || char === "{" || char === "[") {
-                    delimiterStack.push(leadingWhitespaceCount);
-                } else if (char === ")" || char === "}" || char === "]") {
-                    if (delimiterStack.length === 0) {
-                        throw new Error(`Unmatched closing delimiter: ${char}`);
-                    }
-                    delimiterStack.pop();
-                }
-            }
-            // If we have balanced delimiters, and no leading whitespace, add the line to the list
-            if (startedOutBalanced && delimiterStack.length === 0 && leadingWhitespaceCount === 0) {
-                //console.error(`Self-contained definition found: '${line}'`);
-                // make sure not to nix accumulated lines
-                if (oneDefinition.length > 0) {
-                    ret.push(oneDefinition.join("\n"));
-                    oneDefinition = []; // Reset for the next definition
-                }
-                ret.push(line); // Add the line as a complete definition
-            }
-            else if (delimiterStack.length > 0 && leadingWhitespaceCount > 0) {
-                //console.error(`Continuing definition with leading whitespace: '${line}'`);
-                // If we are still inside a definition, accumulate the line
-                oneDefinition.push(line);
-                //console.error(`Accumulated definition: '${oneDefinition.join("\n")}'`);
-            }
-            else if (delimiterStack.length === 0) {
-                //console.error(`Got to the end of a definition: '${line}', oneDefinition.length: ${oneDefinition.length}`);
-                if (oneDefinition.length > 0) {
-                    oneDefinition.push(line);
-                    ret.push(oneDefinition.join("\n"));
-                    oneDefinition = []; // Reset for the next definition
-                } else {
-                    //console.error(`Extra unexpected ending delimiters: '${line}'`);
-                }
-            }
-            else {
-                //console.error(`Unmatched delimiters or unexpected leading whitespace in line: '${line}'`);
-                // Otherwise, continue building the current definition
-                oneDefinition.push(line);
-            }
-        });
-        if (oneDefinition.length > 0) {
-            // If there's any remaining definition, add it
-            ret.push(oneDefinition.join("\n"));
-        }
-        return ret;
-    }
-
-    static parseTestLines(yaml: string): Array<TestSuite> {
-        // Parse the YAML string into a JavaScript object
-        // Real YAML messes with my quotation marks, so we use a custom parser that preserves explicit quotes
-        let ret: Array<TestSuite> = [];
-        let currentSuite: TestSuite = { section: "", entries: [] };
-        let currentEntry: TestEntry = {
-            sugar: "",
-            desugared: "",
-            built: "",
-            canonical: "",
-            evaluated: "",
-        };
-        yaml.split("\n").forEach((line) => {
-            line = line.trim();
-            if (line.length === 0) {
-                // Skip empty lines
-                return;
-            }
-            if (line.startsWith("#")) {
-                let section = line.substring(1).trim(); // Remove comment marker
-                if (section !== "") {
-                    if (currentSuite.entries.length > 0) {
-                        ret.push(currentSuite); // Save the previous suite (but not an empty one)
-                    }
-                    currentSuite = { section: section, entries: [] }; // Start a new suite
-                } else {
-                    if (currentEntry.sugar !== "") {
-                        currentSuite.entries.push(currentEntry); // Save the current entry
-                    }
-                    // start over for blank comments
-                    currentEntry = {
-                        sugar: "",
-                        desugared: "",
-                        built: "",
-                        canonical: "",
-                        evaluated: "",
-                    };
-                }
-                return;
-            } else {
-                if (line.indexOf(":") > 0) {
-                    // This is a key-value pair
-                    let parts = line.split(":");
-                    let key = parts[0].trim();
-                    let value = parts.slice(1).join(":").trim();
-                    currentEntry[key as keyof TestEntry] = value;
-                }
-            }
-        });
-        ret.push(currentSuite);
-        console.log(`Parsed ${ret.length} test suites from YAML`);
-        return ret;
-    }
-    runTests(testSuites: Array<TestSuite>) {
-        console.error(`Found ${this.castPairs.size} cast pairs`);
-        let n = 0;
-        if (!testSuites || testSuites.length === 0) {
-            console.warn("No test suites provided to Builder.runTests");
-            return;
-        }
-        for (const suite of testSuites) {
-            console.log('#-------------------------------------------------------------------------');
-            console.log(`# ${suite.section}`);
-            suite.entries.forEach((entry: TestEntry) => {
-                this.testOneEntry(entry);
-                n++;
-            });
-        }
-        console.log(`All ${n} tests completed.`);
-    }
-
     static fromDefinitions(parser: GrimParser, gmpLib: GMPLib, definitions: Array<string>) {
         let builder = new Builder(parser, gmpLib);
         console.error(`Building a module with ${definitions.length} definitions...`);
@@ -216,6 +48,16 @@ class Builder {
     }
 
     moduleEnv: Map<string, GrimVal> = Map<string, GrimVal>(); // Environment for variable bindings
+
+    sugarToAst(sugar: string, options: { startRule: string }): CanAst | null {
+        try {
+            var ret = this.parser.parse(sugar, options);
+            return ret;
+        } catch (e) {
+            console.error('Error parsing sugar:', e);
+            return null;
+        }
+    }
 
     private addOneDefinition(def: string) {
         let sugar = def.trim();
@@ -322,16 +164,30 @@ class Builder {
         console.log("#");
     }
 
-    testParseDefs(definitions: Array<string>) {
-        console.log(`Testing ${definitions.length} definitions...`);
-        for (const def of definitions) {
-            this.analyzeOne(def, false, "Definition"); // Analyze each definition
-        }
-        console.log(`${definitions.length} definitions parsed successfully.`);
+    evaluatedModuleEnv(): Map<string, GrimVal> {
+        // This is a convenience method to evaluate the module environment
+        // and return the values as GrimVals.
+        let evaluatedEnv: Map<string, GrimVal> = Map<string, GrimVal>();
+        // lift GrimFun instances in the moduleEnv to the top
+        this.moduleEnv
+            .filter((val) => val instanceof GrimFun)
+            .forEach((val, key) => {
+                let result = Eval.evaluate(new EvalState(val, evaluatedEnv, this)).expr;
+                evaluatedEnv = evaluatedEnv.set(key, result);
+            });
+        // scalars and other values are evaluated after all functions are lifted to the top
+        this.moduleEnv
+            .filter((val) => !(val instanceof GrimFun))
+            .forEach((val, key) => {
+                let result = Eval.evaluate(new EvalState(val, evaluatedEnv, this)).expr;
+                evaluatedEnv = evaluatedEnv.set(key, result);
+            });
+        return evaluatedEnv;
     }
 
-    private parser: GrimParser;
+    readonly parser: GrimParser;
     readonly gmpLib: GMPLib; // Will be set after gmp.init(), by async caller
+
     private makerMap: Map<string, AstToVal> = Map<string, AstToVal>();
     private didInit = false;
 
@@ -438,163 +294,6 @@ class Builder {
             return true; // GrimFun is callable
         }
         return false;
-    }
-
-    // TESTING CODE
-    locToStr(loc: Location | undefined): string {
-        if(!loc) {
-            return "unknown location";
-        }
-        return `line ${loc.start.line} col ${loc.start.column} to line ${loc.end.line} col ${loc.end.column}`;
-    }
-
-    check(str: string, start: string | null = null, onlyErrors = false): CanAst {
-        start = start || "Start";
-        try {
-            var ret = this.parser.parse(str, {startRule: start});
-            // if (!onlyErrors) {
-            //     console.log('---');
-            //     console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
-            // }
-            return ret;
-        } catch (e) {
-            console.log('---');
-            //console.log("Error", [e.message]);
-            console.log(str, '  ~~ EXCEPTION THROWN as ~~>\n  ', `Error('${e.message}', '${this.locToStr(e.location)}')` );
-            //return Ast( e.location || 'unknown', "Error", [e.message] );
-            return new CanTaggedApp(e.location,
-                new CanTag(e.location, "Error"),
-                [e.message, e.location].map(x => new CanStr(e.location, x))
-            );
-        }
-    }
-
-    analyzeOne(str: string, onlyErrors = false, startRule: string | null = null) {
-        let ast: CanAst = this.check(str, startRule, onlyErrors);
-        //console.log('Parsed AST JSON    :', JSON.stringify(ast, null, 2));
-        //console.log('Parsed AST toString:', ast.toString());
-        let val = this.fromAst(ast);
-        //console.log('GrimVal from AST   :', val.toString());
-        let canon = val.toCanonicalString();
-        //console.log('Canonical string   :', canon);
-        if (!onlyErrors) {
-            console.log(canon);
-        }
-        //let state = new EvalState(val, Map(), this);
-        // let result: GrimVal | null = null;
-        // try {
-        //     result = Eval.evaluate(state).expr;
-        // } catch (e) {
-        //     console.error('Eval error          :', e);
-        // }
-        // if (result) {
-        //     console.log('Eval result        :', result.toString());
-    }
-
-    private sugarToAst(sugar: string, options: { startRule: string }): CanAst | null {
-        try {
-            var ret = this.parser.parse(sugar, options);
-            return ret;
-        } catch (e) {
-            console.error('Error parsing sugar:', e);
-            return null;
-        }
-    }
-
-    private evaluatedModuleEnv(): Map<string, GrimVal> {
-        // This is a convenience method to evaluate the module environment
-        // and return the values as GrimVals.
-        let evaluatedEnv: Map<string, GrimVal> = Map<string, GrimVal>();
-        // lift GrimFun instances in the moduleEnv to the top
-        this.moduleEnv
-            .filter((val) => val instanceof GrimFun)
-            .forEach((val, key) => {
-                let result = Eval.evaluate(new EvalState(val, evaluatedEnv, this)).expr;
-                evaluatedEnv = evaluatedEnv.set(key, result);
-            });
-        // scalars and other values are evaluated after all functions are lifted to the top
-        this.moduleEnv
-            .filter((val) => !(val instanceof GrimFun))
-            .forEach((val, key) => {
-                let result = Eval.evaluate(new EvalState(val, evaluatedEnv, this)).expr;
-                evaluatedEnv = evaluatedEnv.set(key, result);
-            });
-        return evaluatedEnv;
-    }
-
-    private evalOne(val: GrimVal): string {
-        let state = new EvalState(val, this.evaluatedModuleEnv(), this);
-        let result: GrimVal | null = null;
-        try {
-            result = Eval.evaluate(state).expr;
-        } catch (e) {
-            console.error('Eval error:', e);
-            return `Error('${e.message}')`;
-        }
-        if (result) {
-            return result.toString();
-        }
-        return "<ERROR_SO_NO_RESULT>";
-    }
-
-    private parseCanon(input: string): CanAst | null {
-        try {
-            return parserCanon.parse(input, { startRule: "Start" });
-        } catch (e) {
-            console.error('Error parsing canonical:', e);
-            return null;
-        }
-    }
-
-    readonly reportMismatches: boolean = true; // Set to true to report mismatches in test output
-    private testOneEntry(entry: TestEntry) {
-        if (!entry.sugar) {
-            console.warn("Test entry has no sugar:", entry);
-            return;
-        }
-        console.log(`sugar:       ${entry.sugar}`);
-        let ast: CanAst | null = this.sugarToAst(entry.sugar, { startRule: "Expression" });
-        if (!ast) {
-            console.error("Failed to parse sugar:", entry.sugar);
-            return;
-        }
-        let oneAstStr = ast.toString();
-        console.log(`desugared:   ${oneAstStr}`);
-        if (this.reportMismatches && oneAstStr !== entry.desugared) {
-            console.error(`Desugared AST does not match expected: ${oneAstStr} !== ${entry.desugared}`);
-        }
-        let built: GrimVal = this.fromAst(ast);
-        console.log(`built:       ${built.toString()}`);
-        if (this.reportMismatches && built.toString() !== entry.built) {
-            console.error(`Built GrimVal does not match expected: ${built.toString()} !== ${entry.built}`);
-        }
-        let canonical: string = built.toCanonicalString();
-        console.log(`canonical:   ${canonical}`);
-        if (this.reportMismatches) {
-            // parse using ParserCanon and compare that too
-            let parsedCanon: CanAst | null = this.parseCanon(canonical);
-            if (!parsedCanon) {
-                console.error("Failed to parse canonical string:", canonical);
-                return;
-            }
-            // Check if the parsed canonical string matches the expected canonical string
-            let canonStr = parsedCanon.toString();
-            //console.log(`parsedCanon: ${canonStr}`);
-            if (canonStr !== entry.canonical) {
-                console.error(`Parsed canonical string does not match expected: ${canonStr} !== ${entry.canonical}`);
-            }
-        }
-        if (this.reportMismatches && canonical !== entry.canonical) {
-            console.error(`Canonical string does not match expected: ${canonical} !== ${entry.canonical}`);
-        }
-        if (entry.evaluated !== "noeval") {
-            let evaluated: string = this.evalOne(built);
-            console.log(`evaluated:   ${evaluated}`);
-            if (this.reportMismatches && evaluated !== entry.evaluated) {
-                console.error(`Evaluated result does not match expected: ${evaluated} !== ${entry.evaluated}`);
-            }
-        }
-        console.log("#");
     }
 
     private addMakers() {
@@ -1035,4 +734,3 @@ class Builder {
 }
 
 export { Builder, FuncType };
-export type { TestEntry, TestSuite };

@@ -1,8 +1,9 @@
 import gmp from "gmp-wasm";
 import type { GMPLib } from "gmp-wasm";
 import { readFileSync } from "fs";
+import type { TestEntry, TestSuite } from "./Tester.js"; // Import types for test entries and suites
+import { Tester } from "./Tester.js";
 import { Builder } from "./Builder.js"; // This loads all the makers
-import type { TestEntry, TestSuite } from "./Builder.js"; // Import types for test entries and suites
 import { GrimParser } from "../parser/GrimParser.js";
 
 let gmpLib: GMPLib = await gmp.init();
@@ -14,12 +15,13 @@ console.log("got GMPLib with this many bindings:", Object.keys((gmpLib as any).b
 const bootDotGrimPath = "src/core/boot.grim"
 let parser = new GrimParser(bootDotGrimPath);
 let bootGrim = readFileSync(bootDotGrimPath, "utf8");
-let bootDefinitions = Builder.groupDefinitions(bootGrim.split("\n")); // Parse the boot definitions
+let bootDefinitions = GrimParser.groupDefinitions(bootGrim.split("\n")); // Parse the boot definitions
 let bootModule = Builder.fromDefinitions(parser, gmpLib, bootDefinitions); // Test the definitions
 
 let mainTestsYaml = readFileSync("src/test/test-table.yaml", "utf8");
-let mainTestsJson = Builder.parseTestLines(mainTestsYaml) as Array<TestSuite>;
-bootModule.runTests(mainTestsJson);
+let tester = new Tester(bootModule);
+let mainTestsJson = Tester.parseTestLines(mainTestsYaml) as Array<TestSuite>;
+tester.runTests(mainTestsJson);
 
 // for showing how these definitions are grouped into lines
 // for (let def of bootDefinitions) {
