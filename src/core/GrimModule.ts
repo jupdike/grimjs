@@ -16,7 +16,16 @@ import { Eval, EvalState } from "./Eval.js";
 type AstToVal = (ast: CanAst | Array<GrimVal>, module: GrimModule) => GrimVal;
 type FuncType = (args: Array<GrimVal>) => GrimVal;
 
+enum TagAppType {
+    MDMA, // Multi-dispatch method application
+    Maker, // Maker is like a constructor, single argument, usually a string, also used for casts
+    MacroRules, // Macro rules for symbolically transforming code
+}
+
 class GrimModule {
+    // ensure that each tag app can only be called in one of three ways
+    private tagAppTypes: Map<string, TagAppType> = Map();
+
     private castPairs: Set<List<string>> = Set();
     addCast(tagBig: string, tagSmall: string) {
         // This is a way to add a cast from one tag to another, e.g. from "Nat" into "Int"
@@ -191,6 +200,12 @@ class GrimModule {
     private didInit = false;
 
     addMaker(tag: string, maker: AstToVal) {
+        if (!this.tagAppTypes.has(tag)) {
+            this.tagAppTypes = this.tagAppTypes.set(tag, TagAppType.Maker);
+        }
+        if (this.tagAppTypes.get(tag) !== TagAppType.Maker) {
+            throw new Error(`Tag '${tag}' is not a Maker type, does some other job instead. Tags can only have one job.`);
+        }
         this.makerMap = this.makerMap.set(tag, maker);
     }
 
@@ -255,13 +270,20 @@ class GrimModule {
     callableTagMethodTupleToFuncMap: Map<List<string>, FuncType> = Map();
     callableTagMethodIsAvailable: Set<string> = Set();
 
-    addCallableTag(tag: List<string>, func: FuncType) {
-        if(tag.size < 2) {
+    addCallableTag(tagTuple: List<string>, func: FuncType) {
+        if(tagTuple.size < 2) {
             console.warn("GrimTag.addCallableTag called with invalid tag (needs at least 2 parts)");
             return;
         }
-        this.callableTagMethodIsAvailable = this.callableTagMethodIsAvailable.add(tag.join('.'));
-        this.callableTagMethodTupleToFuncMap = this.callableTagMethodTupleToFuncMap.set(tag, func);
+        let tag = tagTuple[0];
+        if (!this.tagAppTypes.has(tag)) {
+            this.tagAppTypes = this.tagAppTypes.set(tag, TagAppType.MDMA);
+        }
+        if (this.tagAppTypes.get(tag) !== TagAppType.MDMA) {
+            throw new Error(`Tag '${tag}' is not a Multi-Dispatch Method Application type, does some other job instead. Tags can only have one job.`);
+        }
+        this.callableTagMethodIsAvailable = this.callableTagMethodIsAvailable.add(tagTuple.join('.'));
+        this.callableTagMethodTupleToFuncMap = this.callableTagMethodTupleToFuncMap.set(tagTuple, func);
     }
 
     addCallableTagEqNeqPair(tags: List<string>, func: FuncType) {
@@ -280,10 +302,15 @@ class GrimModule {
 
     isCallable(val: GrimVal): boolean {
         if (val instanceof GrimTag) {
-            if (this.callableTagMethodIsAvailable.has(val.value)) {
+            // needs an enum
+            if (!this.tagAppTypes.has(val.value)) {
+                return false;
+            }
+            // and needs to be in an appropriate map
+            if (this.tagAppTypes.get(val.value) === TagAppType.MDMA && this.callableTagMethodIsAvailable.has(val.value)) {
                 return true;
             }
-            if (this.makerMap.has(val.value)) {
+            if (this.tagAppTypes.get(val.value) === TagAppType.Maker && this.makerMap.has(val.value)) {
                 return true; // If there's a maker for this tag, it is callable
             }
             // some tags are callable, like "Add", "Mul", etc.
