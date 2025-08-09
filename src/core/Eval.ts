@@ -4,33 +4,33 @@ import { GrimVal } from './GrimVal';
 import { GrimBool } from './GrimBool';
 import { GrimApp, GrimFun, GrimLet } from './GrimFun';
 import { GrimSym, GrimTag } from './GrimAst';
-import { Builder } from './Builder';
+import { GrimModule } from './GrimModule';
 import { GrimTuple } from './GrimCollect';
 import { GrimStr } from './GrimStr';
 
 class EvalState {
     expr: GrimVal;
     env: Map<string, GrimVal>;
-    builder: Builder;
+    module: GrimModule;
     constructor(
         expr: GrimVal,
         env: Map<string, GrimVal>,
-        builder: Builder
+        module: GrimModule
     ) {
         this.expr = expr;
         this.env = env;
-        this.builder = builder;
+        this.module = module;
     }
 }
 
 class Eval {
     static evaluate(state: EvalState): EvalState {
-        const { expr, env, builder } = state;
+        const { expr, env, module } = state;
         //
         let e2: GrimVal = expr; // for now
         let env2 = env; // for now
         if (expr.isAtom()) {
-            return new EvalState(e2, env2, builder);
+            return new EvalState(e2, env2, module);
         }
         else if (expr instanceof GrimSym) {
             // Look up the symbol in the environment
@@ -68,11 +68,11 @@ class Eval {
                 }
                 let theEnv = env2; // allow earlier bindings in this same Let to be used in later bindings
                 // or this could be 'env' to not allow that
-                let value2 = Eval.evaluate(new EvalState(value, theEnv, builder)).expr;
+                let value2 = Eval.evaluate(new EvalState(value, theEnv, module)).expr;
                 env2 = env2.set(sym2.value, value2);
             });
             // Evaluate the body in the new environment
-            return Eval.evaluate(new EvalState(body, env2, builder))
+            return Eval.evaluate(new EvalState(body, env2, module))
         }
         else if (expr instanceof GrimApp) {
             // Multiple-dispatch method application or MDMA
@@ -87,7 +87,7 @@ class Eval {
                     }
                     e2 = app.rhs[0]; // return the first argument as is
                     // test if this ignores the arguments inside the list, by passing Crash() to it
-                    return new EvalState(e2, env2, builder);
+                    return new EvalState(e2, env2, module);
                 }
                 if (tag.value === "If3") {
                     // TODO remove this when we can use Macros
@@ -95,22 +95,22 @@ class Eval {
                     if (app.rhs.length !== 3) {
                         throw new Error(`If3 expected 3 arguments, got ${app.rhs.length}`);
                     }
-                    const condition = Eval.evaluate(new EvalState(app.rhs[0], env, builder)).expr;
+                    const condition = Eval.evaluate(new EvalState(app.rhs[0], env, module)).expr;
                     if (condition instanceof GrimBool && condition.isTrue()) {
-                        e2 = Eval.evaluate(new EvalState(app.rhs[1], env, builder)).expr; // return the second argument as is
+                        e2 = Eval.evaluate(new EvalState(app.rhs[1], env, module)).expr; // return the second argument as is
                     } else if (condition instanceof GrimBool && condition.isFalse()) {
-                        e2 = Eval.evaluate(new EvalState(app.rhs[2], env, builder)).expr; // return the third argument as is
+                        e2 = Eval.evaluate(new EvalState(app.rhs[2], env, module)).expr; // return the third argument as is
                     } else {
                         throw new Error(`If3 expected a GrimBool as the first argument, got ${condition}`);
                     }
-                    return new EvalState(e2, env2, builder);
+                    return new EvalState(e2, env2, module);
                 }
                 if (tag.value === "Ignore") {
                     // TODO remove this when we can use Macros
                     // Special case for Ignore, just return a constant value
                     // test if this ignores the arguments inside the list, by passing Crash() to it
                     e2 = new GrimTag("Ignore");
-                    return new EvalState(e2, env2, builder);
+                    return new EvalState(e2, env2, module);
                 }
                 if (tag.value === "Crash") {
                     // Special case for Crash, to test whether certain code is left unevaluated
@@ -118,16 +118,16 @@ class Eval {
                 }
                 if (tag.value === "App" || tag.value === "@" || tag.value === "Fun" || tag.value === "Let") {
                     // Special case for App, Fun, Let, do not evaluate the args
-                    const maker = builder.getMaker(tag.value);
+                    const maker = module.getMaker(tag.value);
                     if (!maker) {
                         throw new Error(`PROGRAMMER ERROR (should not happen): No maker found for special built-in tag: ${tag.value}`);
                     }
-                    e2 = maker(app.rhs, builder);
-                    return Eval.evaluate(new EvalState(e2, env2, builder));
+                    e2 = maker(app.rhs, module);
+                    return Eval.evaluate(new EvalState(e2, env2, module));
                 }
                 let tuple: List<string> = List([tag.value]);
                 let argsEvaluated: Array<GrimVal> = app.rhs.map(
-                    arg => Eval.evaluate(new EvalState(arg, env, builder)).expr
+                    arg => Eval.evaluate(new EvalState(arg, env, module)).expr
                 );
                 //console.log("Evaluated args:", argsEvaluated.map(arg => arg.toString()).join(", "));
                 argsEvaluated.forEach(arg => {
@@ -140,10 +140,10 @@ class Eval {
                 });
                 // Check if we have a callable tag method for this tuple
                 //console.error("looking for callable tag method for tuple:", tuple.toString());
-                if (builder.callableTagMethodTupleToFuncMap.has(tuple)) {
+                if (module.callableTagMethodTupleToFuncMap.has(tuple)) {
                     // If we have a callable tag method for this tuple, use it
-                    e2 = builder.callableTagMethodTupleToFuncMap.get(tuple)!(argsEvaluated);
-                    return new EvalState(e2, env2, builder);
+                    e2 = module.callableTagMethodTupleToFuncMap.get(tuple)!(argsEvaluated);
+                    return new EvalState(e2, env2, module);
                 }
                 // if not, try casting argumnets from smaller tags to bigger tags
                 // e.g. Nat to Int, Int to Rat, etc.
@@ -160,12 +160,12 @@ class Eval {
                                 return; // skip if it's the same tag or we found a pair already
                             }
                             // console.log("Checking cast for tagA, tagB:", tagA, tagB);
-                            if (builder.hasCast(tagB, tagA)) {
+                            if (module.hasCast(tagB, tagA)) {
                                 // console.log("Found cast from", tagB, ":>", tagA);
                                 bigTag = tagB; // tagB is the bigger tag
                                 smallTag = tagA; // tagA is the smaller tag
                             }
-                            else if (builder.hasCast(tagA, tagB)) {
+                            else if (module.hasCast(tagA, tagB)) {
                                 // console.log("Found cast from", tagA, ":>", tagB);
                                 bigTag = tagA; // tagB is the smaller tag
                                 smallTag = tagB; // tagA is the bigger tag
@@ -185,36 +185,36 @@ class Eval {
                     });
                     //console.error("newTuple:", newTuple.toString());
                     if (newTuple) {
-                        if (builder.callableTagMethodTupleToFuncMap.has(newTuple)) {
+                        if (module.callableTagMethodTupleToFuncMap.has(newTuple)) {
                             // If we have a callable tag method for this tuple, use it
-                            e2 = builder.callableTagMethodTupleToFuncMap.get(newTuple)!(argsEvaluated);
-                            return new EvalState(e2, env2, builder);
+                            e2 = module.callableTagMethodTupleToFuncMap.get(newTuple)!(argsEvaluated);
+                            return new EvalState(e2, env2, module);
                         }
                     }
                 }
 
                 // Otherwise, check if we have a tag maker like Bool("True"), Var("x"), etc.
                 //console.warn("@ looking for tag maker for", tag.value);
-                const maker = builder.getMaker(tag.value);
+                const maker = module.getMaker(tag.value);
                 if (maker) {
                     // console.warn("@ found tag maker for", tag.value);
                     // TODO deal with this discrepancy (CanAst vs GrimVal)
                     let a = argsEvaluated;
-                    e2 = maker(a, builder);
-                    return new EvalState(e2, env2, builder);
+                    e2 = maker(a, module);
+                    return new EvalState(e2, env2, module);
                 }
             }
             // Evaluate the function and arguments
             let fun: GrimFun | null = null;
-            if (!builder.isCallable(app.lhs)) {
-                let reduced: GrimVal = Eval.evaluate(new EvalState(app.lhs, env, builder)).expr;
+            if (!module.isCallable(app.lhs)) {
+                let reduced: GrimVal = Eval.evaluate(new EvalState(app.lhs, env, module)).expr;
                 if (reduced instanceof GrimFun) {
                     fun = reduced;
                 }
             } else if (app.lhs instanceof GrimFun) {
                 fun = app.lhs as GrimFun;
             }
-            if (!fun || !builder.isCallable(fun)) {
+            if (!fun || !module.isCallable(fun)) {
                 throw new Error(`Expected a callable GrimVal for first argument to App(), got ${app.lhs}`);
             }
             const fargs = fun.args;
@@ -238,14 +238,14 @@ class Eval {
                 set = set.add(argName);
                 // Create a new environment with the argument name bound to the evaluated value
                 const argValueUnEvaluated = app.rhs[index];
-                const argValue = Eval.evaluate(new EvalState(argValueUnEvaluated, env, builder)).expr;
+                const argValue = Eval.evaluate(new EvalState(argValueUnEvaluated, env, module)).expr;
                 // override lexically (making a new copy of the environment, but it's not a copy because Immutable.Map is amazing)
                 newEnv = newEnv.set(argName, argValue);
             });
             // Evaluate the body of the function in the new environment
-            e2 = Eval.evaluate(new EvalState(fun.body, newEnv, builder)).expr;
+            e2 = Eval.evaluate(new EvalState(fun.body, newEnv, module)).expr;
         }
-        return new EvalState(e2, env2, builder);
+        return new EvalState(e2, env2, module);
     }
 }
 

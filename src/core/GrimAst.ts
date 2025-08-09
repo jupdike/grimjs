@@ -4,7 +4,7 @@ import { GrimVal, strOf } from "./GrimVal.js";
 import { CanAst, CanTag, CanTaggedApp, CanStr } from "../parser/CanAst.js";
 import { GrimBool } from "./GrimBool.js";
 import { GrimOpt, GrimError } from "./GrimOpt.js";
-import { Builder } from "./Builder.js";
+import { GrimModule } from "./GrimModule.js";
 import { GrimStr } from "./GrimStr.js";
 
 class GrimTag extends GrimVal {
@@ -41,7 +41,7 @@ class GrimTag extends GrimVal {
         return false;
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             let arr = ast as Array<GrimVal>;
             if (!arr || arr.length !== 1 || !(arr[0] instanceof GrimTag || arr[0] instanceof GrimStr)) {

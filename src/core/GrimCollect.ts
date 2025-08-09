@@ -6,7 +6,7 @@ import { GrimBool } from "./GrimBool.js";
 import { GrimTag, GrimVar } from "./GrimAst.js";
 import { GrimDec, GrimNat } from "./GrimNum.js";
 import { GrimError } from "./GrimOpt.js";
-import { Builder } from "./Builder.js";
+import { GrimModule } from "./GrimModule.js";
 
 class GrimList extends GrimVal {
     private list: List<GrimVal>;
@@ -38,12 +38,12 @@ class GrimList extends GrimVal {
         return "List";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             return new GrimList(ast);
         }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "List") {
-            const elements = ast.args.map(arg => builder.fromAst(arg));
+            const elements = ast.args.map(arg => module.fromAst(arg));
             return new GrimList(elements);
         }
         console.warn(`GrimList.maker received unexpected AST type: ${ast.constructor.name}`);
@@ -79,7 +79,7 @@ class GrimTuple extends GrimVal {
         return "Tuple";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             return new GrimTuple(ast);
         }
@@ -87,7 +87,7 @@ class GrimTuple extends GrimVal {
             if (ast.args.length === 0) {
                 throw new Error("Empty tuples are not allowed in Grim");
             }
-            const elements = ast.args.map(arg => builder.fromAst(arg));
+            const elements = ast.args.map(arg => module.fromAst(arg));
             return new GrimTuple(elements);
         }
         console.warn(`GrimTuple.maker received unexpected AST type: ${ast.constructor.name}`);
@@ -103,7 +103,7 @@ class GrimMap extends GrimVal {
         this.map = Map(entries);
     }
 
-    static fromArrayOfGrimTuples(array: Array<GrimVal>, builder: Builder): GrimMap {
+    static fromArrayOfGrimTuples(array: Array<GrimVal>, module: GrimModule): GrimMap {
         const entries: [GrimVal, GrimVal][] = [];
         for (const grimVal of array) {
             if (!(grimVal instanceof GrimTuple) || grimVal.tuple.size !== 2) {
@@ -147,7 +147,7 @@ class GrimMap extends GrimVal {
         return "Map";
     }
 
-    private static keyToString(key: CanAst, builder: Builder): GrimVal {
+    private static keyToString(key: CanAst, module: GrimModule): GrimVal {
         if (key instanceof CanStr) {
             return new GrimStr(key.str);
         }
@@ -160,20 +160,20 @@ class GrimMap extends GrimVal {
                 return new GrimStr((key.args[0] as CanStr).str); // Convert to string representation
             }
         }
-        return builder.fromAst(key);
+        return module.fromAst(key);
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
-            return GrimMap.fromArrayOfGrimTuples(ast, builder)
+            return GrimMap.fromArrayOfGrimTuples(ast, module)
         }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Map") {
             const entries: [GrimVal, GrimVal][] = [];
             
             for (const arg of ast.args) {
                 if (arg instanceof CanTaggedApp && arg.tag.tag === "Tuple" && arg.args.length === 2) {
-                    const key = GrimMap.keyToString(arg.args[0], builder);
-                    const value = builder.fromAst(arg.args[1]);
+                    const key = GrimMap.keyToString(arg.args[0], module);
+                    const value = module.fromAst(arg.args[1]);
                     entries.push([key, value]);
                 } else {
                     return new GrimError(["Invalid Map entry, expected Pair but got: ", arg.toString()]);
@@ -211,12 +211,12 @@ class GrimSet extends GrimVal {
         return "Set";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             return new GrimSet(ast);
         }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "Set") {
-            const elements = ast.args.map(arg => builder.fromAst(arg));
+            const elements = ast.args.map(arg => module.fromAst(arg));
             return new GrimSet(elements);
         }
         console.warn(`GrimSet.maker received unexpected AST type: ${ast.constructor.name}`);

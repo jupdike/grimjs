@@ -1,7 +1,7 @@
 import { GrimVal, AstJson } from "./GrimVal.js";
 import { CanTaggedApp, CanAst, CanStr } from "../parser/CanAst.js";
 import { GrimStr } from "./GrimStr.js";
-import { Builder } from "./Builder.js";
+import { GrimModule } from "./GrimModule.js";
 
 class GrimOpt extends GrimVal {
     readonly value: GrimVal | null;
@@ -41,7 +41,7 @@ class GrimOpt extends GrimVal {
         return "Option";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             if (ast.length === 0) {
                 return GrimOpt.None; // Empty array means None
@@ -57,7 +57,7 @@ class GrimOpt extends GrimVal {
                 return GrimOpt.None;
             }
             if (ast.args.length === 1) {
-                const arg = builder.fromAst(ast.args[0]);
+                const arg = module.fromAst(ast.args[0]);
                 return GrimOpt.Some(arg);
             }
         }
@@ -103,7 +103,7 @@ class GrimError extends GrimVal {
         return "Error";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             return new GrimError(ast);
         }
@@ -112,7 +112,7 @@ class GrimError extends GrimVal {
                 if (arg instanceof CanStr) {
                     return arg.str;
                 }
-                return builder.fromAst(arg);
+                return module.fromAst(arg);
             });
             return new GrimError(errorArgs);
         }

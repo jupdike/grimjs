@@ -22,7 +22,7 @@ The codebase follows a modular architecture with clear separation between parsin
 - **canast-config.json**: PegJS configuration for canonical parser generation, options for `peggy` command-line tool
 
 ### Test System (`src/test/`)
-- **test-canon.ts**: Tests for parsers and builder (sending parsed `CanAst` output into `builder.fromAst()`)
+- **test-canon.ts**: Tests for parsers and module (sending parsed `CanAst` output into `module.fromAst()`)
 
 ## Key Development Notes
 
@@ -35,7 +35,7 @@ The codebase follows a modular architecture with clear separation between parsin
 ## Dependencies
 
 - **PegJS**: Parser generator
-- **TypeScript**: For canonical AST types and GrimVal builder classes and subtypes
+- **TypeScript**: For canonical AST types and GrimVal classes (makers) and subtypes
 - **Bun**: Runtime for running parsers tests and build tests (GrimTest.ts)
 - **Immutable.js**: Functional, persistent (immutable) data structures, used as the basis for collection types in GrimJs runtime (GrimVal and subtypes in GrimCollect such as GrimList, GrimSet, GrimMap, GrimTuple)
 - **gmp-wasm**: For arbitrary precision arithmetic (future use)

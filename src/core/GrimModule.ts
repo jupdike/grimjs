@@ -10,14 +10,13 @@ import { GrimNat, GrimDec, GrimInt, GrimRat } from "./GrimNum.js";
 import { GrimStr } from "./GrimStr.js";
 import { GrimError, GrimOpt } from "./GrimOpt.js";
 import { GrimList, GrimTuple, GrimMap, GrimSet } from "./GrimCollect.js";
-import { Location, CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js";
+import { CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js";
 import { Eval, EvalState } from "./Eval.js";
 
-type AstToVal = (ast: CanAst | Array<GrimVal>, builder: Builder) => GrimVal;
+type AstToVal = (ast: CanAst | Array<GrimVal>, module: GrimModule) => GrimVal;
 type FuncType = (args: Array<GrimVal>) => GrimVal;
 
-// a builder is really a module, TODO rename it to Module or something
-class Builder {
+class GrimModule {
     private castPairs: Set<List<string>> = Set();
     addCast(tagBig: string, tagSmall: string) {
         // This is a way to add a cast from one tag to another, e.g. from "Nat" into "Int"
@@ -38,13 +37,13 @@ class Builder {
         this.addMakers();
     }
 
-    static fromDefinitions(parser: GrimParser, gmpLib: GMPLib, definitions: Array<string>) {
-        let builder = new Builder(parser, gmpLib);
+    static fromDefinitions(parser: GrimParser, gmpLib: GMPLib, definitions: Array<string>): GrimModule {
+        let module = new GrimModule(parser, gmpLib);
         console.error(`Building a module with ${definitions.length} definitions...`);
         for (const def of definitions) {
-            builder.addOneDefinition(def);
+            module.addOneDefinition(def);
         }
-        return builder;
+        return module;
     }
 
     moduleEnv: Map<string, GrimVal> = Map<string, GrimVal>(); // Environment for variable bindings
@@ -222,7 +221,7 @@ class Builder {
             const maker = this.makerMap.get(tagName);
             if (!maker) {
                 // this is not a problem, because we can use the tag to find a maker and restructure the AST
-                //console.warn(`Builder.fromAst: No maker found for tag '${tagName}'`);
+                //console.warn(`GrimModule.fromAst: No maker found for tag '${tagName}'`);
                 const appMaker = this.makerMap.get("@");
                 const tagMaker = this.makerMap.get("Tag");
                 if (appMaker && tagMaker) {
@@ -236,7 +235,7 @@ class Builder {
         }
         
         if(!ast) {
-            console.warn("builder.fromAst received undefined or null AST");
+            console.warn("GrimModule.fromAst received undefined or null AST");
             return new GrimVal();
         }
         console.warn(`No CanAst maker found for AST type: ${ast.constructor.name}`);
@@ -733,4 +732,4 @@ class Builder {
     }
 }
 
-export { Builder, FuncType };
+export { GrimModule, FuncType };

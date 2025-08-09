@@ -5,8 +5,8 @@ import { GrimVal } from "./GrimVal.js";
 import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimError } from "./GrimOpt.js";
 import { GrimStr } from './GrimStr.js';
-import { Builder } from './Builder.js';
-import type { FuncType } from './Builder.js';
+import { GrimModule } from './GrimModule.js';
+import type { FuncType } from './GrimModule.js';
 import { GrimBool } from './GrimBool.js';
 
 // for api for GMP's wrapped Float, see:
@@ -50,7 +50,7 @@ class GrimNat extends GrimVal {
         return "Nat";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             // TODO could allow cast from other types?, to GrimNat
             // later
@@ -93,14 +93,14 @@ class GrimNat extends GrimVal {
         return new GrimError(["NOPE_CanNat"]);
     }
 
-    static wrapBinaryOp(builder: Builder, fn: (a: any, b: any) => any): FuncType {
+    static wrapBinaryOp(module: GrimModule, fn: (a: any, b: any) => any): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Op.Type.Type");
                 return new GrimError(["Op.Type.Type requires exactly 2 arguments"]);
             }
             if (args[0] instanceof GrimNat && args[1] instanceof GrimNat) {
-                return GrimNat.fromBinaryFunction(builder.gmpLib, args[0], args[1], (a: any, b: any) => {
+                return GrimNat.fromBinaryFunction(module.gmpLib, args[0], args[1], (a: any, b: any) => {
                     return fn(a, b); // Use GMP's operation on two IntegerTypes
                 });
             }
@@ -108,16 +108,16 @@ class GrimNat extends GrimVal {
         };
     }
 
-    static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
+    static wrapBinaryOpBool(module: GrimModule, fn: (a: any, b: any) => boolean): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Op.Nat.Nat");
                 return new GrimError(["Op.Nat.Nat requires exactly 2 arguments"]);
             }
             if (args[0] instanceof GrimNat && args[1] instanceof GrimNat) {
-                const gmpLib = builder.gmpLib;
+                const gmpLib = module.gmpLib;
                 if (!gmpLib) {
-                    console.error("GrimNat.wrapBinaryOpBool called but builder.gmpLib is null");
+                    console.error("GrimNat.wrapBinaryOpBool called but module.gmpLib is null");
                     return new GrimError(["GMP library not initialized"]);
                 }
                 const ctx = gmpLib.getContext();
@@ -163,7 +163,7 @@ class GrimInt extends GrimNat {
         return "Int";
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             // TODO could allow cast from other types?, to GrimNat
             // later
@@ -210,14 +210,14 @@ class GrimInt extends GrimNat {
         return new GrimError(["NOPE_CanInt"]);
     }
 
-    static wrapBinaryOp(builder: Builder, fn: (a: any, b: any) => any): FuncType {
+    static wrapBinaryOp(module: GrimModule, fn: (a: any, b: any) => any): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Op.Type.Type");
                 return new GrimError(["Op.Type.Type requires exactly 2 arguments"]);
             }
             if (args[0] instanceof GrimNat && args[1] instanceof GrimNat) {
-                return GrimInt.fromBinaryFunction(builder.gmpLib, args[0], args[1], (a: any, b: any) => {
+                return GrimInt.fromBinaryFunction(module.gmpLib, args[0], args[1], (a: any, b: any) => {
                     return fn(a, b); // Use GMP's operation on two IntegerTypes
                 });
             }
@@ -225,7 +225,7 @@ class GrimInt extends GrimNat {
         };
     }
 
-    static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
+    static wrapBinaryOpBool(module: GrimModule, fn: (a: any, b: any) => boolean): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.error("GrimTag.addCallableTag called with invalid args for Op.Int.Int");
@@ -241,9 +241,9 @@ class GrimInt extends GrimNat {
                 args1 = new GrimInt(args1.value);
             }
             if (args0 instanceof GrimInt && args1 instanceof GrimInt) {
-                const gmpLib = builder.gmpLib;
+                const gmpLib = module.gmpLib;
                 if (!gmpLib) {
-                    console.error("GrimInt.wrapBinaryOpBool called but builder.gmpLib is null");
+                    console.error("GrimInt.wrapBinaryOpBool called but module.gmpLib is null");
                     return new GrimError(["GMP library not initialized"]);
                 }
                 const ctx = gmpLib.getContext();
@@ -286,7 +286,7 @@ class GrimRat extends GrimVal {
         return `Rat("${this.toString()}")`;
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             // If it's an array, we expect two elements: numerator and denominator
             if (ast.length !== 1) {
@@ -359,7 +359,7 @@ class GrimRat extends GrimVal {
         return new GrimError(["NOPE_CanRat"]);
     }
 
-    static wrapBinaryOp(builder: Builder, fn: (a: any, b: any) => any): FuncType {
+    static wrapBinaryOp(module: GrimModule, fn: (a: any, b: any) => any): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.error("uno -- GrimTag.addCallableTag called with invalid args for Rat -- Op.Type.Type");
@@ -374,7 +374,7 @@ class GrimRat extends GrimVal {
                 args1 = GrimRat.fromString(args1.toString());
             }
             if (args0 instanceof GrimRat && args1 instanceof GrimRat) {
-                return GrimRat.fromBinaryFunction(builder.gmpLib, args0, args1, (a: any, b: any) => {
+                return GrimRat.fromBinaryFunction(module.gmpLib, args0, args1, (a: any, b: any) => {
                     return fn(a, b); // Use GMP's operation on two IntegerTypes
                 });
             }
@@ -382,7 +382,7 @@ class GrimRat extends GrimVal {
         };
     }
 
-    static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
+    static wrapBinaryOpBool(module: GrimModule, fn: (a: any, b: any) => boolean): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.error("GrimTag.addCallableTag called with invalid args for Op.Rat.Rat");
@@ -397,9 +397,9 @@ class GrimRat extends GrimVal {
                 args1 = GrimRat.fromString(args1.toString());
             }
             if (args0 instanceof GrimRat && args1 instanceof GrimRat) {
-                const gmpLib = builder.gmpLib;
+                const gmpLib = module.gmpLib;
                 if (!gmpLib) {
-                    console.error("GrimRat.wrapBinaryOpBool called but builder.gmpLib is null");
+                    console.error("GrimRat.wrapBinaryOpBool called but module.gmpLib is null");
                     return new GrimError(["GMP library not initialized"]);
                 }
                 const ctx = gmpLib.getContext();
@@ -514,7 +514,7 @@ class GrimDec extends GrimVal {
         return new GrimError(["NOPE_CanDec"]);
     }
 
-    static wrapBinaryOp(builder: Builder, fn: (a: any, b: any) => any): FuncType {
+    static wrapBinaryOp(module: GrimModule, fn: (a: any, b: any) => any): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.warn("GrimTag.addCallableTag called with invalid args for Op.Type.Type");
@@ -524,13 +524,13 @@ class GrimDec extends GrimVal {
             let args0 = args[0];
             let args1 = args[1];
             if (!(args0 instanceof GrimDec)) {
-                args0 = GrimDec.maker([args0], builder);
+                args0 = GrimDec.maker([args0], module);
             }
             if (!(args1 instanceof GrimDec)) {
-                args1 = GrimDec.maker([args1], builder);
+                args1 = GrimDec.maker([args1], module);
             }
             if (args0 instanceof GrimDec && args1 instanceof GrimDec) {
-                return GrimDec.fromBinaryFunction(builder.gmpLib, args0, args1, (a: any, b: any) => {
+                return GrimDec.fromBinaryFunction(module.gmpLib, args0, args1, (a: any, b: any) => {
                     return fn(a, b); // Use GMP's operation on two FloatTypes
                 });
             }
@@ -541,10 +541,10 @@ class GrimDec extends GrimVal {
 
     static gmpLib: GMPLib | null = null;
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
-        if (builder.gmpLib && !GrimDec.gmpLib) {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
+        if (module.gmpLib && !GrimDec.gmpLib) {
             //console.error("setting gmpLib in GrimDec.maker");
-            GrimDec.gmpLib = builder.gmpLib;
+            GrimDec.gmpLib = module.gmpLib;
         }
         if (Array.isArray(ast)) {
             // TODO could allow cast from other types?, to GrimDec
@@ -567,7 +567,7 @@ class GrimDec extends GrimVal {
                 let rat = ast[0] as GrimRat;
                 let num = rat.numerator.value;
                 let denom = rat.denominator.value;
-                let func = GrimDec.wrapBinaryOp(builder, (a, b) => { return a.div(b); });
+                let func = GrimDec.wrapBinaryOp(module, (a, b) => { return a.div(b); });
                 return func([new GrimDec(num),
                              new GrimDec(denom)]);
             }
@@ -595,7 +595,7 @@ class GrimDec extends GrimVal {
         return new GrimError(["NOPE_CanDec"]);
     }
 
-    static wrapBinaryOpBool(builder: Builder, fn: (a: any, b: any) => boolean): FuncType {
+    static wrapBinaryOpBool(module: GrimModule, fn: (a: any, b: any) => boolean): FuncType {
         return (args: Array<GrimVal>) => {
             if (args.length !== 2) {
                 console.error("GrimTag.addCallableTag called with invalid args for Op.Dec.Dec");
@@ -604,15 +604,15 @@ class GrimDec extends GrimVal {
             let args0 = args[0];
             let args1 = args[1];
             if (!(args0 instanceof GrimDec)) {
-                args0 = GrimDec.maker([args0], builder);
+                args0 = GrimDec.maker([args0], module);
             }
             if (!(args1 instanceof GrimDec)) {
-                args1 = GrimDec.maker([args1], builder);
+                args1 = GrimDec.maker([args1], module);
             }
             if (args0 instanceof GrimDec && args1 instanceof GrimDec) {
-                const gmpLib = builder.gmpLib;
+                const gmpLib = module.gmpLib;
                 if (!gmpLib) {
-                    console.error("GrimDec.wrapBinaryOpBool called but builder.gmpLib is null");
+                    console.error("GrimDec.wrapBinaryOpBool called but module.gmpLib is null");
                     return new GrimError(["GMP library not initialized"]);
                 }
                 const roundingMode = gmp.FloatRoundingMode.ROUND_DOWN;

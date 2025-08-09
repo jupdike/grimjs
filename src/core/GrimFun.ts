@@ -2,7 +2,7 @@ import { GrimVal, AstJson } from "./GrimVal";
 import { Set } from 'immutable';
 import { CanApp, CanTaggedApp, CanAst } from "../parser/CanAst.js";
 import { GrimList } from "./GrimCollect";
-import { Builder } from "./Builder.js";
+import { GrimModule } from "./GrimModule.js";
 import { GrimError } from "./GrimOpt.js";
 import { GrimSym, GrimTag } from "./GrimAst.js";
 
@@ -42,11 +42,11 @@ class GrimApp extends GrimVal {
         return `App(${this.lhs.toCanonicalString()}, ${rhsStr})`;
     }
 
-    // static wrap(one: AstJson | string, builder: Builder): GrimVal {
-    //     return typeof one === 'string' ? new GrimStr(one) : builder.fromAst(one);
+    // static wrap(one: AstJson | string, module: GrimModule): GrimVal {
+    //     return typeof one === 'string' ? new GrimStr(one) : module.fromAst(one);
     // }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             if (ast.length !== 2) {
                 console.warn("GrimApp.maker called with wrong number of args, expected 2, returning empty GrimVal");
@@ -61,8 +61,8 @@ class GrimApp extends GrimVal {
             return new GrimApp(lhs, rhs);
         }
         if (ast instanceof CanApp) {
-            const lhs = builder.fromAst(ast.fun);
-            const rhs: Array<GrimVal> = ast.args.map(arg => builder.fromAst(arg));
+            const lhs = module.fromAst(ast.fun);
+            const rhs: Array<GrimVal> = ast.args.map(arg => module.fromAst(arg));
             return new GrimApp(lhs, rhs);
         }
         if (ast instanceof CanTaggedApp && ast.tag.tag === "App") {
@@ -70,8 +70,8 @@ class GrimApp extends GrimVal {
                 console.warn("GrimApp.maker called with no args, returning empty GrimVal");
                 return new GrimVal();
             }
-            const lhs = builder.fromAst(ast.args[0]);
-            const rhs = ast.args.slice(1).map(arg => builder.fromAst(arg));
+            const lhs = module.fromAst(ast.args[0]);
+            const rhs = ast.args.slice(1).map(arg => module.fromAst(arg));
             return new GrimApp(lhs, rhs);
         }
         console.warn(`GrimApp.maker received unexpected AST type: ${ast.constructor.name}`);
@@ -117,7 +117,7 @@ class GrimFun extends GrimVal {
         return `Fun(List(${argsStr}), ${this.body.toCanonicalString()})`;
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         // this means you can build functions at runtime with Fun acting as a first-class callable thing
         if (Array.isArray(ast)) {
             if (ast.length !== 2) {
@@ -137,8 +137,8 @@ class GrimFun extends GrimVal {
                 console.warn("GrimFun.maker called with insufficient args, returning empty GrimVal");
                 return new GrimVal();
             }
-            const argsAst = builder.fromAst(ast.args[0]);
-            const body = builder.fromAst(ast.args[1]);
+            const argsAst = module.fromAst(ast.args[0]);
+            const body = module.fromAst(ast.args[1]);
             if (argsAst instanceof GrimList) {
                 let arr = argsAst.asArray();
                 let set = Set<string>();
@@ -188,7 +188,7 @@ class GrimLet extends GrimVal {
         return `Let(List(${argsStr}), ${this.body.toCanonicalString()})`;
     }
 
-    static maker(ast: CanAst | Array<GrimVal>, builder: Builder): GrimVal {
+    static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             if (ast.length !== 2) {
                 console.warn("GrimLet.maker called with wrong number of args, expected 2, returning empty GrimVal");
@@ -207,9 +207,9 @@ class GrimLet extends GrimVal {
                 console.warn("GrimLet.maker called with insufficient args, returning empty GrimVal");
                 return new GrimVal();
             }
-            const bindingsAst = builder.fromAst(ast.args[0]);
+            const bindingsAst = module.fromAst(ast.args[0]);
             // TODO check that there are no duplicate names in bindingsAst
-            const body = builder.fromAst(ast.args[1]);
+            const body = module.fromAst(ast.args[1]);
 
             if (bindingsAst instanceof GrimList) {
                 return new GrimLet(bindingsAst.asArray(), body);

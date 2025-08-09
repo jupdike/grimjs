@@ -1,5 +1,5 @@
 import * as parserCanon from '../parser/_parser-canon.js';
-import { Builder } from "./Builder.js";
+import { GrimModule } from "./GrimModule.js";
 import { Location, CanApp, CanAst, CanStr, CanTag, CanTaggedApp } from "../parser/CanAst.js";
 import { GrimVal } from "./GrimVal.js";
 import { Eval, EvalState } from "./Eval.js";
@@ -18,7 +18,7 @@ interface TestSuite {
 }
 
 class Tester {
-    constructor(private builder: Builder) {}
+    constructor(private module: GrimModule) {}
 
     static parseTestLines(yaml: string): Array<TestSuite> {
         // Parse the YAML string into a JavaScript object
@@ -78,7 +78,7 @@ class Tester {
         //console.error(`Found ${this.castPairs.size} cast pairs`);
         let n = 0;
         if (!testSuites || testSuites.length === 0) {
-            console.warn("No test suites provided to Builder.runTests");
+            console.warn("No test suites provided to GrimModule.runTests");
             return;
         }
         for (const suite of testSuites) {
@@ -111,7 +111,7 @@ class Tester {
     check(str: string, start: string | null = null, onlyErrors = false): CanAst {
         start = start || "Start";
         try {
-            var ret = this.builder.parser.parse(str, {startRule: start});
+            var ret = this.module.parser.parse(str, {startRule: start});
             // if (!onlyErrors) {
             //     console.log('---');
             //     console.log(str, '\n  ~~ parses as ~~>\n', ret.toString() );
@@ -133,7 +133,7 @@ class Tester {
         let ast: CanAst = this.check(str, startRule, onlyErrors);
         //console.log('Parsed AST JSON    :', JSON.stringify(ast, null, 2));
         //console.log('Parsed AST toString:', ast.toString());
-        let val = this.builder.fromAst(ast);
+        let val = this.module.fromAst(ast);
         //console.log('GrimVal from AST   :', val.toString());
         let canon = val.toCanonicalString();
         //console.log('Canonical string   :', canon);
@@ -152,7 +152,7 @@ class Tester {
     }
 
     private evalOne(val: GrimVal): string {
-        let state = new EvalState(val, this.builder.evaluatedModuleEnv(), this.builder);
+        let state = new EvalState(val, this.module.evaluatedModuleEnv(), this.module);
         let result: GrimVal | null = null;
         try {
             result = Eval.evaluate(state).expr;
@@ -182,7 +182,7 @@ class Tester {
             return;
         }
         console.log(`sugar:       ${entry.sugar}`);
-        let ast: CanAst | null = this.builder.sugarToAst(entry.sugar, { startRule: "Expression" });
+        let ast: CanAst | null = this.module.sugarToAst(entry.sugar, { startRule: "Expression" });
         if (!ast) {
             console.error("Failed to parse sugar:", entry.sugar);
             return;
@@ -192,7 +192,7 @@ class Tester {
         if (this.reportMismatches && oneAstStr !== entry.desugared) {
             console.error(`Desugared AST does not match expected: ${oneAstStr} !== ${entry.desugared}`);
         }
-        let built: GrimVal = this.builder.fromAst(ast);
+        let built: GrimVal = this.module.fromAst(ast);
         console.log(`built:       ${built.toString()}`);
         if (this.reportMismatches && built.toString() !== entry.built) {
             console.error(`Built GrimVal does not match expected: ${built.toString()} !== ${entry.built}`);
