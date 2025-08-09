@@ -22,6 +22,11 @@ enum TagAppType {
     MacroRules, // Macro rules for symbolically transforming code
 }
 
+type MacroMatchRule = {
+    args: Array<GrimVal>;
+    body: GrimVal;
+};
+
 class GrimModule {
     // ensure that each tag app can only be called in one of three ways
     private tagAppTypes: Map<string, TagAppType> = Map();
@@ -67,6 +72,30 @@ class GrimModule {
         }
     }
 
+    private macroMatchRules: Map<string, List<MacroMatchRule>> = Map();
+    private addMacroMatchRule(tag: string, args: Array<GrimVal>, body: GrimVal) {
+        if (!this.tagAppTypes.has(tag)) {
+            this.tagAppTypes = this.tagAppTypes.set(tag, TagAppType.MacroRules);
+        }
+        if (this.tagAppTypes.get(tag) !== TagAppType.MacroRules) {
+            throw new Error(`Tag '${tag}' is not a MacroRules type, does some other job instead. Tags can only have one job.`);
+        }
+        let rules = this.macroMatchRules.get(tag) || List();
+        rules = rules.push({ args, body });
+        this.macroMatchRules = this.macroMatchRules.set(tag, rules);
+    }
+
+    private static tagStringFromTagAst(tagAst: CanAst): string | null {
+        if (tagAst instanceof CanTag) {
+            return tagAst.tag;
+        } else if (tagAst instanceof CanTaggedApp && tagAst.tag.tag === "Tag" &&
+            tagAst.args.length === 1 && tagAst.args[0] instanceof CanStr) {
+            return tagAst.args[0].str;
+        } else {
+            return null;
+        }
+    }
+
     private addOneDefinition(def: string) {
         let sugar = def.trim();
         console.log(`sugar:       ${sugar}`);
@@ -79,6 +108,39 @@ class GrimModule {
         console.log(`desugared:   ${oneAstStr}`);
         if (ast instanceof CanTaggedApp) {
             let tagStr = ast.tag.tag;
+            if (tagStr === "DefMacroMatchRule") {
+                // Handle DefMacroMatchRule specifically
+                if (ast.args.length !== 3) {
+                    console.error(`DefMacroMatchRule requires exactly 3 arguments, got ${ast.args.length}`);
+                    return;
+                }
+                let [tagAst, argsAst, bodyAst] = ast.args;
+                let tag: string = GrimModule.tagStringFromTagAst(tagAst) || "";
+                if (tag === "") {
+                    console.error(`DefMacroMatchRule first argument must be a Tag, got ${tagAst.constructor.name}`);
+                    return;
+                }
+                //console.error(`DefMacroMatchRule tag: ${tag}`);
+                if (!(argsAst instanceof CanTaggedApp) || argsAst.tag.tag !== "List") {
+                    console.error(`DefMacroMatchRule second argument must be a List of arguments, got ${argsAst.constructor.name}`);
+                    return;
+                }
+                let args: Array<GrimVal> = argsAst.args.map(arg => {
+                    let tg = GrimModule.tagStringFromTagAst(arg);
+                    if (tg) {
+                        return new GrimTag(tg);
+                    } else {
+                        return this.fromAst(arg);
+                    }
+                });
+                //console.error(`DefMacroMatchRule args: ${args.map(a => a.toCanonicalString()).join(", ")}`);
+                let body: GrimVal | null = this.fromAst(bodyAst);
+                if (!body) {
+                    console.error(`DefMacroMatchRule body must be a valid expression, got ${bodyAst.constructor.name}`);
+                    return;
+                }
+                this.addMacroMatchRule(tag, args, body);
+            }
             if (tagStr === "DefCast") {
                 // Handle DefCast specifically
                 if (ast.args.length !== 2) {
@@ -168,7 +230,8 @@ class GrimModule {
             }
         }
         let keySummary: Array<string> = this.moduleEnv.keySeq().toArray();
-        console.error(`No. Casts: ${this.castPairs.size} -- moduleEnv size: ${this.moduleEnv.size} -- Defs: ${keySummary.join(", ")}`);
+        let macroSummary: Array<string> = this.macroMatchRules.keySeq().map(k => `${k}(${this.macroMatchRules.get(k)?.size || 0})`).toArray();
+        console.error(`No. Casts: ${this.castPairs.size} -- moduleEnv size: ${this.moduleEnv.size} -- Defs: ${keySummary.join(", ")} -- Macros: ${macroSummary.join(", ")}`);
         console.log("#");
     }
 

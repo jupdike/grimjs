@@ -136,7 +136,7 @@ MatchArgs "arguments to a pattern match"
 
 MatchLhs "left-hand side of pattern matching"
   = tag:Tag _ "(" args:MatchArgs ")" { return aTagApp(location(), tag, args); }
-  / tag:Tag { return aTag(location(), tag); }
+  / tag:Tag { return tag; }
   / sym:MatchSym { return sym; }
 
 Bind "a Fun expression (anonymous function) or Let expression or Pattern matching"
