@@ -587,10 +587,12 @@ class Builder {
         if (this.reportMismatches && canonical !== entry.canonical) {
             console.error(`Canonical string does not match expected: ${canonical} !== ${entry.canonical}`);
         }
-        let evaluated: string = this.evalOne(built);
-        console.log(`evaluated:   ${evaluated}`);
-        if (this.reportMismatches && evaluated !== entry.evaluated) {
-            console.error(`Evaluated result does not match expected: ${evaluated} !== ${entry.evaluated}`);
+        if (entry.evaluated !== "noeval") {
+            let evaluated: string = this.evalOne(built);
+            console.log(`evaluated:   ${evaluated}`);
+            if (this.reportMismatches && evaluated !== entry.evaluated) {
+                console.error(`Evaluated result does not match expected: ${evaluated} !== ${entry.evaluated}`);
+            }
         }
         console.log("#");
     }
