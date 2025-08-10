@@ -129,13 +129,35 @@ class Eval {
             let app = expr as GrimApp;
             if (app.lhs instanceof GrimTag) {
                 let tag = app.lhs as GrimTag;
+                if (tag.value === "Unquote") {
+                    if (app.rhs.length !== 1) {
+                        throw new Error(`Unquote expected 1 argument, got ${app.rhs.length}`);
+                    }
+                    e2 = app.rhs[0];
+                    if (e2 instanceof GrimApp) {
+                        if (e2.lhs instanceof GrimTag && e2.lhs.value === "Quote") {
+                            e2 = e2.rhs[0];
+                            e2 = Eval.evaluate(new EvalState(e2, env, module)).expr;
+                        }
+                    } else {
+                        throw new Error("Unquote expected Quoted argument, or expected Unquote to be used somewhere within a Quote() expression");
+                    }
+                    return new EvalState(e2, env, module);
+                }
                 if (tag.value === "Quote") {
                     // TODO remove this when we can use Macros
                     // Special case for Quote, just return the first argument
                     if (app.rhs.length !== 1) {
                         throw new Error(`Quote expected 1 argument, got ${app.rhs.length}`);
                     }
-                    e2 = app.rhs[0]; // return the first argument as is
+                    e2 = app.rhs[0]; // return the first argument as is, unless it includes unquote somewhere
+                    // TODO make this more recursive structurally, so unquotes anywhere inside a Quote get reversed out as expected
+                    if (e2 instanceof GrimApp) {
+                        if (e2.lhs instanceof GrimTag && e2.lhs.value === "Unquote") {
+                            e2 = e2.rhs[0];
+                            e2 = Eval.evaluate(new EvalState(e2, env, module)).expr;
+                        }
+                    }
                     // test if this ignores the arguments inside the list, by passing Crash() to it
                     return new EvalState(e2, env2, module);
                 }
@@ -179,6 +201,7 @@ class Eval {
                 // Check if we have a list of macro rules for this tag
                 let args = app.rhs; // unevaluated arguments
                 if (module.hasMacroMatchRule(tag.value)) {
+                    console.error("Found rule for ", tag.value);
                     const rules: List<MacroMatchRule> = module.getMacroMatchRules(tag.value);
                     // a space to put evaluated arguments, but only when needed
                     let argsEvald: Array<GrimVal | null> = [];

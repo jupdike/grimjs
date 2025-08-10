@@ -1029,7 +1029,7 @@ desugared:   Gt("darkness", "dark")
 built:       Gt@("darkness", "dark")
 canonical:   Gt("darkness", "dark")
 evaluated:   True
-#
+# Test some Boolean Macro Rules
 sugar:       1 == 2 || 1 == 1
 desugared:   Or(Eq(Nat("1"), Nat("2")), Eq(Nat("1"), Nat("1")))
 built:       Or@(Eq@(1, 2), Eq@(1, 1))
@@ -1054,17 +1054,57 @@ built:       And@(True, False)
 canonical:   And(True, False)
 evaluated:   False
 #
+sugar:       Not(True)
+desugared:   Tag("Not")@(Tag("True"))
+built:       Not@(True)
+canonical:   Not(True)
+evaluated:   False
+#
+sugar:       Not(False)
+desugared:   Tag("Not")@(Tag("False"))
+built:       Not@(False)
+canonical:   Not(False)
+evaluated:   True
+#
+sugar:       Not(1 == 2)
+desugared:   Tag("Not")@(Eq(Nat("1"), Nat("2")))
+built:       Not@(Eq@(1, 2))
+canonical:   Not(Eq(Nat("1"), Nat("2")))
+evaluated:   True
+# Quote and Unquote
 sugar:       Quote(Crash())
 desugared:   Tag("Quote")@(Tag("Crash")@())
 built:       Quote@(Crash@())
 canonical:   Quote(Crash())
 evaluated:   Crash@()
 #
-#sugar:       a -> 2 + 3
-#evaluated:   noeval
+sugar:       Sym("x")
+desugared:   Tag("Sym")@("x")
+built:       Sym@("x")
+canonical:   Sym("x")
+evaluated:   Sym("x")
 #
-#sugar:       Quote(x) -> 2 + 3
-#evaluated:   noeval
+sugar:       ~x
+desugared:   Quote(Sym("x"))
+built:       Quote@(Sym("x"))
+canonical:   Quote(Sym("x"))
+evaluated:   Sym("x")
 #
-#sugar:       (n := 0) => n == 0 || n == 1
+sugar:       ~fact(5)
+desugared:   Quote(Sym("fact")@(Nat("5")))
+built:       Quote@(Sym("fact")@(5))
+canonical:   Quote(App(Sym("fact"), Nat("5")))
+evaluated:   Sym("fact")@(5)
+#
+sugar:       &(~fact(5))
+desugared:   Unquote(Quote(Sym("fact")@(Nat("5"))))
+built:       Unquote@(Quote@(Sym("fact")@(5)))
+canonical:   Unquote(Quote(App(Sym("fact"), Nat("5"))))
+evaluated:   120
+#
+sugar:       ~(&fact(5))
+desugared:   Quote(Unquote(Sym("fact")@(Nat("5"))))
+built:       Quote@(Unquote@(Sym("fact")@(5)))
+canonical:   Quote(Unquote(App(Sym("fact"), Nat("5"))))
+evaluated:   120
 #
