@@ -130,16 +130,16 @@ class Eval {
             let app = expr as GrimApp;
             if (app.lhs instanceof GrimTag) {
                 let tag = app.lhs as GrimTag;
-                // if (tag.value === "Quote") {
-                //     // TODO remove this when we can use Macros
-                //     // Special case for Quote, just return the first argument
-                //     if (app.rhs.length !== 1) {
-                //         throw new Error(`Quote expected 1 argument, got ${app.rhs.length}`);
-                //     }
-                //     e2 = app.rhs[0]; // return the first argument as is
-                //     // test if this ignores the arguments inside the list, by passing Crash() to it
-                //     return new EvalState(e2, env2, module);
-                // }
+                if (tag.value === "Quote") {
+                    // TODO remove this when we can use Macros
+                    // Special case for Quote, just return the first argument
+                    if (app.rhs.length !== 1) {
+                        throw new Error(`Quote expected 1 argument, got ${app.rhs.length}`);
+                    }
+                    e2 = app.rhs[0]; // return the first argument as is
+                    // test if this ignores the arguments inside the list, by passing Crash() to it
+                    return new EvalState(e2, env2, module);
+                }
                 if (tag.value === "If3") {
                     // TODO remove this when we can use Macros
                     // Special case for If3, evaluate the condition and then return the appropriate branch

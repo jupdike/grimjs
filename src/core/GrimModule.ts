@@ -240,7 +240,7 @@ class GrimModule {
             }
         }
         let keySummary: Array<string> = this.moduleEnv.keySeq().toArray();
-        let macroSummary: Array<string> = this.macroMatchRules.keySeq().map(k => `${k}(${this.macroMatchRules.get(k)?.size || 0})`).toArray();
+        let macroSummary: Array<string> = this.macroMatchRules.keySeq().map(k => `${k}:${this.macroMatchRules.get(k)?.size || 0}`).toArray();
         console.error(`No. Casts: ${this.castPairs.size} -- moduleEnv size: ${this.moduleEnv.size} -- Defs: ${keySummary.join(", ")} -- Macros: ${macroSummary.join(", ")}`);
         console.log("#");
     }

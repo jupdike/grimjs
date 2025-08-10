@@ -1055,7 +1055,7 @@ canonical:   And(True, False)
 evaluated:   False
 #
 sugar:       Quote(Crash())
-desugared:   Quote(Tag("Crash")@())
+desugared:   Tag("Quote")@(Tag("Crash")@())
 built:       Quote@(Crash@())
 canonical:   Quote(Crash())
 evaluated:   Crash@()
