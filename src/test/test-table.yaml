@@ -1030,6 +1030,36 @@ built:       Gt@("darkness", "dark")
 canonical:   Gt("darkness", "dark")
 evaluated:   True
 #
+sugar:       1 == 2 || 1 == 1
+desugared:   Or(Eq(Nat("1"), Nat("2")), Eq(Nat("1"), Nat("1")))
+built:       Or@(Eq@(1, 2), Eq@(1, 1))
+canonical:   Or(Eq(Nat("1"), Nat("2")), Eq(Nat("1"), Nat("1")))
+evaluated:   True
+#
+sugar:       True || Crash()
+desugared:   Or(Tag("True"), Tag("Crash")@())
+built:       Or@(True, Crash@())
+canonical:   Or(True, Crash())
+evaluated:   True
+#
+sugar:       False && Crash()
+desugared:   And(Tag("False"), Tag("Crash")@())
+built:       And@(False, Crash@())
+canonical:   And(False, Crash())
+evaluated:   False
+#
+sugar:       True && False
+desugared:   And(Tag("True"), Tag("False"))
+built:       And@(True, False)
+canonical:   And(True, False)
+evaluated:   False
+#
+sugar:       Quote(Crash())
+desugared:   Quote(Tag("Crash")@())
+built:       Quote@(Crash@())
+canonical:   Quote(Crash())
+evaluated:   Crash@()
+#
 #sugar:       a -> 2 + 3
 #evaluated:   noeval
 #

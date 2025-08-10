@@ -84,6 +84,16 @@ class GrimModule {
         rules = rules.push({ args, body });
         this.macroMatchRules = this.macroMatchRules.set(tag, rules);
     }
+    hasMacroMatchRule(tag: string): boolean {
+        return this.macroMatchRules.has(tag);
+    }
+    getMacroMatchRules(tag: string): List<MacroMatchRule> {
+        let ret = this.macroMatchRules.get(tag);
+        if (!ret) {
+            throw new Error(`No macro match rules found for tag '${tag}'. Check hasMacroMatchRule first.`);
+        }
+        return ret;
+    }
 
     private static tagStringFromTagAst(tagAst: CanAst): string | null {
         if (tagAst instanceof CanTag) {
@@ -375,6 +385,9 @@ class GrimModule {
             }
             if (this.tagAppTypes.get(val.value) === TagAppType.Maker && this.makerMap.has(val.value)) {
                 return true; // If there's a maker for this tag, it is callable
+            }
+            if (this.tagAppTypes.get(val.value) === TagAppType.MacroRules && this.macroMatchRules.has(val.value)) {
+                return true; // If there's a list of macro rules for this tag, it is callable
             }
             // some tags are callable, like "Add", "Mul", etc.
             // but only under certain conditions
@@ -823,3 +836,4 @@ class GrimModule {
 }
 
 export { GrimModule, FuncType };
+export type { MacroMatchRule };
