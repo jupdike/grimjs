@@ -86,5 +86,6 @@ If2(True,    x)   :=> ~x
 RApply(Quote(x), _) :=> x
 RApply(f,        x) :=> App(f, x)
 
+// TODO needs &x and &y for Unquote (basically extra Eval)
 If3(True,  x, _)  :=> x
 If3(False, _, y)  :=> y

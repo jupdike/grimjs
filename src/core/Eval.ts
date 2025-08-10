@@ -189,22 +189,22 @@ class Eval {
                     // test if this ignores the arguments inside the list, by passing Crash() to it
                     return new EvalState(e2, env2, module);
                 }
-                if (tag.value === "If3") {
-                    // TODO remove this when we can use Macros
-                    // Special case for If3, evaluate the condition and then return the appropriate branch
-                    if (app.rhs.length !== 3) {
-                        throw new Error(`If3 expected 3 arguments, got ${app.rhs.length}`);
-                    }
-                    const condition = Eval.evaluate(new EvalState(app.rhs[0], env, module)).expr;
-                    if (condition instanceof GrimBool && condition.isTrue()) {
-                        e2 = Eval.evaluate(new EvalState(app.rhs[1], env, module)).expr; // return the second argument as is
-                    } else if (condition instanceof GrimBool && condition.isFalse()) {
-                        e2 = Eval.evaluate(new EvalState(app.rhs[2], env, module)).expr; // return the third argument as is
-                    } else {
-                        throw new Error(`If3 expected a GrimBool as the first argument, got ${condition}`);
-                    }
-                    return new EvalState(e2, env2, module);
-                }
+                // if (tag.value === "If3") {
+                //     // TODO remove this when we can use Macros
+                //     // Special case for If3, evaluate the condition and then return the appropriate branch
+                //     if (app.rhs.length !== 3) {
+                //         throw new Error(`If3 expected 3 arguments, got ${app.rhs.length}`);
+                //     }
+                //     const condition = Eval.evaluate(new EvalState(app.rhs[0], env, module)).expr;
+                //     if (condition instanceof GrimBool && condition.isTrue()) {
+                //         e2 = Eval.evaluate(new EvalState(app.rhs[1], env, module)).expr; // return the second argument as is
+                //     } else if (condition instanceof GrimBool && condition.isFalse()) {
+                //         e2 = Eval.evaluate(new EvalState(app.rhs[2], env, module)).expr; // return the third argument as is
+                //     } else {
+                //         throw new Error(`If3 expected a GrimBool as the first argument, got ${condition}`);
+                //     }
+                //     return new EvalState(e2, env2, module);
+                // }
                 if (tag.value === "Ignore") {
                     // TODO remove this when we can use Macros
                     // Special case for Ignore, just return a constant value
