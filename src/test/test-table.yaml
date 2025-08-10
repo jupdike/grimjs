@@ -1108,3 +1108,32 @@ built:       Quote@(Unquote@(Sym("fact")@(5)))
 canonical:   Quote(Unquote(App(Sym("fact"), Nat("5"))))
 evaluated:   120
 #
+# More complicated Macro Rules tests
+sugar:       Pair(fact(4), fact(5))
+desugared:   Tag("Pair")@(Sym("fact")@(Nat("4")), Sym("fact")@(Nat("5")))
+built:       Pair@(Sym("fact")@(4), Sym("fact")@(5))
+canonical:   Pair(App(Sym("fact"), Nat("4")), App(Sym("fact"), Nat("5")))
+evaluated:   (24, 120)
+#
+sugar:       If3(True, fact(5), Crash())
+desugared:   Tag("If3")@(Tag("True"), Sym("fact")@(Nat("5")), Tag("Crash")@())
+built:       If3@(True, Sym("fact")@(5), Crash@())
+canonical:   If3(True, App(Sym("fact"), Nat("5")), Crash())
+evaluated:   120
+#
+sugar:       Id(fact(4))
+desugared:   Tag("Id")@(Sym("fact")@(Nat("4")))
+built:       Id@(Sym("fact")@(4))
+canonical:   Id(App(Sym("fact"), Nat("4")))
+evaluated:   24
+#
+#sugar:       Pair(Crash(), Crash())
+#
+#sugar:       a -> 2 + 3
+#evaluated:   noeval
+#
+#sugar:       Quote(x) -> 2 + 3
+#evaluated:   noeval
+#
+#sugar:       (n := 0) => n == 0 || n == 1
+#

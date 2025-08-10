@@ -169,19 +169,23 @@ class Eval {
                     return new EvalState(e2, env, module);
                 }
                 if (tag.value === "Quote") {
-                    // TODO remove this when we can use Macros
-                    // Special case for Quote, just return the first argument
+                    // Special case for Quote, just return the first argument, unless we find Unquote in there
                     if (app.rhs.length !== 1) {
                         throw new Error(`Quote expected 1 argument, got ${app.rhs.length}`);
                     }
                     e2 = app.rhs[0]; // return the first argument as is, unless it includes unquote somewhere
-                    // TODO make this more recursive structurally, so unquotes anywhere inside a Quote get reversed out as expected
-                    if (e2 instanceof GrimApp) {
-                        if (e2.lhs instanceof GrimTag && e2.lhs.value === "Unquote") {
-                            e2 = e2.rhs[0];
-                            e2 = Eval.evaluate(new EvalState(e2, env, module)).expr;
+                    e2 = e2.exprMap((node) => {
+                        // console.error("1In Quote exprMap, visiting node:", node.toString());
+                        if (node instanceof GrimApp) {
+                            // console.error("3In Quote exprMap");
+                            if (node.lhs instanceof GrimTag && node.lhs.value === "Unquote") {
+                                // console.error("4In Quote exprMap -- got one");
+                                let e3 = node.rhs[0];
+                                return Eval.evaluate(new EvalState(e3, env, module)).expr;
+                            }
                         }
-                    }
+                        return node;
+                    });
                     // test if this ignores the arguments inside the list, by passing Crash() to it
                     return new EvalState(e2, env2, module);
                 }
@@ -248,12 +252,20 @@ class Eval {
                             let newEnv = env2;
                             // TODO is this right? this should be unevaluated, substituted, then evaluated ???
                             bindings.forEach((value, key) => {
+                                const oldKey: string = key;
+                                key = Eval.genSym(oldKey);
+                                body = Eval.substituteSym(body, oldKey, key);
                                 // Evaluate the value in the original environment
                                 // let evaluatedValue = Eval.evaluate(new EvalState(value, env, module)).expr;
                                 newEnv = newEnv.set(key, value);
                             });
                             console.error(`Macro matched for tag ${tag.value}, evaluating body with bindings:`, bindings.toString());
+                            console.error("Evaluating body:", body.toString());
                             e2 = Eval.evaluate(new EvalState(body, newEnv, module)).expr;
+                            console.error("Evaluated macro body:", e2.toString());
+                            // TODO YES: one more Eval, in the environment, because we need to run the code we generated
+                            console.error("Evaluating generated code...");
+                            e2 = Eval.evaluate(new EvalState(e2, newEnv, module)).expr;
                             return new EvalState(e2, env2, module);
                         }
                     }

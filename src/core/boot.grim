@@ -68,10 +68,8 @@ Or(False, False)  :=> False
 Or(False, True)   :=> True
 //Or(x, y)   ... error (or could be defined to do something else)
 
-// probably have to remove this and make it completely built-in special form
-//Quote(x)          :=> x
-
-Pair(x,   y)      :=> Tuple(x, y)
+// this is a synonym for Tuple
+Pair(x,   y)      :=> ~Tuple(&x, &y)
 
 Not(True)         :=> False
 Not(False)        :=> True
