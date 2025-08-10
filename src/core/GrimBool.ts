@@ -3,6 +3,7 @@ import { AstJson } from "./GrimVal.js";
 import { CanTaggedApp, CanStr, CanAst } from "../parser/CanAst.js";
 import { GrimError } from "./GrimOpt.js";
 import { GrimStr } from "./GrimStr.js";
+import { GrimTag } from "./GrimAst.js";
 
 class GrimBool extends GrimVal {
     static True = new GrimBool();
@@ -34,6 +35,9 @@ class GrimBool extends GrimVal {
     equals(other: GrimVal): boolean {
         if (other instanceof GrimBool) {
             return this.value === other.value;
+        }
+        if (other instanceof GrimTag) {
+            return other.equals(this);
         }
         return false;
     }

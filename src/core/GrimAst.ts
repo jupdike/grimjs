@@ -35,6 +35,12 @@ class GrimTag extends GrimVal {
             }
             return this.value === other.value;
         }
+        if (other instanceof GrimBool) {
+            return this.toCanonicalString() === other.toCanonicalString();
+        }
+        if (this.value === "None" && other instanceof GrimOpt && other.isNone()) {
+            return true;
+        }
         if (other instanceof GrimVal) {
             return this.equals(other);
         }
