@@ -68,14 +68,14 @@ Or(False, False)  :=> False
 Or(False, True)   :=> True
 //Or(x, y)   ... error (or could be defined to do something else)
 
-// this is a synonym for Tuple
-Pair(x,   y)      :=> ~Tuple(&x, &y)
-
 Not(True)         :=> False
 Not(False)        :=> True
 //Not(x)  ... error (or could be defined to do something else)
 
 Id(x)             :=> x
+
+If3(True,  x, _)  :=> x
+If3(False, _, y)  :=> y
 
 // t ? a $ b   syntax sugar for  RApply(If2(t, a), b)
 // attempt to cleverly make this work exactly like
@@ -86,6 +86,5 @@ If2(True,    x)   :=> ~x
 RApply(Quote(x), _) :=> x
 RApply(f,        x) :=> App(f, x)
 
-// TODO needs &x and &y for Unquote (basically extra Eval)
-If3(True,  x, _)  :=> x
-If3(False, _, y)  :=> y
+// this is a synonym for Tuple
+Pair(x,   y)      :=> ~Tuple(&x, &y)
