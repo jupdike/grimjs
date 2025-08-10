@@ -38,6 +38,10 @@ class GrimList extends GrimVal {
         return "List";
     }
 
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        return new GrimList(this.list.map(item => item.exprMap(fn)));
+    }
+
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             return new GrimList(ast);
@@ -77,6 +81,10 @@ class GrimTuple extends GrimVal {
 
     head(): string {
         return "Tuple";
+    }
+
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        return new GrimTuple(this.tuple.map(item => item.exprMap(fn)));
     }
 
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
@@ -147,6 +155,10 @@ class GrimMap extends GrimVal {
         return "Map";
     }
 
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        return new GrimMap(Array.from(this.map.entries()).map(([key, value]) => [key.exprMap(fn), value.exprMap(fn)]));
+    }
+
     private static keyToString(key: CanAst, module: GrimModule): GrimVal {
         if (key instanceof CanStr) {
             return new GrimStr(key.str);
@@ -209,6 +221,10 @@ class GrimSet extends GrimVal {
 
     head(): string {
         return "Set";
+    }
+
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        return new GrimSet(Array.from(this.set).map(item => item.exprMap(fn)));
     }
 
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {

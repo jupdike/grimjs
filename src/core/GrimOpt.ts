@@ -41,6 +41,11 @@ class GrimOpt extends GrimVal {
         return "Option";
     }
 
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        const newValue = this.value ? this.value.exprMap(fn) : null;
+        return new GrimOpt(newValue);
+    }
+
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             if (ast.length === 0) {
@@ -101,6 +106,11 @@ class GrimError extends GrimVal {
 
     head(): string {
         return "Error";
+    }
+
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        const newMessage = this.message.map(part => part.exprMap(fn));
+        return new GrimError(newMessage);
     }
 
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {

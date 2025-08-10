@@ -46,6 +46,12 @@ class GrimApp extends GrimVal {
     //     return typeof one === 'string' ? new GrimStr(one) : module.fromAst(one);
     // }
 
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        const newLhs = this.lhs.exprMap(fn);
+        const newRhs = this.rhs.map(arg => arg.exprMap(fn));
+        return new GrimApp(newLhs, newRhs);
+    }
+
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         if (Array.isArray(ast)) {
             if (ast.length !== 2) {
@@ -117,6 +123,12 @@ class GrimFun extends GrimVal {
         return `Fun(List(${argsStr}), ${this.body.toCanonicalString()})`;
     }
 
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        const newArgs = this.args.map(arg => arg.exprMap(fn));
+        const newBody = this.body.exprMap(fn);
+        return new GrimFun(newArgs, newBody, this.funcName + "ExprMapped");
+    }
+
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
         // this means you can build functions at runtime with Fun acting as a first-class callable thing
         if (Array.isArray(ast)) {
@@ -186,6 +198,12 @@ class GrimLet extends GrimVal {
     toCanonicalString(): string {
         let argsStr = this.bindings.map(arg => arg.toCanonicalString()).join(", ");
         return `Let(List(${argsStr}), ${this.body.toCanonicalString()})`;
+    }
+
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        const newBindings = this.bindings.map(binding => binding.exprMap(fn));
+        const newBody = this.body.exprMap(fn);
+        return new GrimLet(newBindings, newBody);
     }
 
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {

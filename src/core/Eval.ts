@@ -75,6 +75,30 @@ class Eval {
         return { match, bindings };
     }
 
+    static genSymSet: Set<string> = Set();
+
+    static genSym(key: string): string {
+        // get a random 6 digit hexidecimal code
+        let newKey: string;
+        do {
+            let r: number = Math.floor(Math.random() * 16777215);
+            newKey = `__sym_${key}_${r.toString(16)}__`;
+            console.error(`Generated new symbol: ${newKey}`);
+        } while (this.genSymSet.has(newKey)); // probably not going to happen, but just in case
+        this.genSymSet.add(newKey);
+        return newKey;
+    }
+
+    static substituteSym(body: GrimVal, oldKey: string, key: string): GrimVal {
+        // Substitute all instances of oldKey with key in the body
+        return body.exprMap((node) => {
+            if (node instanceof GrimSym && node.value === oldKey) {
+                return new GrimSym(key);
+            }
+            return node;
+        });
+    }
+
     static evaluate(state: EvalState): EvalState {
         const { expr, env, module } = state;
         //

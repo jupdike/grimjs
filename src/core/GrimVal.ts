@@ -54,6 +54,12 @@ class GrimVal {
         return '';
     }
 
+    exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        // Apply the function to this node and all its children
+        //throw new Error("exprMap not implemented for this GrimVal subclass; implement me!");
+        return fn(this); // Default implementation, can be overridden
+    }
+
     toCanonicalString(): string {
         // Default canonical string representation, can be overridden by specific GrimVal subclasses
         return this.toString();
