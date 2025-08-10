@@ -126,7 +126,6 @@ class Eval {
             return Eval.evaluate(new EvalState(body, env2, module))
         }
         else if (expr instanceof GrimApp) {
-            // Multiple-dispatch method application or MDMA
             let app = expr as GrimApp;
             if (app.lhs instanceof GrimTag) {
                 let tag = app.lhs as GrimTag;
@@ -214,6 +213,7 @@ class Eval {
                 }
 
                 // --------------------------------------------------------------
+                // Multiple-dispatch method application or MDMA
                 // test for callable tuple after Macro, to avoid extra evaluation
                 let tuple: List<string> = List([tag.value]);
                 let argsEvaluated: Array<GrimVal> = app.rhs.map(
@@ -283,6 +283,7 @@ class Eval {
                     }
                 }
 
+                // -------------------------------------------------------------------------
                 // Otherwise, check if we have a tag maker like Bool("True"), Var("x"), etc.
                 //console.warn("@ looking for tag maker for", tag.value);
                 const maker = module.getMaker(tag.value);
