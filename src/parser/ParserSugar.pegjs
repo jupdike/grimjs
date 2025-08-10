@@ -18,7 +18,8 @@
   let unaryOpMap = {
       "+": "Pos",
       "-": "Neg",
-      "~": "Quote"
+      "~": "Quote",
+      "&": "Unquote",
     };
 
   function leftBinaryAst(location, head, tail) {
@@ -172,10 +173,11 @@ If3 "a ternary if expression" = If _ t:Expression _ Then _ a:Expression _ Else _
 }
 
 Op "an infix operator"
-  = o:Graphical {
+  = o:Graphical &{return (o in opMap);} {
     if (o in opMap) {
       return aTag(location(), opMap[o]);
     }
+    // this code should never be hit!
     throw new Error(`Unknown operator: ${o}`);
   }
 
@@ -194,7 +196,7 @@ OpR5 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 5, op);
 OpL6 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 6, op); } { return op; }
 OpL7 "an infix operator" = op:Graphical &{ return options.isValidOp('l', 7, op); } { return op; }
 OpR9 "an infix operator" = op:Graphical &{ return options.isValidOp('r', 9, op); } { return op; }
-OpU8 "a unary - or + operator" = ("-" / "+" / "~") // unary operators, and Quote
+OpU8 "a unary - or + operator, quote/~, or unquote/&" = ("-" / "+" / "~" / "&") // unary operators, and Quote
 
 // BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG TODO BIG
 // TODO allow other parts of the operator table (as in Haskell) to be defined in boot.grim
