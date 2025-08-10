@@ -47,9 +47,10 @@ class GrimApp extends GrimVal {
     // }
 
     exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
+        //console.error("2In GrimApp exprMap, visiting node:", this.toString());
         const newLhs = this.lhs.exprMap(fn);
         const newRhs = this.rhs.map(arg => arg.exprMap(fn));
-        return new GrimApp(newLhs, newRhs);
+        return fn(new GrimApp(newLhs, newRhs));
     }
 
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
@@ -126,7 +127,7 @@ class GrimFun extends GrimVal {
     exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
         const newArgs = this.args.map(arg => arg.exprMap(fn));
         const newBody = this.body.exprMap(fn);
-        return new GrimFun(newArgs, newBody, this.funcName + "ExprMapped");
+        return fn(new GrimFun(newArgs, newBody, this.funcName + "ExprMapped"));
     }
 
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
@@ -203,7 +204,7 @@ class GrimLet extends GrimVal {
     exprMap(fn: (node: GrimVal) => GrimVal): GrimVal {
         const newBindings = this.bindings.map(binding => binding.exprMap(fn));
         const newBody = this.body.exprMap(fn);
-        return new GrimLet(newBindings, newBody);
+        return fn(new GrimLet(newBindings, newBody));
     }
 
     static maker(ast: CanAst | Array<GrimVal>, module: GrimModule): GrimVal {
