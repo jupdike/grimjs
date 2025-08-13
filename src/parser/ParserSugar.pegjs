@@ -136,7 +136,7 @@ MatchArgs "arguments to a pattern match"
   / _ { return aTagApp(location(), "List", []); } // empty args
 
 MatchLhs "left-hand side of pattern matching"
-  = tag:Tag _ "(" args:MatchArgs ")" { return aTagApp(location(), tag, args); }
+  = tag:Tag _ "(" args:MatchArgs ")" { return aApp(location(), tag, args); }
   / tag:Tag { return tag; }
   / sym:MatchSym { return sym; }
 

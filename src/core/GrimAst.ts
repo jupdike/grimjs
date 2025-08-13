@@ -9,8 +9,13 @@ import { GrimStr } from "./GrimStr.js";
 
 class GrimTag extends GrimVal {
     readonly value: string;
+    // somehow TypeScript failed to enforce this invariant (value:string),
+    // leading to a difficult to find bug!
     constructor(value: string) {
         super();
+        if (typeof(value) !== "string") {
+            throw new Error("GrimTag constructor expects a string value, got " + typeof(value));
+        }
         this.value = value;
     }
 

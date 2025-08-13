@@ -70,6 +70,9 @@ class CanTag extends CanAst {
     public tag: string;
     constructor(location: Location, tag: string) {
         super(location);
+        if (typeof tag !== "string") {
+            throw new Error(`CanTag -- Invalid tag: ${tag}`);
+        }
         this.tag = tag;
     }
     toString(): string {
@@ -98,7 +101,10 @@ class CanTaggedApp extends CanAst {
         this.tag = tag;
         this.args = args;
     }
-    static from(location: Location, tagStr: string, args: Array<CanAst>): CanTaggedApp {
+    static from(location: Location, tagStr: string, args: Array<CanAst>): CanTaggedApp | CanTag {
+        if (tagStr === "Tag" && args.length === 1 && args[0] instanceof CanStr) {
+            return new CanTag(location, args[0].str);
+        }
         const tag = new CanTag(location, tagStr);
         return new CanTaggedApp(location, tag, args);
     }
@@ -108,6 +114,9 @@ class CanTaggedApp extends CanAst {
 }
 
 function aTag(location: Location, tagStr: string): CanTag {
+    if (typeof tagStr !== "string") {
+        throw new Error(`aTag -- Invalid tag: ${tagStr}`);
+    }
     return new CanTag(location, tagStr);
 }
 function aStr(location: Location, str: string): CanStr {
@@ -116,7 +125,10 @@ function aStr(location: Location, str: string): CanStr {
 function aApp(location: Location, fun: CanAst, args: Array<CanAst>): CanApp {
     return new CanApp(location, fun, args);
 }
-function aTagApp(location: Location, tagStr: string, args: Array<CanAst>): CanTaggedApp {
+function aTagApp(location: Location, tagStr: string, args: Array<CanAst>): CanTaggedApp | CanTag {
+    if (typeof tagStr !== "string") {
+        throw new Error(`aTagApp -- Invalid tag: ${tagStr}`);
+    }
     return CanTaggedApp.from(location, tagStr, args);
 }
 

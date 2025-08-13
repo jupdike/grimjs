@@ -13,7 +13,7 @@ Start = Expr
 
 Expr "an expression"
     = tag:Tag _ "(" _ args:ArgList _ ")" {
-        return aTagApp(location(), tag, args);
+        return aApp(location(), tag, args);
       }
    / Tag
    / Str
