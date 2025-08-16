@@ -203,11 +203,10 @@ class Tester {
             // parse using ParserCanon and compare that too
             let parsedCanon: CanAst | null = this.parseCanon(canonical);
             if (!parsedCanon) {
-                console.error("Failed to parse canonical string:", canonical);
-                return;
+                throw new Error(`Failed to parse canonical string: ${canonical}`);
             }
             // Check if the parsed canonical string matches the expected canonical string
-            let canonStr = parsedCanon.toString();
+            let canonStr = parsedCanon.toCanonicalString();
             //console.log(`parsedCanon: ${canonStr}`);
             if (canonStr !== entry.canonical) {
                 console.error(`Parsed canonical string does not match expected: ${canonStr} !== ${entry.canonical}`);

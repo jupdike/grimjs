@@ -6,63 +6,63 @@ canonical:   "test"
 evaluated:   "test"
 #
 sugar:       Tag('Test')
-desugared:   Tag("Tag")@("Test")
-built:       Tag@("Test")
-canonical:   Tag("Test")
+desugared:   Tag@("Test")
+built:       Test
+canonical:   Test
 evaluated:   Test
 #
 sugar:       Str('test')
-desugared:   Tag("Str")@("test")
+desugared:   Str@("test")
 built:       Str@("test")
 canonical:   Str("test")
 evaluated:   "test"
 #
 sugar:       True
-desugared:   Tag("True")
+desugared:   True
 built:       True
 canonical:   True
 evaluated:   True
 #
 sugar:       False
-desugared:   Tag("False")
+desugared:   False
 built:       False
 canonical:   False
 evaluated:   False
 #
 sugar:       None
-desugared:   Tag("None")
+desugared:   None
 built:       None
 canonical:   None
 evaluated:   None
 #
 sugar:       Sym('x')
-desugared:   Tag("Sym")@("x")
+desugared:   Sym@("x")
 built:       Sym@("x")
 canonical:   Sym("x")
 evaluated:   Sym("x")
 #
 sugar:       Bool("True")
-desugared:   Tag("Bool")@("True")
+desugared:   Bool@("True")
 built:       Bool@("True")
 canonical:   Bool("True")
 evaluated:   True
 #
 sugar:       Bool("False")
-desugared:   Tag("Bool")@("False")
+desugared:   Bool@("False")
 built:       Bool@("False")
 canonical:   Bool("False")
 evaluated:   False
 #
 sugar:       Anything
-desugared:   Tag("Anything")
+desugared:   Anything
 built:       Anything
 canonical:   Anything
 evaluated:   Anything
 #
 sugar:       Tag("Anything")
-desugared:   Tag("Tag")@("Anything")
-built:       Tag@("Anything")
-canonical:   Tag("Anything")
+desugared:   Tag@("Anything")
+built:       Anything
+canonical:   Anything
 evaluated:   Anything
 #
 sugar:       "Hello, world!"
@@ -72,26 +72,26 @@ canonical:   "Hello, world!"
 evaluated:   "Hello, world!"
 #
 sugar:       Str("Hello, world!")
-desugared:   Tag("Str")@("Hello, world!")
+desugared:   Str@("Hello, world!")
 built:       Str@("Hello, world!")
 canonical:   Str("Hello, world!")
 evaluated:   "Hello, world!"
 #
 sugar:       Str("Hello, \"world\"!")
-desugared:   Tag("Str")@('Hello, "world"!')
+desugared:   Str@('Hello, "world"!')
 built:       Str@('Hello, "world"!')
 canonical:   Str('Hello, "world"!')
 evaluated:   'Hello, "world"!'
 #
 # Some & None
 sugar:       None
-desugared:   Tag("None")
+desugared:   None
 built:       None
 canonical:   None
 evaluated:   None
 #
 sugar:       Some()
-desugared:   Tag("Some")@()
+desugared:   Some@()
 built:       Some@()
 canonical:   Some()
 evaluated:   None
@@ -1073,13 +1073,13 @@ canonical:   Not(Eq(Nat("1"), Nat("2")))
 evaluated:   True
 # Quote and Unquote
 sugar:       Quote(Crash())
-desugared:   Tag("Quote")@(Tag("Crash")@())
+desugared:   Quote@(Crash@())
 built:       Quote@(Crash@())
 canonical:   Quote(Crash())
 evaluated:   Crash@()
 #
 sugar:       Sym("x")
-desugared:   Tag("Sym")@("x")
+desugared:   Sym@("x")
 built:       Sym@("x")
 canonical:   Sym("x")
 evaluated:   Sym("x")
@@ -1110,23 +1110,42 @@ evaluated:   120
 #
 # More complicated Macro Rules tests
 sugar:       Pair(fact(4), fact(5))
-desugared:   Tag("Pair")@(Sym("fact")@(Nat("4")), Sym("fact")@(Nat("5")))
+desugared:   Pair@(Sym("fact")@(Nat("4")), Sym("fact")@(Nat("5")))
 built:       Pair@(Sym("fact")@(4), Sym("fact")@(5))
 canonical:   Pair(App(Sym("fact"), Nat("4")), App(Sym("fact"), Nat("5")))
 evaluated:   (24, 120)
 #
 sugar:       If3(True, fact(5), Crash())
-desugared:   Tag("If3")@(Tag("True"), Sym("fact")@(Nat("5")), Tag("Crash")@())
+desugared:   If3@(True, Sym("fact")@(Nat("5")), Crash@())
 built:       If3@(True, Sym("fact")@(5), Crash@())
 canonical:   If3(True, App(Sym("fact"), Nat("5")), Crash())
 evaluated:   120
 #
 sugar:       Id(fact(4))
-desugared:   Tag("Id")@(Sym("fact")@(Nat("4")))
+desugared:   Id@(Sym("fact")@(Nat("4")))
 built:       Id@(Sym("fact")@(4))
 canonical:   Id(App(Sym("fact"), Nat("4")))
 evaluated:   24
 #
+sugar:       True ? fact(5) $ Crash()
+desugared:   RApply(If2(True, Sym("fact")@(Nat("5"))), Crash@())
+built:       RApply@(If2@(True, Sym("fact")@(5)), Crash@())
+canonical:   RApply(If2(True, App(Sym("fact"), Nat("5"))), Crash())
+evaluated:   120
+#
+sugar:       False ? Crash() $ fact(5)
+desugared:   RApply(If2(False, Crash@()), Sym("fact")@(Nat("5")))
+built:       RApply@(If2@(False, Crash@()), Sym("fact")@(5))
+canonical:   RApply(If2(False, Crash()), App(Sym("fact"), Nat("5")))
+evaluated:   120
+#
+sugar:       fact $ 5
+desugared:   RApply(Sym("fact"), Nat("5"))
+built:       RApply@(Sym("fact"), 5)
+canonical:   RApply(Sym("fact"), Nat("5"))
+evaluated:   120
+#
+# Crashes as expected
 #sugar:       Pair(Crash(), Crash())
 #
 #sugar:       a -> 2 + 3
