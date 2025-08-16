@@ -74,17 +74,28 @@ Not(False)        :=> True
 
 Id(x)             :=> x
 
-If3(True,  x, _)  :=> x
-If3(False, _, y)  :=> y
+// this DOES work to show that macro rules matching system can support
+// this in such a simple form; however we just make If3 built-in
+// for performance (avoid loads of GenSym calls) and ease of debugging
+//If3(True,  x, _)  :=> x
+//If3(False, _, y)  :=> y
 
 // t ? a $ b   syntax sugar for  RApply(If2(t, a), b)
 // attempt to cleverly make this work exactly like
 // If3(t, a, b)  without hard-coding ? and $ as a single piece of syntax
-// in other words, ?, $, If2 and RApply can be used individually
-If2(False,   _)   :=> y => y
-If2(True,    x)   :=> ~x
-RApply(Quote(x), _) :=> x
-RApply(f,        x) :=> App(f, x)
+// in other words, ?, $, RApply can be used independently
+
+// this works, but not with If2 rules above
+//RApply(Const1(z), _) :=> z
+// This test works with above rule:
+//TEST: RApply(Const1(fact(5)), Crash())
+
+//TEST: RApply(If2(False, Crash@()), Sym("fact")@(Nat("5")))
+RApply(If2(True,  x1),  _) :=> x1
+RApply(If2(False,  _), x2) :=> x2
+RApply(f,               x) :=> ~App(&f, &x)
+
+//TEST: RApply(Sym("fact"), Nat("5"))
 
 // this is a synonym for Tuple
 Pair(x,   y)      :=> ~Tuple(&x, &y)

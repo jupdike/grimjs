@@ -25,7 +25,7 @@ class EvalState {
 }
 
 class Eval {
-    static matchMacroRule(
+    static matchOneMacroRule(
         rule: MacroMatchRule,
         args: Array<GrimVal>,
         argsEvald: Array<GrimVal | null>,
@@ -34,43 +34,94 @@ class Eval {
     ): {
         match: boolean, bindings: Map<string, GrimVal>
     } {
-        let match = true;
         let bindings: Map<string, GrimVal> = Map(); // unevaluated bindings
+        let match: boolean = true;
+        // all args must match
         for (let i = 0; i < rule.args.length; i++) {
-            console.error(`Testing argument ${i}`);
             const pattern: GrimVal = rule.args[i];
             let actual = args[i];
             let evaluated: GrimVal | null = argsEvald[i];
+            //console.error(`* Testing argument ${i}, ${actual} against pattern ${pattern}`);
             if (pattern instanceof GrimTag && pattern.value === "Dummy") {
                 // Dummy variable name means do not evaluate and do not bind and always match
                 // nothing to do but go to next i value
-                console.error(`Pattern is Dummy, always matches`);
+                //console.error(`Pattern is Dummy, always matches`);
             } else if (pattern instanceof GrimSym) {
                 // bind the symbol to the unevaluated actual value
                 bindings = bindings.set(pattern.value, actual);
+            } else if (pattern instanceof GrimApp && pattern.lhs instanceof GrimTag && pattern.lhs.value === "Sym" && pattern.rhs instanceof GrimStr) {
+                // bind the symbol to the unevaluated actual value
+                bindings = bindings.set(pattern.rhs.value, actual);
             } else if (pattern.isAtom()) {
                 if (!evaluated) {
                     evaluated = Eval.evaluate(new EvalState(actual, env, module)).expr;
-                    console.error(`Evaluated actual argument ${i} for pattern ${pattern.toCanonicalString()}:`, evaluated.toString());
+                    //console.error(`Evaluated actual argument ${i} for pattern ${pattern.toCanonicalString()}:`, evaluated.toString());
                     argsEvald[i] = evaluated;
                 }
-                console.error(`Argument ${i} for pattern ${pattern.toCanonicalString()}:`, evaluated.toString());
+                //console.error(`Argument ${i} for pattern ${pattern.toCanonicalString()}:`, evaluated.toString());
                 if (evaluated.equals(pattern)) {
-                    console.error(`Great, we got an argument match`);
+                    //console.error(`Great, we got an argument match`);
                 }
                 else if (!(evaluated instanceof GrimTag)) {
                     match = false;
-                    console.error("Broke");
-                    break;
+                    //console.error("Broke");
+                    return { match, bindings };
                 }
             }
-            // TODO a complicated case, which could require careful recursion to evaluate just the right amount
-            // else if (pattern instanceof GrimApp) {
-            //     if (!(actual instanceof GrimApp)) {
-            //         match = false;
-            //         break;
-            //     }
-            // }
+            // a complicated case, which requires careful recursion to evaluate just the right amount
+            else {
+                // if (!evaluated) {
+                //     evaluated = Eval.evaluate(new EvalState(actual, env, module)).expr;
+                //     console.error(`pattern instanceof GrimApp / Evaluated actual argument ${i} for pattern ${pattern.toCanonicalString()}:`, evaluated.toString());
+                //     argsEvald[i] = evaluated;
+                // }
+                if (!evaluated) {
+                    //console.error("argument has not been evaluated so use it as is");
+                    evaluated = actual;
+                }
+                if (pattern instanceof GrimApp && evaluated instanceof GrimApp) {
+                    //console.error("pattern and evaluated are both GrimApp -- complicated nested case");
+                    //console.error(`Pattern LHS: ${pattern.lhs.toString()}, Evaluated LHS: ${evaluated.lhs.toString()}`);
+                    let equals = false;
+                    if (pattern.lhs instanceof GrimTag && evaluated.lhs instanceof GrimTag) {
+                        //console.error(`Pattern LHS: ${pattern.lhs.toCanonicalString()}, Evalutated LHS: ${evaluated.lhs.toCanonicalString()}`);
+                        equals = pattern.lhs.equals(evaluated.lhs);
+                        //console.error(`Pattern LHS .equals() Actual LHS? ${equals}`);
+                    }
+                    if (equals) {
+                        // console.error('Actual:', actual.toString());
+                        //console.error('Evaluated:', evaluated.toString());
+                        const rule2 = { args: pattern.rhs, body: rule.body };
+                        const matchee = evaluated.rhs;
+                        //console.error("rule2:", rule2, " -- matchee:", matchee);
+                        let newArgsEvald: Array<null | GrimVal> = [];
+                        for (let j = 0; j < matchee.length; j++) {
+                            newArgsEvald.push(null);
+                        }
+                        let { match: subMatch, bindings: subBindings } = Eval.matchOneMacroRule(rule2, matchee, newArgsEvald, env, module);
+                        if (subMatch) {
+                            // If the sub-match succeeded, we can use the bindings
+                            bindings = bindings.merge(subBindings);
+                            //console.error("Merged sub-bindings:", subBindings.toString());
+                            match = true;
+                            // keep matching next rule to keep checking things and adding more bindings
+                        }
+                        else {
+                            //console.error("Sub-match failed");
+                            match = false;
+                            return { match, bindings };
+                        }
+                    } else {
+                        //console.error("Pattern and evaluated do not match");
+                        match = false;
+                        return { match, bindings };
+                    }
+                } else {
+                    //console.error("Failed last chance for this rule to match");
+                    match = false;
+                    return { match, bindings };
+                }
+            }
         }
         return { match, bindings };
     }
@@ -83,7 +134,7 @@ class Eval {
         do {
             let r: number = Math.floor(Math.random() * 16777215);
             newKey = `__sym_${key}_${r.toString(16)}__`;
-            console.error(`Generated new symbol: ${newKey}`);
+            //console.error(`Generated new symbol: ${newKey}`);
         } while (this.genSymSet.has(newKey)); // probably not going to happen, but just in case
         this.genSymSet.add(newKey);
         return newKey;
@@ -189,22 +240,22 @@ class Eval {
                     // test if this ignores the arguments inside the list, by passing Crash() to it
                     return new EvalState(e2, env2, module);
                 }
-                // if (tag.value === "If3") {
-                //     // TODO remove this when we can use Macros
-                //     // Special case for If3, evaluate the condition and then return the appropriate branch
-                //     if (app.rhs.length !== 3) {
-                //         throw new Error(`If3 expected 3 arguments, got ${app.rhs.length}`);
-                //     }
-                //     const condition = Eval.evaluate(new EvalState(app.rhs[0], env, module)).expr;
-                //     if (condition instanceof GrimBool && condition.isTrue()) {
-                //         e2 = Eval.evaluate(new EvalState(app.rhs[1], env, module)).expr; // return the second argument as is
-                //     } else if (condition instanceof GrimBool && condition.isFalse()) {
-                //         e2 = Eval.evaluate(new EvalState(app.rhs[2], env, module)).expr; // return the third argument as is
-                //     } else {
-                //         throw new Error(`If3 expected a GrimBool as the first argument, got ${condition}`);
-                //     }
-                //     return new EvalState(e2, env2, module);
-                // }
+                if (tag.value === "If3") {
+                    // TODO remove this when we can use Macros
+                    // Special case for If3, evaluate the condition and then return the appropriate branch
+                    if (app.rhs.length !== 3) {
+                        throw new Error(`If3 expected 3 arguments, got ${app.rhs.length}`);
+                    }
+                    const condition = Eval.evaluate(new EvalState(app.rhs[0], env, module)).expr;
+                    if (condition instanceof GrimBool && condition.isTrue()) {
+                        e2 = Eval.evaluate(new EvalState(app.rhs[1], env, module)).expr; // return the second argument as is
+                    } else if (condition instanceof GrimBool && condition.isFalse()) {
+                        e2 = Eval.evaluate(new EvalState(app.rhs[2], env, module)).expr; // return the third argument as is
+                    } else {
+                        throw new Error(`If3 expected a GrimBool as the first argument, got ${condition}`);
+                    }
+                    return new EvalState(e2, env2, module);
+                }
                 if (tag.value === "Ignore") {
                     // TODO remove this when we can use Macros
                     // Special case for Ignore, just return a constant value
@@ -229,7 +280,7 @@ class Eval {
                 // Check if we have a list of macro rules for this tag
                 let args = app.rhs; // unevaluated arguments
                 if (module.hasMacroMatchRule(tag.value)) {
-                    console.error("Found rule for ", tag.value);
+                    //console.error("Found rule for ", tag.value);
                     const rules: List<MacroMatchRule> = module.getMacroMatchRules(tag.value);
                     // a space to put evaluated arguments, but only when needed
                     let argsEvald: Array<GrimVal | null> = [];
@@ -242,29 +293,26 @@ class Eval {
                         }
                     }
                     for (let rule of rules) {
-                        console.error("Testing ", args.map(arg => arg.toString()).join(", "), " against macro match rule:", rule.args.map(a => a.toCanonicalString()).join(", "));
-                        let {match, bindings} = Eval.matchMacroRule(rule, args, argsEvald, env2, module);
-                        console.error("Macro match result:", match, "with bindings:", bindings.toString(), "\n");
+                        //console.error("Testing ", args.map(arg => arg.toString()).join(", "), " against macro match rule:", rule.args.map(a => a.toCanonicalString()).join(", "));
+                        let {match, bindings} = Eval.matchOneMacroRule(rule, args, argsEvald, env2, module);
+                        //console.error("Macro match result:", match, "with bindings:", bindings.toString(), "\n");
                         if (match) {
                             // We have a match, so we can evaluate the body with the bindings
                             let body = rule.body;
-                            // Create a new environment with the bindings
                             let newEnv = env2;
-                            // TODO is this right? this should be unevaluated, substituted, then evaluated ???
+                            // this should be unevaluated, substituted, then evaluated
                             bindings.forEach((value, key) => {
                                 const oldKey: string = key;
                                 key = Eval.genSym(oldKey);
                                 body = Eval.substituteSym(body, oldKey, key);
-                                // Evaluate the value in the original environment
-                                // let evaluatedValue = Eval.evaluate(new EvalState(value, env, module)).expr;
                                 newEnv = newEnv.set(key, value);
                             });
-                            console.error(`Macro matched for tag ${tag.value}, evaluating body with bindings:`, bindings.toString());
-                            console.error("Evaluating body:", body.toString());
+                            //console.error(`Macro matched for tag ${tag.value}, evaluating body with bindings:`, bindings.toString());
+                            //console.error("Evaluating body:", body.toString());
                             e2 = Eval.evaluate(new EvalState(body, newEnv, module)).expr;
-                            console.error("Evaluated macro body:", e2.toString());
-                            // TODO YES: one more Eval, in the environment, because we need to run the code we generated
-                            console.error("Evaluating generated code...");
+                            //console.error("Evaluated macro body:", e2.toString());
+                            // YES: one more Eval, in the environment, because we need to run the code we generated
+                            //console.error("Evaluating generated code...");
                             e2 = Eval.evaluate(new EvalState(e2, newEnv, module)).expr;
                             return new EvalState(e2, env2, module);
                         }

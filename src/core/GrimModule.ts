@@ -131,25 +131,19 @@ class GrimModule {
                     return;
                 }
                 let [tagAst, argsAst, bodyAst] = ast.args;
-                let tag: string = GrimModule.tagStringFromTagAst(tagAst) || "";
+                let tag = GrimModule.tagStringFromTagAst(tagAst) || "";
                 if (tag === "") {
                     console.error(`DefMacroMatchRule first argument must be a Tag, got ${tagAst.constructor.name}`);
                     return;
                 }
-                //console.error(`DefMacroMatchRule tag: ${tag}`);
                 if (!(argsAst instanceof CanTaggedApp) || argsAst.tag.tag !== "List") {
                     console.error(`DefMacroMatchRule second argument must be a List of arguments, got ${argsAst.constructor.name}`);
                     return;
                 }
                 let args: Array<GrimVal> = argsAst.args.map(arg => {
-                    let tg = GrimModule.tagStringFromTagAst(arg);
-                    if (tg) {
-                        return new GrimTag(tg);
-                    } else {
-                        return this.fromAst(arg);
-                    }
+                    let ret = this.fromAst(arg);
+                    return ret;
                 });
-                //console.error(`DefMacroMatchRule args: ${args.map(a => a.toCanonicalString()).join(", ")}`);
                 let body: GrimVal | null = this.fromAst(bodyAst);
                 if (!body) {
                     console.error(`DefMacroMatchRule body must be a valid expression, got ${bodyAst.constructor.name}`);
