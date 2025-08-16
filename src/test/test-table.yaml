@@ -97,32 +97,32 @@ canonical:   Some()
 evaluated:   None
 #
 sugar:       Some(None)
-desugared:   Tag("Some")@(Tag("None"))
+desugared:   Some@(None)
 built:       Some@(None)
 canonical:   Some(None)
 evaluated:   Some(None)
 #
 # List
 sugar:       Some([])
-desugared:   Tag("Some")@(List())
+desugared:   Some@(List())
 built:       Some@([])
 canonical:   Some(List())
 evaluated:   Some([])
 #
 sugar:       List()
-desugared:   Tag("List")@()
+desugared:   List@()
 built:       List@()
 canonical:   List()
 evaluated:   []
 #
 sugar:       List("a")
-desugared:   Tag("List")@("a")
+desugared:   List@("a")
 built:       List@("a")
 canonical:   List("a")
 evaluated:   ["a"]
 #
 sugar:       List("a", "b", "c")
-desugared:   Tag("List")@("a", "b", "c")
+desugared:   List@("a", "b", "c")
 built:       List@("a", "b", "c")
 canonical:   List("a", "b", "c")
 evaluated:   ["a", "b", "c"]
@@ -147,7 +147,7 @@ canonical:   Nat("12345")
 evaluated:   12345
 #
 sugar:       Nat("12345")
-desugared:   Tag("Nat")@("12345")
+desugared:   Nat@("12345")
 built:       Nat@("12345")
 canonical:   Nat("12345")
 evaluated:   12345
@@ -159,7 +159,7 @@ canonical:   Dec("0.1234")
 evaluated:   0.1234
 #
 sugar:       Dec("0.1234")
-desugared:   Tag("Dec")@("0.1234")
+desugared:   Dec@("0.1234")
 built:       Dec@("0.1234")
 canonical:   Dec("0.1234")
 evaluated:   0.1234
@@ -201,31 +201,31 @@ canonical:   Dec(".456e2")
 evaluated:   .456e2
 #
 sugar:       Dec("123.456")
-desugared:   Tag("Dec")@("123.456")
+desugared:   Dec@("123.456")
 built:       Dec@("123.456")
 canonical:   Dec("123.456")
 evaluated:   123.456
 #
 sugar:       Dec("123.")
-desugared:   Tag("Dec")@("123.")
+desugared:   Dec@("123.")
 built:       Dec@("123.")
 canonical:   Dec("123.")
 evaluated:   123.
 #
 sugar:       Dec(".456")
-desugared:   Tag("Dec")@(".456")
+desugared:   Dec@(".456")
 built:       Dec@(".456")
 canonical:   Dec(".456")
 evaluated:   .456
 #
 sugar:       Dec("123.456e+2")
-desugared:   Tag("Dec")@("123.456e+2")
+desugared:   Dec@("123.456e+2")
 built:       Dec@("123.456e+2")
 canonical:   Dec("123.456e+2")
 evaluated:   123.456e+2
 #
 sugar:       Dec("123.e-1")
-desugared:   Tag("Dec")@("123.e-1")
+desugared:   Dec@("123.e-1")
 built:       Dec@("123.e-1")
 canonical:   Dec("123.e-1")
 evaluated:   123.e-1
@@ -251,7 +251,7 @@ canonical:   Map(Tuple("key", "value"), Tuple("another", "thing"))
 evaluated:   {"key": "value", "another": "thing"}
 #
 sugar:       Map(Tuple("key", "value"), Tuple("another", "thing"))
-desugared:   Tag("Map")@(Tag("Tuple")@("key", "value"), Tag("Tuple")@("another", "thing"))
+desugared:   Map@(Tuple@("key", "value"), Tuple@("another", "thing"))
 built:       Map@(Tuple@("key", "value"), Tuple@("another", "thing"))
 canonical:   Map(Tuple("key", "value"), Tuple("another", "thing"))
 evaluated:   {"key": "value", "another": "thing"}
@@ -275,7 +275,7 @@ canonical:   Map(Tuple("key", "value"), Tuple("another", "thing"))
 evaluated:   {"key": "value", "another": "thing"}
 #
 sugar:       {Key: "value", Another: "thing"}
-desugared:   Map(Tuple(Tag("Key"), "value"), Tuple(Tag("Another"), "thing"))
+desugared:   Map(Tuple(Key, "value"), Tuple(Another, "thing"))
 built:       {Key: "value", Another: "thing"}
 canonical:   Map(Tuple(Key, "value"), Tuple(Another, "thing"))
 evaluated:   {Key: "value", Another: "thing"}
@@ -293,51 +293,51 @@ canonical:   Map(Tuple(Tuple(Nat("1"), Nat("2")), "value"), Tuple(Tuple(Nat("3")
 evaluated:   {(1, 2): "value", (3, 4): "thing"}
 #
 sugar:       Map(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))
-desugared:   Tag("Map")@(Tag("Tuple")@("a", Nat("1")), Tag("Tuple")@("b", Nat("1")), Tag("Tuple")@("c", Nat("1")))
+desugared:   Map@(Tuple@("a", Nat("1")), Tuple@("b", Nat("1")), Tuple@("c", Nat("1")))
 built:       Map@(Tuple@("a", 1), Tuple@("b", 1), Tuple@("c", 1))
 canonical:   Map(Tuple("a", Nat("1")), Tuple("b", Nat("1")), Tuple("c", Nat("1")))
 evaluated:   {"a": 1, "b": 1, "c": 1}
 #
 sugar:       (Map)(Tuple("a", 1), Tuple("b", 1), Tuple("c", 1))
-desugared:   Tag("Map")@(Tag("Tuple")@("a", Nat("1")), Tag("Tuple")@("b", Nat("1")), Tag("Tuple")@("c", Nat("1")))
+desugared:   Map@(Tuple@("a", Nat("1")), Tuple@("b", Nat("1")), Tuple@("c", Nat("1")))
 built:       Map@(Tuple@("a", 1), Tuple@("b", 1), Tuple@("c", 1))
 canonical:   Map(Tuple("a", Nat("1")), Tuple("b", Nat("1")), Tuple("c", Nat("1")))
 evaluated:   {"a": 1, "b": 1, "c": 1}
 #
 # Error
 sugar:       Error("Description of problem goes here")
-desugared:   Tag("Error")@("Description of problem goes here")
+desugared:   Error@("Description of problem goes here")
 built:       Error@("Description of problem goes here")
 canonical:   Error("Description of problem goes here")
 evaluated:   Error("Description of problem goes here")
 #
 sugar:       Error("Something's Always Wrong with", Dec("123.456"))
-desugared:   Tag("Error")@("Something's Always Wrong with", Tag("Dec")@("123.456"))
+desugared:   Error@("Something's Always Wrong with", Dec@("123.456"))
 built:       Error@("Something's Always Wrong with", Dec@("123.456"))
 canonical:   Error("Something's Always Wrong with", Dec("123.456"))
 evaluated:   Error("Something's Always Wrong with", 123.456)
 #
 # Set
 sugar:       Set("a", "b", "c")
-desugared:   Tag("Set")@("a", "b", "c")
+desugared:   Set@("a", "b", "c")
 built:       Set@("a", "b", "c")
 canonical:   Set("a", "b", "c")
 evaluated:   Set("a", "b", "c")
 #
 sugar:       (Set)("a", "b", "c")
-desugared:   Tag("Set")@("a", "b", "c")
+desugared:   Set@("a", "b", "c")
 built:       Set@("a", "b", "c")
 canonical:   Set("a", "b", "c")
 evaluated:   Set("a", "b", "c")
 #
 sugar:       Set()
-desugared:   Tag("Set")@()
+desugared:   Set@()
 built:       Set@()
 canonical:   Set()
 evaluated:   Set()
 #
 sugar:       Set("a", "b", "c", "a")
-desugared:   Tag("Set")@("a", "b", "c", "a")
+desugared:   Set@("a", "b", "c", "a")
 built:       Set@("a", "b", "c", "a")
 canonical:   Set("a", "b", "c", "a")
 evaluated:   Set("a", "b", "c")
@@ -368,7 +368,7 @@ canonical:   App(Fun(List(Sym("x"), Sym("y")), Sym("y")), Nat("5"), Nat("42"))
 evaluated:   42
 #
 sugar:       Mul(6, 7)
-desugared:   Tag("Mul")@(Nat("6"), Nat("7"))
+desugared:   Mul@(Nat("6"), Nat("7"))
 built:       Mul@(6, 7)
 canonical:   Mul(Nat("6"), Nat("7"))
 evaluated:   42
@@ -411,13 +411,13 @@ canonical:   Let(List(Tuple(Sym("x"), Let(List(Tuple(Sym("z"), Nat("2"))), Mul(S
 evaluated:   42
 #
 sugar:       Let([(x, 6), (y, 7)], x * y)
-desugared:   Tag("Let")@(List(Tuple(Sym("x"), Nat("6")), Tuple(Sym("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
+desugared:   Let@(List(Tuple(Sym("x"), Nat("6")), Tuple(Sym("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
 built:       Let@([(Sym("x"), 6), (Sym("y"), 7)], Mul@(Sym("x"), Sym("y")))
 canonical:   Let(List(Tuple(Sym("x"), Nat("6")), Tuple(Sym("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
 evaluated:   42
 #
 sugar:       Let([(Sym("x"), 6), (Sym("y"), 7)], x * y)
-desugared:   Tag("Let")@(List(Tuple(Tag("Sym")@("x"), Nat("6")), Tuple(Tag("Sym")@("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
+desugared:   Let@(List(Tuple(Sym@("x"), Nat("6")), Tuple(Sym@("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
 built:       Let@([(Sym@("x"), 6), (Sym@("y"), 7)], Mul@(Sym("x"), Sym("y")))
 canonical:   Let(List(Tuple(Sym("x"), Nat("6")), Tuple(Sym("y"), Nat("7"))), Mul(Sym("x"), Sym("y")))
 evaluated:   42
@@ -436,7 +436,7 @@ evaluated:   42
 #
 # Some basic arithmetic
 sugar:       Add(19, 23)
-desugared:   Tag("Add")@(Nat("19"), Nat("23"))
+desugared:   Add@(Nat("19"), Nat("23"))
 built:       Add@(19, 23)
 canonical:   Add(Nat("19"), Nat("23"))
 evaluated:   42
@@ -454,13 +454,13 @@ canonical:   Add(Nat("123456789"), Nat("987654321"))
 evaluated:   1111111110
 #
 sugar:       Int("1234567890123456789012345678901234567890")
-desugared:   Tag("Int")@("1234567890123456789012345678901234567890")
+desugared:   Int@("1234567890123456789012345678901234567890")
 built:       Int@("1234567890123456789012345678901234567890")
 canonical:   Int("1234567890123456789012345678901234567890")
 evaluated:   1234567890123456789012345678901234567890
 #
 sugar:       Int("-1234567890123456789012345678901234567890")
-desugared:   Tag("Int")@("-1234567890123456789012345678901234567890")
+desugared:   Int@("-1234567890123456789012345678901234567890")
 built:       Int@("-1234567890123456789012345678901234567890")
 canonical:   Int("-1234567890123456789012345678901234567890")
 evaluated:   -1234567890123456789012345678901234567890
@@ -533,25 +533,25 @@ canonical:   Div(Nat("123"), Nat("456"))
 evaluated:   41/152
 #
 sugar:       Nat("321")/Nat("654")
-desugared:   Div(Tag("Nat")@("321"), Tag("Nat")@("654"))
+desugared:   Div(Nat@("321"), Nat@("654"))
 built:       Div@(Nat@("321"), Nat@("654"))
 canonical:   Div(Nat("321"), Nat("654"))
 evaluated:   107/218
 #
 sugar:       Int("-321")/Nat("654")
-desugared:   Div(Tag("Int")@("-321"), Tag("Nat")@("654"))
+desugared:   Div(Int@("-321"), Nat@("654"))
 built:       Div@(Int@("-321"), Nat@("654"))
 canonical:   Div(Int("-321"), Nat("654"))
 evaluated:   -107/218
 #
 sugar:       Nat("321")/Int("654")
-desugared:   Div(Tag("Nat")@("321"), Tag("Int")@("654"))
+desugared:   Div(Nat@("321"), Int@("654"))
 built:       Div@(Nat@("321"), Int@("654"))
 canonical:   Div(Nat("321"), Int("654"))
 evaluated:   107/218
 #
 sugar:       Rat("654/321")
-desugared:   Tag("Rat")@("654/321")
+desugared:   Rat@("654/321")
 built:       Rat@("654/321")
 canonical:   Rat("654/321")
 evaluated:   654/321
@@ -563,13 +563,13 @@ canonical:   Mul(Div(Nat("2"), Nat("3")), Div(Nat("3"), Nat("2")))
 evaluated:   1
 #
 sugar:       Rat("2/3") * Rat("3/2")
-desugared:   Mul(Tag("Rat")@("2/3"), Tag("Rat")@("3/2"))
+desugared:   Mul(Rat@("2/3"), Rat@("3/2"))
 built:       Mul@(Rat@("2/3"), Rat@("3/2"))
 canonical:   Mul(Rat("2/3"), Rat("3/2"))
 evaluated:   1
 #
 sugar:       3 * Rat("22/2") * Rat("44/12") / Rat("11")
-desugared:   Div(Mul(Mul(Nat("3"), Tag("Rat")@("22/2")), Tag("Rat")@("44/12")), Tag("Rat")@("11"))
+desugared:   Div(Mul(Mul(Nat("3"), Rat@("22/2")), Rat@("44/12")), Rat@("11"))
 built:       Div@(Mul@(Mul@(3, Rat@("22/2")), Rat@("44/12")), Rat@("11"))
 canonical:   Div(Mul(Mul(Nat("3"), Rat("22/2")), Rat("44/12")), Rat("11"))
 evaluated:   11
@@ -581,19 +581,19 @@ canonical:   Div(Nat("321"), Int("654"))
 evaluated:   107/218
 # Ignore, Crash, Quote
 sugar:       Ignore(Crash())
-desugared:   Tag("Ignore")@(Tag("Crash")@())
+desugared:   Ignore@(Crash@())
 built:       Ignore@(Crash@())
 canonical:   Ignore(Crash())
 evaluated:   Ignore
 #
 sugar:       Quote(Crash())
-desugared:   Tag("Quote")@(Tag("Crash")@())
+desugared:   Quote@(Crash@())
 built:       Quote@(Crash@())
 canonical:   Quote(Crash())
 evaluated:   Crash@()
 #
 sugar:       ~Crash()
-desugared:   Quote(Tag("Crash")@())
+desugared:   Quote(Crash@())
 built:       Quote@(Crash@())
 canonical:   Quote(Crash())
 evaluated:   Crash@()
@@ -617,7 +617,7 @@ canonical:   App(Sym("sum2"), Nat("21"), Nat("21"))
 evaluated:   42
 # Decimal Arithmetic
 sugar:       Dec("1.25") + Dec("0.25")
-desugared:   Add(Tag("Dec")@("1.25"), Tag("Dec")@("0.25"))
+desugared:   Add(Dec@("1.25"), Dec@("0.25"))
 built:       Add@(Dec@("1.25"), Dec@("0.25"))
 canonical:   Add(Dec("1.25"), Dec("0.25"))
 evaluated:   1.5
@@ -677,7 +677,7 @@ canonical:   Div(Nat("125"), Nat("25"))
 evaluated:   5
 #
 sugar:       Div(Dec("125"), Nat("25"))
-desugared:   Tag("Div")@(Tag("Dec")@("125"), Tag("Nat")@("25"))
+desugared:   Div@(Dec@("125"), Nat@("25"))
 built:       Div@(Dec@("125"), Nat@("25"))
 canonical:   Div(Dec("125"), Nat("25"))
 evaluated:   5
@@ -779,61 +779,61 @@ canonical:   Neq('this "is" a test', "this 'is' a test")
 evaluated:   True
 #
 sugar:       True == True
-desugared:   Eq(Tag("True"), Tag("True"))
+desugared:   Eq(True, True)
 built:       Eq@(True, True)
 canonical:   Eq(True, True)
 evaluated:   True
 #
 sugar:       False == False
-desugared:   Eq(Tag("False"), Tag("False"))
+desugared:   Eq(False, False)
 built:       Eq@(False, False)
 canonical:   Eq(False, False)
 evaluated:   True
 #
 sugar:       True != False
-desugared:   Neq(Tag("True"), Tag("False"))
+desugared:   Neq(True, False)
 built:       Neq@(True, False)
 canonical:   Neq(True, False)
 evaluated:   True
 #
 sugar:       Some("value") == Some("value")
-desugared:   Eq(Tag("Some")@("value"), Tag("Some")@("value"))
+desugared:   Eq(Some@("value"), Some@("value"))
 built:       Eq@(Some@("value"), Some@("value"))
 canonical:   Eq(Some("value"), Some("value"))
 evaluated:   True
 #
 sugar:       Some("value") != Some("other")
-desugared:   Neq(Tag("Some")@("value"), Tag("Some")@("other"))
+desugared:   Neq(Some@("value"), Some@("other"))
 built:       Neq@(Some@("value"), Some@("other"))
 canonical:   Neq(Some("value"), Some("other"))
 evaluated:   True
 #
 sugar:       Some("value") != None
-desugared:   Neq(Tag("Some")@("value"), Tag("None"))
+desugared:   Neq(Some@("value"), None)
 built:       Neq@(Some@("value"), None)
 canonical:   Neq(Some("value"), None)
 evaluated:   True
 #
 sugar:       Anything != Nothing
-desugared:   Neq(Tag("Anything"), Tag("Nothing"))
+desugared:   Neq(Anything, Nothing)
 built:       Neq@(Anything, Nothing)
 canonical:   Neq(Anything, Nothing)
 evaluated:   True
 #
 sugar:       MyNewTag == MyNewTag
-desugared:   Eq(Tag("MyNewTag"), Tag("MyNewTag"))
+desugared:   Eq(MyNewTag, MyNewTag)
 built:       Eq@(MyNewTag, MyNewTag)
 canonical:   Eq(MyNewTag, MyNewTag)
 evaluated:   True
 #
 sugar:       Var("x") == Var("x")
-desugared:   Eq(Tag("Var")@("x"), Tag("Var")@("x"))
+desugared:   Eq(Var@("x"), Var@("x"))
 built:       Eq@(Var@("x"), Var@("x"))
 canonical:   Eq(Var("x"), Var("x"))
 evaluated:   True
 #
 sugar:       Var("x") != Var("y")
-desugared:   Neq(Tag("Var")@("x"), Tag("Var")@("y"))
+desugared:   Neq(Var@("x"), Var@("y"))
 built:       Neq@(Var@("x"), Var@("y"))
 canonical:   Neq(Var("x"), Var("y"))
 evaluated:   True
@@ -875,7 +875,7 @@ canonical:   Neq(Map(Tuple("key", "value")), Map(Tuple("key", "other")))
 evaluated:   True
 #
 sugar:       Set("a", "b") == Set("a", "b", "a", "b")
-desugared:   Eq(Tag("Set")@("a", "b"), Tag("Set")@("a", "b", "a", "b"))
+desugared:   Eq(Set@("a", "b"), Set@("a", "b", "a", "b"))
 built:       Eq@(Set@("a", "b"), Set@("a", "b", "a", "b"))
 canonical:   Eq(Set("a", "b"), Set("a", "b", "a", "b"))
 evaluated:   True
@@ -887,13 +887,13 @@ canonical:   Neq(Set("a", "b"), Set("a", "c"))
 evaluated:   True
 # Conditionals
 sugar:       If3(True, 41 + 1, Crash())
-desugared:   Tag("If3")@(Tag("True"), Add(Nat("41"), Nat("1")), Tag("Crash")@())
+desugared:   If3@(True, Add(Nat("41"), Nat("1")), Crash@())
 built:       If3@(True, Add@(41, 1), Crash@())
 canonical:   If3(True, Add(Nat("41"), Nat("1")), Crash())
 evaluated:   42
 #
 sugar:       If3(False, Crash(), 41 + 1)
-desugared:   Tag("If3")@(Tag("False"), Tag("Crash")@(), Add(Nat("41"), Nat("1")))
+desugared:   If3@(False, Crash@(), Add(Nat("41"), Nat("1")))
 built:       If3@(False, Crash@(), Add@(41, 1))
 canonical:   If3(False, Crash(), Add(Nat("41"), Nat("1")))
 evaluated:   42
@@ -1037,31 +1037,31 @@ canonical:   Or(Eq(Nat("1"), Nat("2")), Eq(Nat("1"), Nat("1")))
 evaluated:   True
 #
 sugar:       True || Crash()
-desugared:   Or(Tag("True"), Tag("Crash")@())
+desugared:   Or(True, Crash@())
 built:       Or@(True, Crash@())
 canonical:   Or(True, Crash())
 evaluated:   True
 #
 sugar:       False && Crash()
-desugared:   And(Tag("False"), Tag("Crash")@())
+desugared:   And(False, Crash@())
 built:       And@(False, Crash@())
 canonical:   And(False, Crash())
 evaluated:   False
 #
 sugar:       True && False
-desugared:   And(Tag("True"), Tag("False"))
+desugared:   And(True, False)
 built:       And@(True, False)
 canonical:   And(True, False)
 evaluated:   False
 #
 sugar:       Not(True)
-desugared:   Tag("Not")@(Tag("True"))
+desugared:   Not@(True)
 built:       Not@(True)
 canonical:   Not(True)
 evaluated:   False
 #
 sugar:       Not(False)
-desugared:   Tag("Not")@(Tag("False"))
+desugared:   Not@(False)
 built:       Not@(False)
 canonical:   Not(False)
 evaluated:   True
