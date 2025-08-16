@@ -1,3 +1,4 @@
+#-------------------------------------------------------------------------
 # Strings & Tags
 sugar:       'test'
 desugared:   "test"
@@ -83,6 +84,7 @@ built:       Str@('Hello, "world"!')
 canonical:   Str('Hello, "world"!')
 evaluated:   'Hello, "world"!'
 #
+#-------------------------------------------------------------------------
 # Some & None
 sugar:       None
 desugared:   None
@@ -102,6 +104,7 @@ built:       Some@(None)
 canonical:   Some(None)
 evaluated:   Some(None)
 #
+#-------------------------------------------------------------------------
 # List
 sugar:       Some([])
 desugared:   Some@(List())
@@ -139,6 +142,7 @@ built:       ["a"]
 canonical:   List("a")
 evaluated:   ["a"]
 #
+#-------------------------------------------------------------------------
 # Numbers
 sugar:       12345
 desugared:   Nat("12345")
@@ -230,6 +234,7 @@ built:       Dec@("123.e-1")
 canonical:   Dec("123.e-1")
 evaluated:   123.e-1
 #
+#-------------------------------------------------------------------------
 # Tuple
 sugar:       ("a", "b")
 desugared:   Tuple("a", "b")
@@ -243,6 +248,7 @@ built:       ("a", "b", "c")
 canonical:   Tuple("a", "b", "c")
 evaluated:   ("a", "b", "c")
 #
+#-------------------------------------------------------------------------
 # Map
 sugar:       {"key": "value", "another": "thing"}
 desugared:   Map(Tuple("key", "value"), Tuple("another", "thing"))
@@ -304,6 +310,7 @@ built:       Map@(Tuple@("a", 1), Tuple@("b", 1), Tuple@("c", 1))
 canonical:   Map(Tuple("a", Nat("1")), Tuple("b", Nat("1")), Tuple("c", Nat("1")))
 evaluated:   {"a": 1, "b": 1, "c": 1}
 #
+#-------------------------------------------------------------------------
 # Error
 sugar:       Error("Description of problem goes here")
 desugared:   Error@("Description of problem goes here")
@@ -317,6 +324,7 @@ built:       Error@("Something's Always Wrong with", Dec@("123.456"))
 canonical:   Error("Something's Always Wrong with", Dec("123.456"))
 evaluated:   Error("Something's Always Wrong with", 123.456)
 #
+#-------------------------------------------------------------------------
 # Set
 sugar:       Set("a", "b", "c")
 desugared:   Set@("a", "b", "c")
@@ -342,6 +350,7 @@ built:       Set@("a", "b", "c", "a")
 canonical:   Set("a", "b", "c", "a")
 evaluated:   Set("a", "b", "c")
 #
+#-------------------------------------------------------------------------
 # Fun with Fun
 sugar:       x => 42
 desugared:   Fun(List(Sym("x")), Nat("42"))
@@ -385,6 +394,7 @@ built:       Fun(List(Sym("x"), Sym("y")), Mul@(Sym("x"), Sym("y")))@(6, 7)
 canonical:   App(Fun(List(Sym("x"), Sym("y")), Mul(Sym("x"), Sym("y"))), Nat("6"), Nat("7"))
 evaluated:   42
 #
+#-------------------------------------------------------------------------
 # Let
 sugar:       (x := 6) => x * 7
 desugared:   Let(List(Tuple(Sym("x"), Nat("6"))), Mul(Sym("x"), Nat("7")))
@@ -434,6 +444,7 @@ built:       Fun(List(Sym("x"), Sym("y")), Add@(Sym("x"), Sym("y")))@(20, 22)
 canonical:   App(Fun(List(Sym("x"), Sym("y")), Add(Sym("x"), Sym("y"))), Nat("20"), Nat("22"))
 evaluated:   42
 #
+#-------------------------------------------------------------------------
 # Some basic arithmetic
 sugar:       Add(19, 23)
 desugared:   Add@(Nat("19"), Nat("23"))
@@ -525,6 +536,7 @@ built:       Neg@(Neg@(99))
 canonical:   Neg(Neg(Nat("99")))
 evaluated:   99
 #
+#-------------------------------------------------------------------------
 # Rational numbers
 sugar:       123/456
 desugared:   Div(Nat("123"), Nat("456"))
@@ -575,10 +587,12 @@ canonical:   Div(Mul(Mul(Nat("3"), Rat("22/2")), Rat("44/12")), Rat("11"))
 evaluated:   11
 #
 sugar:       Nat("321")/Int("654")
-desugared:   Div(Tag("Nat")@("321"), Tag("Int")@("654"))
+desugared:   Div(Nat@("321"), Int@("654"))
 built:       Div@(Nat@("321"), Int@("654"))
 canonical:   Div(Nat("321"), Int("654"))
 evaluated:   107/218
+#
+#-------------------------------------------------------------------------
 # Ignore, Crash, Quote
 sugar:       Ignore(Crash())
 desugared:   Ignore@(Crash@())
@@ -599,10 +613,12 @@ canonical:   Quote(Crash())
 evaluated:   Crash@()
 #
 sugar:       ~(1 + Crash())
-desugared:   Quote(Add(Nat("1"), Tag("Crash")@()))
+desugared:   Quote(Add(Nat("1"), Crash@()))
 built:       Quote@(Add@(1, Crash@()))
 canonical:   Quote(Add(Nat("1"), Crash()))
 evaluated:   Add@(1, Crash@())
+#
+#-------------------------------------------------------------------------
 # Test Module Environment, for boot.grim
 sugar:       fortyTwo
 desugared:   Sym("fortyTwo")
@@ -615,6 +631,8 @@ desugared:   Sym("sum2")@(Nat("21"), Nat("21"))
 built:       Sym("sum2")@(21, 21)
 canonical:   App(Sym("sum2"), Nat("21"), Nat("21"))
 evaluated:   42
+#
+#-------------------------------------------------------------------------
 # Decimal Arithmetic
 sugar:       Dec("1.25") + Dec("0.25")
 desugared:   Add(Dec@("1.25"), Dec@("0.25"))
@@ -687,6 +705,8 @@ desugared:   Add(Pow(Dec("2.0"), Nat("129")), Pow(Dec("2.0"), Neg(Dec("129.0")))
 built:       Add@(Pow@(2.0, 129), Pow@(2.0, Neg@(129.0)))
 canonical:   Add(Pow(Dec("2.0"), Nat("129")), Pow(Dec("2.0"), Neg(Dec("129.0"))))
 evaluated:   680564733841876926926749214863536422912.00000000000000000000000000000000000000146936793852785938496092
+#
+#-------------------------------------------------------------------------
 # Equality & Comparison
 sugar:       2 == 2
 desugared:   Eq(Nat("2"), Nat("2"))
@@ -881,10 +901,12 @@ canonical:   Eq(Set("a", "b"), Set("a", "b", "a", "b"))
 evaluated:   True
 #
 sugar:       Set("a", "b") != Set("a", "c")
-desugared:   Neq(Tag("Set")@("a", "b"), Tag("Set")@("a", "c"))
+desugared:   Neq(Set@("a", "b"), Set@("a", "c"))
 built:       Neq@(Set@("a", "b"), Set@("a", "c"))
 canonical:   Neq(Set("a", "b"), Set("a", "c"))
 evaluated:   True
+#
+#-------------------------------------------------------------------------
 # Conditionals
 sugar:       If3(True, 41 + 1, Crash())
 desugared:   If3@(True, Add(Nat("41"), Nat("1")), Crash@())
@@ -911,10 +933,12 @@ canonical:   App(Sym("fib"), Nat("7"))
 evaluated:   13
 #
 sugar:       if True then 1 else 0
-desugared:   If3(Tag("True"), Nat("1"), Nat("0"))
+desugared:   If3(True, Nat("1"), Nat("0"))
 built:       If3@(True, 1, 0)
 canonical:   If3(True, Nat("1"), Nat("0"))
 evaluated:   1
+#
+#-------------------------------------------------------------------------
 # Inequality Comparisons
 sugar:       2 <= 3
 desugared:   LtEq(Nat("2"), Nat("3"))
@@ -1029,6 +1053,8 @@ desugared:   Gt("darkness", "dark")
 built:       Gt@("darkness", "dark")
 canonical:   Gt("darkness", "dark")
 evaluated:   True
+#
+#-------------------------------------------------------------------------
 # Test some Boolean Macro Rules
 sugar:       1 == 2 || 1 == 1
 desugared:   Or(Eq(Nat("1"), Nat("2")), Eq(Nat("1"), Nat("1")))
@@ -1067,10 +1093,12 @@ canonical:   Not(False)
 evaluated:   True
 #
 sugar:       Not(1 == 2)
-desugared:   Tag("Not")@(Eq(Nat("1"), Nat("2")))
+desugared:   Not@(Eq(Nat("1"), Nat("2")))
 built:       Not@(Eq@(1, 2))
 canonical:   Not(Eq(Nat("1"), Nat("2")))
 evaluated:   True
+#
+#-------------------------------------------------------------------------
 # Quote and Unquote
 sugar:       Quote(Crash())
 desugared:   Quote@(Crash@())
@@ -1108,6 +1136,7 @@ built:       Quote@(Unquote@(Sym("fact")@(5)))
 canonical:   Quote(Unquote(App(Sym("fact"), Nat("5"))))
 evaluated:   120
 #
+#-------------------------------------------------------------------------
 # More complicated Macro Rules tests
 sugar:       Pair(fact(4), fact(5))
 desugared:   Pair@(Sym("fact")@(Nat("4")), Sym("fact")@(Nat("5")))
@@ -1145,6 +1174,7 @@ built:       RApply@(Sym("fact"), 5)
 canonical:   RApply(Sym("fact"), Nat("5"))
 evaluated:   120
 #
+#------------------------------------------------
 # Crashes as expected
 #sugar:       Pair(Crash(), Crash())
 #

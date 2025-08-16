@@ -38,6 +38,13 @@ class Tester {
                 // Skip empty lines
                 return;
             }
+            if (line.startsWith("#-")) {
+                let section = line.substring(1).trim(); // Remove comment marker
+                if (section.replace(/[-]+/g, '') === "") { // just an ascii horizontal rule or line
+                    // do nothing
+                    return;
+                }
+            }
             if (line.startsWith("#")) {
                 let section = line.substring(1).trim(); // Remove comment marker
                 if (section !== "") {
@@ -175,7 +182,8 @@ class Tester {
         }
     }
 
-    readonly reportMismatches: boolean = true; // Set to true to report mismatches in test output
+    readonly reportMismatches: boolean = true; // <-- Set to true to report mismatches in test output
+    // ^^^ Set to false to copy-paste large chunks of output back into test-table.yaml
     private testOneEntry(entry: TestEntry) {
         if (!entry.sugar) {
             console.warn("Test entry has no sugar:", entry);
