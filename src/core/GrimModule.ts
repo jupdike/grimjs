@@ -101,6 +101,12 @@ class GrimModule {
         } else if (tagAst instanceof CanTaggedApp && tagAst.tag.tag === "Tag" &&
             tagAst.args.length === 1 && tagAst.args[0] instanceof CanStr) {
             return tagAst.args[0].str;
+        } else if (tagAst instanceof CanApp) {
+            return null;
+        } else if (tagAst instanceof CanTaggedApp && typeof(tagAst.tag.tag) === "string") {
+            return tagAst.tag.tag;
+        } else if (tagAst instanceof CanTaggedApp && tagAst.tag instanceof CanTag) {
+            return tagAst.tag.tag;
         } else {
             return null;
         }

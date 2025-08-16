@@ -4,6 +4,7 @@ import { CanApp, CanTaggedApp, CanAst } from "../parser/CanAst.js";
 import { GrimList } from "./GrimCollect";
 import { GrimModule } from "./GrimModule.js";
 import { GrimError } from "./GrimOpt.js";
+import { GrimStr } from "./GrimStr.js";
 import { GrimSym, GrimTag } from "./GrimAst.js";
 
 class GrimApp extends GrimVal {
@@ -60,27 +61,48 @@ class GrimApp extends GrimVal {
                 return new GrimVal();
             }
             const lhs = ast[0];
-            if (!(ast[1] instanceof GrimList)) {
-                console.warn("GrimApp.maker called with first arg not a GrimVal, returning empty GrimVal");
-                return new GrimVal();
+            if (ast[1] instanceof GrimList) {
+                const rhs: Array<GrimVal> = ast[1].asArray();
+                return new GrimApp(lhs, rhs);
             }
-            const rhs: Array<GrimVal> = ast[1].asArray();
+            //console.error("ast:", ast.toString());
+            //console.error("GrimApp.maker called with first arg not a GrimList");
+            const rhs: Array<GrimVal> = [ast[1]];
             return new GrimApp(lhs, rhs);
         }
         if (ast instanceof CanApp) {
             const lhs = module.fromAst(ast.fun);
             const rhs: Array<GrimVal> = ast.args.map(arg => module.fromAst(arg));
+            if (lhs instanceof GrimTag && lhs.value === "Tag" && rhs.length === 1 && rhs[0] instanceof GrimStr) {
+                let ret = new GrimTag(rhs[0].value);
+                return ret;
+            }
             return new GrimApp(lhs, rhs);
         }
-        if (ast instanceof CanTaggedApp && ast.tag.tag === "App") {
+        else if (ast instanceof CanTaggedApp && ast.tag.tag === "App") {
+            console.error("Hit old code path");
             if (ast.args.length === 0) {
                 console.warn("GrimApp.maker called with no args, returning empty GrimVal");
                 return new GrimVal();
             }
             const lhs = module.fromAst(ast.args[0]);
             const rhs = ast.args.slice(1).map(arg => module.fromAst(arg));
-            return new GrimApp(lhs, rhs);
+            if (lhs instanceof GrimTag && lhs.value === "Tag") {
+                throw new Error("We don't want this step down the road of infinite regress.");
+            }
+            let ret = new GrimApp(lhs, rhs);
+            console.error(`GrimApp.maker created GrimApp: ${ret.toCanonicalString()}`);
+            return ret;
         }
+        else {
+            console.error("Hit new code path");
+            process.exit(1);
+        }
+        // else if (ast instanceof CanTaggedApp) {
+        //     const lhs = module.fromAst(ast.args[0]);
+        //     const rhs = ast.args.slice(1).map(arg => module.fromAst(arg));
+        //     return new GrimApp(lhs, rhs);
+        // }
         console.warn(`GrimApp.maker received unexpected AST type: ${ast.constructor.name}`);
         return new GrimVal();
     }

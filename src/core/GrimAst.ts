@@ -35,9 +35,13 @@ class GrimTag extends GrimVal {
 
     equals(other: GrimVal): boolean {
         if (other instanceof GrimTag) {
+            // HERE is the bug: other.value is not a string, but a GrimVal
+            //console.error("GrimTag equals 1:", this.value, typeof(this.value), "other:", other.value);
             if (this.value.length !== other.value.length) {
+                //console.error("GrimTag equals 2");
                 return false;
             }
+            //console.error("GrimTag equals 3");
             return this.value === other.value;
         }
         if (other instanceof GrimBool) {

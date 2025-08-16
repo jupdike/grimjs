@@ -27,6 +27,9 @@ class CanAst {
     toString(): string {
         return "CanAst--BUG--subclass should override toString()";
     }
+    toCanonicalString(): string {
+        return "CanAst--BUG--subclass should override toCanonicalString()";
+    }
     constructor(location: Location) {
         this.location = location
     }
@@ -64,6 +67,9 @@ class CanStr extends CanAst {
     toString(): string {
         return strOf(this.str);
     }
+    toCanonicalString(): string {
+        return this.toString();
+    }
 }
 
 class CanTag extends CanAst {
@@ -78,6 +84,9 @@ class CanTag extends CanAst {
     toString(): string {
         return this.tag; // just the tag name, no quotes
     }
+    toCanonicalString(): string {
+        return this.toString();
+    }
 }
 
 class CanApp extends CanAst {
@@ -90,6 +99,10 @@ class CanApp extends CanAst {
     }
     toString(): string {
         return `${this.fun.toString()}@(${this.args.map(arg => arg.toString()).join(", ")})`;
+    }
+    toCanonicalString(): string {
+        // no @, that is main difference
+        return `${this.fun.toCanonicalString()}(${this.args.map(arg => arg.toCanonicalString()).join(", ")})`;
     }
 }
 
@@ -110,6 +123,9 @@ class CanTaggedApp extends CanAst {
     }
     toString(): string {
         return `${this.tag.toString()}(${this.args.map(arg => arg.toString()).join(", ")})`;
+    }
+    toCanonicalString(): string {
+        return `${this.tag.toCanonicalString()}(${this.args.map(arg => arg.toCanonicalString()).join(", ")})`;
     }
 }
 
