@@ -173,6 +173,19 @@ class Tester {
         return "<ERROR_SO_NO_RESULT>";
     }
 
+    private evalOne_shouldFail(val: GrimVal): string {
+        let state = new EvalState(val, this.module.evaluatedModuleEnv(), this.module);
+        let result: GrimVal | null = null;
+        try {
+            result = Eval.evaluate(state).expr;
+        } catch (e) {
+            //console.error('Eval 2 error:', e);
+            //return `Error('${e.message}')`;
+            return "shouldfail";
+        }
+        throw new Error("Failed to fail when we expected it to fail");
+    }
+
     private parseCanon(input: string): CanAst | null {
         try {
             return parserCanon.parse(input, { startRule: "Start" });
@@ -223,12 +236,17 @@ class Tester {
         if (this.reportMismatches && canonical !== entry.canonical) {
             console.error(`Canonical string does not match expected: ${canonical} !== ${entry.canonical}`);
         }
-        if (entry.evaluated !== "noeval") {
+        if (entry.evaluated !== "noeval" && entry.evaluated !== "shouldfail") {
             let evaluated: string = this.evalOne(built);
             console.log(`evaluated:   ${evaluated}`);
             if (this.reportMismatches && evaluated !== entry.evaluated) {
                 console.error(`Evaluated result does not match expected: ${evaluated} !== ${entry.evaluated}`);
             }
+        } else if (entry.evaluated === "shouldfail") {
+            let evaluated: string = this.evalOne_shouldFail(built);
+            console.log(`evaluated:   ${evaluated}`);
+        } else {
+            console.log(`evaluated:   ${entry.evaluated}`);
         }
         console.log("#");
     }

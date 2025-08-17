@@ -1144,6 +1144,12 @@ built:       Pair@(Sym("fact")@(4), Sym("fact")@(5))
 canonical:   Pair(App(Sym("fact"), Nat("4")), App(Sym("fact"), Nat("5")))
 evaluated:   (24, 120)
 #
+sugar:       Pair(Crash(), Crash())
+desugared:   Pair@(Crash@(), Crash@())
+built:       Pair@(Crash@(), Crash@())
+canonical:   Pair(Crash(), Crash())
+evaluated:   shouldfail
+#
 sugar:       If3(True, fact(5), Crash())
 desugared:   If3@(True, Sym("fact")@(Nat("5")), Crash@())
 built:       If3@(True, Sym("fact")@(5), Crash@())
@@ -1174,15 +1180,26 @@ built:       RApply@(Sym("fact"), 5)
 canonical:   RApply(Sym("fact"), Nat("5"))
 evaluated:   120
 #
-#------------------------------------------------
-# Crashes as expected
-#sugar:       Pair(Crash(), Crash())
+sugar:       True ? Crash() $ Two
+desugared:   RApply(If2(True, Crash@()), Two)
+built:       RApply@(If2@(True, Crash@()), Two)
+canonical:   RApply(If2(True, Crash()), Two)
+evaluated:   shouldfail
 #
-#sugar:       a -> 2 + 3
-#evaluated:   noeval
+sugar:       False ? One $ Crash()
+desugared:   RApply(If2(False, One), Crash@())
+built:       RApply@(If2@(False, One), Crash@())
+canonical:   RApply(If2(False, One), Crash())
+evaluated:   shouldfail
 #
-#sugar:       Quote(x) -> 2 + 3
-#evaluated:   noeval
+sugar:       (n := 0) => n == 0 || n == 1
+desugared:   Let(List(Tuple(Sym("n"), Nat("0"))), Or(Eq(Sym("n"), Nat("0")), Eq(Sym("n"), Nat("1"))))
+built:       Let(List((Sym("n"), 0)), Or@(Eq@(Sym("n"), 0), Eq@(Sym("n"), 1)))
+canonical:   Let(List(Tuple(Sym("n"), Nat("0"))), Or(Eq(Sym("n"), Nat("0")), Eq(Sym("n"), Nat("1"))))
+evaluated:   True
 #
-#sugar:       (n := 0) => n == 0 || n == 1
+#sugar:       (x, x) => x / 2
+#desugared:   Fun(List(Sym("x"), Sym("x")), Div(Sym("x"), Nat("2")))
+#built:       shouldfail
+#evaluated:   shouldfail
 #

@@ -35,13 +35,6 @@ tester.runTests(mainTestsJson);
 // console.log(`${bootDefinitions.length} definitions parsed successfully.`);
 
 /*
-// This is a comment
-Int :> Nat
-Rat :> Int
-Rat :> Nat
-
-f(x, y) := x + y
-
 // // fails, as expected -->
 // // module.analyzeOne("x");  // because x is not defined
 // // ? analyzeOne('Option()');  // probably a bad idea
@@ -53,6 +46,10 @@ module.analyzeOne('Some([])'); // ==> nested empty list inside of Some
 // // analyzeOne('()');
 // // analyzeOne('(,)');
 // -------------------------------
+#sugar:       a -> 2 + 3
+#evaluated:   noeval
+#sugar:       Quote(x) -> 2 + 3
+#evaluated:   noeval
 // // Tuples of one or more elements
 // //analyzeOne('Tuple("a")'); // we don't want to allow this either
 // //analyzeOne('("a",)'); // not parsing any more
@@ -64,9 +61,8 @@ module.analyzeOne('Set("a", "b", "c", "a", "b")'); // duplicates removed
 // // module.analyzeOne('App(f,"x")');
 // // module.analyzeOne('(f)("x", "y")');
 // module.analyzeOne('0(list)'); // <-- this parses, but doesn't build yet // should we not allow this?
-also fails, as expected -->
+also fails, as expected, fails to parse or build, not failed to evaluated
 sugar:       (x, x) => x / 2
-
 sugar:       True ? One $ Two
 sugar:       False ? One $ Two
 */
